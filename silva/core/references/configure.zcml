@@ -1,0 +1,18 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:z3c="http://namespaces.zope.org/z3c"
+    i18n_domain="silva">
+
+  <include package="silva.core.views" />
+
+  <adapter
+     factory="silva.core.references.widgets.z3cform.ReferenceFieldWidget" />
+
+  <z3c:widgetTemplate
+     mode="input"
+     widget="silva.core.references.widgets.z3cform.IReferenceWidget"
+     layer="z3c.form.interfaces.IFormLayer"
+     template="widgets/reference_input.pt"
+     />
+
+</configure>

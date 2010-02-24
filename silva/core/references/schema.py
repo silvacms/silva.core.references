@@ -3,7 +3,7 @@
 # $Id$
 
 from zope.schema import interfaces
-from zope import schema
+from zope import schema, interface
 
 
 class IReference(interfaces.IObject):
@@ -14,7 +14,8 @@ class IReference(interfaces.IObject):
 class Reference(schema.Field):
     """Store a reference to an object.
     """
+    interface.implements(IReference)
 
     def _validate(self, value):
         # No validation for the moment
-
+        pass
