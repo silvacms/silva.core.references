@@ -4,6 +4,7 @@
     i18n_domain="silva">
 
   <include package="silva.core.views" />
+  <include package="silva.core.rest" />
 
   <adapter
      factory="silva.core.references.widgets.z3cform.ReferenceFieldWidget" />
