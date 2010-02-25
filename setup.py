@@ -25,5 +25,6 @@ setup(name='silva.core.references',
       zip_safe=False,
       install_requires=[
         'setuptools',
+        'silva.core.rest',
         ],
       )
