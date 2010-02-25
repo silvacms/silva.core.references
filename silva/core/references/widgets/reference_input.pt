@@ -10,13 +10,23 @@
              $(this).dialog('close');
           }
         },
-        open: function() {
-           alert('hallo');
-        }
       });
       $('.reference-dialog-trigger').click(function() {
+         var url = 'http://localhost:8080/silva/docs/++rest++items';
          var widget = $(this).parent('.reference-widget');
-         $('#' + widget.attr('id') + '-dialog').dialog('open');
+         var popup = $('#' + widget.attr('id') + '-dialog');
+         popup.dialog('open');
+         $.getJSON(url, function (data) {
+           var target = popup.find('.reference-dialog-data');
+           target.empty();
+           $.each(data, function(index, entry) {
+              var item = $('<li />');
+              item.text(entry['title']);
+              item.appendTo(target);
+           });
+           console.log(target);
+           console.log(data);
+         });
          return false;
       });
     });
@@ -24,7 +34,8 @@
   <div id="#" title="#" class="ui-widget reference-dialog"
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
-    Hello world!
+    <ul class="reference-dialog-data">
+    </ul>
   </div>
   <button class="button reference-dialog-trigger">
       Change
