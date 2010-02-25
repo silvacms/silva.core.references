@@ -1,26 +1,32 @@
-<tal:widget tal:define="trigger_id string:${view/id}_trigger">
+<div class="reference-widget" id="#"
+     tal:attributes="id view/id">
   <script type="text/javascript">
     $(document).ready(function() {
-      $('#form-widgets-target').dialog({
+      $('.reference-dialog').dialog({
         autoOpen: false,
         modal: true,
         buttons: {
           'Cancel': function() {
              $(this).dialog('close');
           }
+        },
+        open: function() {
+           alert('hallo');
         }
       });
-      $('#form-widgets-target_trigger').click(function() {
-         $('#form-widgets-target').dialog('open');
+      $('.reference-dialog-trigger').click(function() {
+         var widget = $(this).parent('.reference-widget');
+         $('#' + widget.attr('id') + '-dialog').dialog('open');
          return false;
       });
     });
   </script>
-  <div id="#" title="#" class="ui-widget"
-       tal:attributes="id view/id;
+  <div id="#" title="#" class="ui-widget reference-dialog"
+       tal:attributes="id string:${view/id}-dialog;
                        title view/title">
     Hello world!
   </div>
-  <button id="#" class="button"
-          tal:attributes="id trigger_id">Change</button>
-</tal:widget>
+  <button class="button reference-dialog-trigger">
+      Change
+  </button>
+</div>
