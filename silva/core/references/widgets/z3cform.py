@@ -28,4 +28,6 @@ class ReferenceWidget(widget.HTMLTextAreaWidget, Widget):
 def ReferenceFieldWidget(field, request):
     """IFieldWidget factory for ReferenceWidget.
     """
-    return FieldWidget(field, ReferenceWidget(request))
+    widget =  FieldWidget(field, ReferenceWidget(request))
+    widget.title = field.title  # Set properly the title to have access to it
+    return widget

@@ -1,1 +1,26 @@
-<p>Hello world!</p>
+<tal:widget tal:define="trigger_id string:${view/id}_trigger">
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('#form-widgets-target').dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+          'Cancel': function() {
+             $(this).dialog('close');
+          }
+        }
+      });
+      $('#form-widgets-target_trigger').click(function() {
+         $('#form-widgets-target').dialog('open');
+         return false;
+      });
+    });
+  </script>
+  <div id="#" title="#" class="ui-widget"
+       tal:attributes="id view/id;
+                       title view/title">
+    Hello world!
+  </div>
+  <button id="#" class="button"
+          tal:attributes="id trigger_id">Change</button>
+</tal:widget>
