@@ -20,7 +20,8 @@
 
   <browser:resourceInclude
      layer="silva.core.smi.interfaces.ISMILayer"
-     include="reference-ui.js" />
+     include="reference-ui.js"
+     base="silva.core.references.widgets" />
 
   <grok:grok package="." />
 
