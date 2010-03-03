@@ -31,10 +31,11 @@ class RelationCatalog(Catalog):
 class ReferenceService(SilvaService):
     """This service track existing references between content
     """
-    meta = 'Silva Reference Service'
+    meta_type = 'Silva Reference Service'
     grok.implements(IReferenceService)
 
-    def __init__(self):
+    def __init__(self, id, title):
+        super(ReferenceService, self).__init__(id, title)
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
