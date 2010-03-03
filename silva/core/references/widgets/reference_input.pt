@@ -1,16 +1,17 @@
 <div class="reference-widget" id="#"
      tal:attributes="id view/id">
-  <script type="text/javascript">
-    $(document).ready(function() {
-
-    });
-  </script>
   <div id="#" title="#" class="ui-widget reference-dialog"
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
     <ul class="reference-dialog-data">
     </ul>
   </div>
+  <span>Selected:
+    <a href="#" id="#" target="_blank"
+       tal:attributes="id string:${view/id}-link"></a>
+  </span>
+  <input type="hidden" value="#" id="#"
+         tal:attributes="id string:${view/id}-value" />
   <button class="button reference-dialog-trigger">
       Change
   </button>
