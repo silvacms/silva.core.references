@@ -33,21 +33,8 @@ class ReferenceService(SilvaService):
     """
     meta = 'Silva Reference Service'
     grok.implements(IReferenceService)
-    silvaconf.factory('manage_addReferenceService')
 
     def __init__(self):
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
-
-# XXX: Make a default factory, move register_service and add_and_edit
-# in silva.core.conf.
-from Products.Silva.helpers import add_and_edit, register_service
-
-def manage_addReferenceService(self, id, REQUEST=None):
-    """Add a Reference Service.
-    """
-    service = ReferenceService(id)
-    register_service(self, id, service, IReferenceService)
-    add_and_edit(self, id, REQUEST)
-    return ''
