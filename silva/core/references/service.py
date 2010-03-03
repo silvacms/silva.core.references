@@ -3,13 +3,15 @@
 # $Id$
 
 from silva.core.services.base import SilvaService
+from five import grok
 
-from BTree import IOBTree
+from BTrees.IOBTree import IOBTree
 
 
 class IntegrityService(SilvaService):
     """This service track existing references between content.
     """
+    grok.baseclass()
 
     def __init__(self):
         self.__backward_references = IOBTree()

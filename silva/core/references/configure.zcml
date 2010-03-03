@@ -1,9 +1,12 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:z3c="http://namespaces.zope.org/z3c"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:grok="http://namespaces.zope.org/grok"
     i18n_domain="silva">
 
   <include package="silva.core.views" />
+  <include package="silva.core.smi" />
   <include package="silva.core.rest" />
 
   <adapter
@@ -13,7 +16,12 @@
      mode="input"
      widget="silva.core.references.widgets.z3cform.IReferenceWidget"
      layer="z3c.form.interfaces.IFormLayer"
-     template="widgets/reference_input.pt"
-     />
+     template="widgets/reference_input.pt" />
+
+  <browser:resourceInclude
+     layer="silva.core.smi.interfaces.ISMILayer"
+     include="reference-ui.js" />
+
+  <grok:grok package="." />
 
 </configure>

@@ -3,7 +3,7 @@
 # $Id$
 
 from zope import component, interface
-from zope.intids.interfaces import IIntIds
+from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
 
 from silva.core.references.interfaces import BrokenReferenceError, \
