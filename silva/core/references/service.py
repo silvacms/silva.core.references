@@ -2,30 +2,52 @@
 # See also LICENSE.txt
 # $Id$
 
-from silva.core.services.base import SilvaService
+from dolmen.relations.catalog import dump, load
+from dolmen.relations.container import RelationsContainer
+from dolmen.relations.interfaces import IRelationValue
 from five import grok
+from zc.relation.catalog import Catalog
 
-from BTrees.IOBTree import IOBTree
+from silva.core.references.interfaces import IReference, IReferenceService
+from silva.core.services.base import SilvaService
+from silva.core import conf as silvaconf
+
+import BTrees
 
 
-class IntegrityService(SilvaService):
-    """This service track existing references between content.
+class RelationCatalog(Catalog):
+    """Catalog references.
     """
-    grok.baseclass()
 
     def __init__(self):
-        self.__backward_references = IOBTree()
-        self.__forward_references = IOBTree()
-        self.__brokens = []
-
-    def is_deletable(self, content):
-        return False
-
-    def track_reference(self, source_id, target_id):
-        pass
-
-    def untrack_reference(self, source_id, target_id):
-        pass
+        """Create the relation catalog with indexes
+        """
+        super(RelationCatalog, self).__init__(dump, load)
+        self.addValueIndex(IRelationValue['source_id'])
+        self.addValueIndex(IRelationValue['target_id'])
+        self.addValueIndex(IReference['type'], btree=BTrees.family32.OO)
 
 
+class ReferenceService(SilvaService):
+    """This service track existing references between content
+    """
+    meta = 'Silva Reference Service'
+    grok.implements(IReferenceService)
+    silvaconf.factory('manage_addReferenceService')
 
+    def __init__(self):
+        self.catalog = RelationCatalog()
+        self.references = RelationsContainer()
+
+
+# XXX: Make a default factory, move register_service and add_and_edit
+# in silva.core.conf.
+from Products.Silva.helpers import add_and_edit, register_service
+
+def manage_addReferenceService(self, id, REQUEST=None):
+    """Add a Reference Service.
+    """
+    service = ReferenceService(id)
+    register_service(self, id, service, IReferenceService)
+    add_and_edit(self, id, REQUEST)
+    return ''

@@ -26,5 +26,6 @@ setup(name='silva.core.references',
       install_requires=[
         'setuptools',
         'silva.core.rest',
+        'dolmen.relations',
         ],
       )

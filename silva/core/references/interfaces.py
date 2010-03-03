@@ -3,35 +3,16 @@
 # $Id$
 
 from zope import interface
+from dolmen.relations.interfaces import IRelationValue
+from silva.core.interfaces import ISilvaService
 
 
-class BrokenReferenceError(ValueError):
-    """Exception used to identify broken reference.
+class IReference(IRelationValue):
+    """Identify a reference between two Silva content.
     """
+    type = interface.Attribute("Type of reference.")
 
 
-class NotSetReferenceError(BrokenReferenceError):
-    """Exception used to identify a unset reference.
+class IReferenceService(ISilvaService):
+    """Reference Service, used to manage references.
     """
-
-
-class IReference(interface.Interface):
-    """This object represent a reference to an other object.
-    """
-
-    def get():
-        """Return the value of the reference or raise
-        BrokenReferenceError.
-        """
-
-    def query():
-        """Return the value of the reference or None.
-        """
-
-    def set(value):
-        """Set the value of the reference to the given one.
-        """
-
-    def url(request):
-        """Return the URL of the reference for the given request.
-        """

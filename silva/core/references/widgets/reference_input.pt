@@ -10,8 +10,9 @@
     <a href="#" id="#" target="_blank"
        tal:attributes="id string:${view/id}-link"></a>
   </span>
-  <input type="hidden" value="#" id="#"
-         tal:attributes="id string:${view/id}-value" />
+  <input type="hidden" value="#" id="#" name=""
+         tal:attributes="id string:${view/id}-value;
+                         name view/name" />
   <button class="button reference-dialog-trigger">
       Change
   </button>

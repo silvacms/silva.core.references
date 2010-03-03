@@ -15,7 +15,7 @@ class IReferenceWidget(interfaces.IFieldWidget):
     pass
 
 
-class ReferenceWidget(widget.HTMLTextAreaWidget, Widget):
+class ReferenceWidget(widget.HTMLInputWidget, Widget):
     """Reference widget implementation.
     """
     zope.interface.implementsOnly(IReferenceWidget)
