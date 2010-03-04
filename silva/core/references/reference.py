@@ -2,10 +2,18 @@
 # See also LICENSE.txt
 # $Id$
 
+from dolmen.relations.events import RelationModifiedEvent
+from dolmen.relations.values import TaggedRelationValue, RelationValue
 from zope import component, interface
+from zope.event import notify
+from zope.intid.interfaces import IIntIds
 
-from dolmen.relations.values import TaggedRelationValue
 from silva.core.references.interfaces import IReferenceValue, IReferenceService
+
+
+def get_content_id(content):
+    utility = component.getUtility(IIntIds)
+    return utility.getId(content)
 
 
 class ReferenceValue(TaggedRelationValue):
@@ -13,6 +21,12 @@ class ReferenceValue(TaggedRelationValue):
     """
     interface.implements(IReferenceValue)
 
+    def set_target_id(self, target_id):
+        self.target_id = target_id
+        notify(RelationModifiedEvent(self))
+
+    def set_target(self, target):
+        self.set_target_id(get_content_id(target))
 
 
 class ReferenceProperty(object):

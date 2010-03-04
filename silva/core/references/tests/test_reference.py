@@ -28,6 +28,7 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
 
     def afterSetUp(self):
         self.add_folder(self.root, 'folder', 'Folder')
+        self.add_publication(self.root, 'publication', 'Publication')
         self.service = component.getUtility(IReferenceService)
 
     def test_new_reference(self):
@@ -44,6 +45,7 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         # You can get back the reference later on
         searched_reference = self.service.get_reference(
             self.root.folder, name=u'link')
+        self.failUnless(verifyObject(IReferenceValue, searched_reference))
         self.assertEquals(searched_reference, reference)
 
         # With a different name, it won't work
@@ -64,6 +66,10 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         self.assertEquals(reference.source, self.root.folder)
         self.assertEquals(reference.tags, [u'test'])
 
+        reference = self.service.get_reference(
+            self.root.publication, name=u"test")
+        self.assertEquals(reference, None)
+
     def test_delete_reference(self):
         """Add, search, remove and search a reference.
         """
@@ -77,6 +83,30 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         searched_reference = self.service.get_reference(
             self.root.folder, name=u'folder')
         self.assertEquals(searched_reference, None)
+
+    def test_set_reference_target(self):
+        """We create and use a reference, setting its target.
+        """
+        reference = self.service.new_reference(
+            self.root.folder, name=u'link')
+
+        references_to = list(self.service.get_references_to(
+                self.root.publication))
+        self.assertEquals(len(references_to), 0)
+
+        self.assertEquals(reference.target, None)
+        reference.set_target(self.root.publication)
+        self.assertEquals(reference.target, self.root.publication)
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'link')
+        self.failUnless(verifyObject(IReferenceValue, searched_reference))
+        self.assertEquals(searched_reference.target, self.root.publication)
+
+        references_to = list(self.service.get_references_to(
+                self.root.publication))
+        self.assertEquals(len(references_to), 1)
+        self.assertEquals(references_to[0], reference)
 
 
 def test_suite():
