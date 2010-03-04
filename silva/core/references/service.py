@@ -2,30 +2,22 @@
 # See also LICENSE.txt
 # $Id$
 
-from dolmen.relations.catalog import dump, load
+from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
-from dolmen.relations.interfaces import IRelationValue
 from five import grok
-from zc.relation.catalog import Catalog
+from zope import component
+from zope.intid.interfaces import IIntIds
+import uuid
 
-from silva.core.references.interfaces import IReference, IReferenceService
+from silva.core.references.interfaces import IReferenceService
+from silva.core.references.reference import ReferenceValue
 from silva.core.services.base import SilvaService
 from silva.core import conf as silvaconf
 
-import BTrees
 
-
-class RelationCatalog(Catalog):
-    """Catalog references.
-    """
-
-    def __init__(self):
-        """Create the relation catalog with indexes
-        """
-        super(RelationCatalog, self).__init__(dump, load)
-        self.addValueIndex(IRelationValue['source_id'])
-        self.addValueIndex(IRelationValue['target_id'])
-        self.addValueIndex(IReference['type'], btree=BTrees.family32.OO)
+def get_content_id(content):
+    utility = component.getUtility(IIntIds)
+    return utility.register(content)
 
 
 class ReferenceService(SilvaService):
@@ -38,4 +30,46 @@ class ReferenceService(SilvaService):
         super(ReferenceService, self).__init__(id, title)
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
+
+    def __create_reference(self, content_id, tags):
+        """Create and add a new reference
+        """
+        reference = ReferenceValue(content_id, 0, tags=tags)
+        reference_id = uuid.uuid1()
+        self.references[reference_id] = reference
+        return reference
+
+    def __get_reference_details(self, content, name):
+        """Return information to lookup a reference
+        """
+        tags = []
+        if name is not None:
+            tags.append(name)
+        content_id = get_content_id(content)
+        return content_id, tags
+
+    def new_reference(self, content, name=None):
+        """Create a new reference.
+        """
+        content_id, tags = self.__get_reference_details(content, name)
+        return self.__create_reference(content_id, tags)
+
+    def get_reference(self, content, name=None, add=False):
+        """Retrieve an existing reference.
+        """
+        content_id, tags = self.__get_reference_details(content, name)
+        references = self.catalog.findRelations(
+            {'source_id': content_id, 'tags': tags})
+        if not len(references):
+            if add is True:
+                return self.__create_reference(content_id, tags)
+            return None
+        return references[0]
+
+    def delete_reference(self, content, name=None):
+        """Lookup and remove a reference.
+        """
+        reference = self.get_reference(content, name=name, add=False)
+        if reference is not None:
+            del self.references[reference.__name__]
 
