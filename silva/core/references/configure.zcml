@@ -10,6 +10,7 @@
   <include package="silva.core.views" />
   <include package="silva.core.smi" />
   <include package="silva.core.rest" />
+  <include package="dolmen.relations" />
 
   <five:registerPackage package="." />
 

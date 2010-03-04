@@ -5,8 +5,11 @@
 from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
+from zc.relation.interfaces import ICatalog
 from zope import component
 from zope.intid.interfaces import IIntIds
+from zope.lifecycleevent.interfaces import IObjectCreatedEvent
+from zope.location.interfaces import ISite
 import uuid
 
 from silva.core.references.interfaces import IReferenceService
@@ -58,8 +61,8 @@ class ReferenceService(SilvaService):
         """Retrieve an existing reference.
         """
         content_id, tags = self.__get_reference_details(content, name)
-        references = self.catalog.findRelations(
-            {'source_id': content_id, 'tags': tags})
+        references = list(self.catalog.findRelations(
+            {'source_id': content_id, 'tag': name}))
         if not len(references):
             if add is True:
                 return self.__create_reference(content_id, tags)
@@ -73,3 +76,12 @@ class ReferenceService(SilvaService):
         if reference is not None:
             del self.references[reference.__name__]
 
+
+@grok.subscribe(IReferenceService, IObjectCreatedEvent)
+def configureReferenceService(service, event):
+    """Configure the reference after it have been created. Register
+    the relation catalog to the root local site.
+    """
+    root = service.get_root()
+    sm = root.getSiteManager()
+    sm.registerUtility(service.catalog, ICatalog)
