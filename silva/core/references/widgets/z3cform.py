@@ -2,11 +2,13 @@
 # See also LICENSE.txt
 # $Id$
 
-import zope.component
-import zope.interface
-import silva.core.references.schema
+from zope import component, interface
+from zope.intid.interfaces import IIntIds
+from zope.traversing.browser import absoluteURL
+from silva.core.references.interfaces import IReference
+from silva.core.references.reference import get_content_id
 
-from z3c.form import interfaces
+from z3c.form import interfaces, converter
 from z3c.form.widget import Widget, FieldWidget
 from z3c.form.browser import widget
 
@@ -18,13 +20,36 @@ class IReferenceWidget(interfaces.IFieldWidget):
 class ReferenceWidget(widget.HTMLInputWidget, Widget):
     """Reference widget implementation.
     """
-    zope.interface.implementsOnly(IReferenceWidget)
+    interface.implementsOnly(IReferenceWidget)
+
+    def update(self):
+        super(ReferenceWidget, self).update()
+        # ...
+        self.value_title = None
+        self.value_url = None
+        content_id = int(self.value)
+        if content_id:
+            content = component.getUtility(IIntIds).getObject(content_id)
+            self.value_title = content.get_title_or_id()
+            self.value_url = absoluteURL(content, self.request)
 
 
+class ReferenceDataConverter(converter.BaseDataConverter):
+    """Data converter for ReferenceWidget.
+    """
+    component.adapts(IReference, IReferenceWidget)
 
-@zope.component.adapter(
-    silva.core.references.schema.IReference, interfaces.IFormLayer)
-@zope.interface.implementer(IReferenceWidget)
+    def toWidgetValue(self, value):
+        if value is None:
+            return 0
+        return get_content_id(value)
+
+    def toFieldValue(self, value):
+        return int(value)
+
+
+@component.adapter(IReference, interfaces.IFormLayer)
+@interface.implementer(IReferenceWidget)
 def ReferenceFieldWidget(field, request):
     """IFieldWidget factory for ReferenceWidget.
     """

@@ -2,9 +2,14 @@
 # See also LICENSE.txt
 # $Id$
 
-from zope import interface
+from zope.schema.interfaces import IObject
 from dolmen.relations.interfaces import ITaggedRelationValue
 from silva.core.interfaces import ISilvaService
+
+
+class IReference(IObject):
+    """A reference field is like an object.
+    """
 
 
 class IReferenceValue(ITaggedRelationValue):

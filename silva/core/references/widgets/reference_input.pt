@@ -8,11 +8,14 @@
   </div>
   <span>Selected:
     <a href="#" id="#" target="_blank"
-       tal:attributes="id string:${view/id}-link"></a>
+       tal:attributes="id string:${view/id}-link;
+                       href view/value_url"
+       tal:content="view/value_title"></a>
   </span>
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
-                         name view/name" />
+                         name view/name;
+                         value view/value" />
   <button class="button reference-dialog-trigger">
       Change
   </button>

@@ -16,12 +16,20 @@
 
   <adapter
      factory="silva.core.references.widgets.z3cform.ReferenceFieldWidget" />
+  <adapter
+     factory="silva.core.references.widgets.z3cform.ReferenceDataConverter" />
 
   <z3c:widgetTemplate
      mode="input"
      widget="silva.core.references.widgets.z3cform.IReferenceWidget"
      layer="z3c.form.interfaces.IFormLayer"
      template="widgets/reference_input.pt" />
+
+  <z3c:widgetTemplate
+     mode="display"
+     widget="silva.core.references.widgets.z3cform.IReferenceWidget"
+     layer="z3c.form.interfaces.IFormLayer"
+     template="widgets/reference_display.pt" />
 
   <browser:resourceInclude
      layer="silva.core.smi.interfaces.ISMILayer"
