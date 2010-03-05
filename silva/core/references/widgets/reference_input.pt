@@ -16,6 +16,9 @@
          tal:attributes="id string:${view/id}-value;
                          name view/name;
                          value view/value" />
+  <input type="hidden" value="#" id="#"
+         tal:attributes="id string:${view/id}-base;
+                         value view/context_lookup_url" />
   <button class="button reference-dialog-trigger">
       Change
   </button>

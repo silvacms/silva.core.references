@@ -22,6 +22,8 @@ class Reference(schema.Field):
     """
     interface.implements(IReference)
 
+    missing_value = None
+
     def _validate(self, value):
         # No validation for the moment
         pass
@@ -60,7 +62,9 @@ class ReferenceProperty(object):
     def __set__(self, content, value):
         service = component.getUtility(IReferenceService)
         reference = service.get_reference(content, name=self.name, add=True)
-        if isinstance(value, int):
+        if value is None:
+            reference.set_target_id(0)
+        elif isinstance(value, int):
             reference.set_target_id(value)
         else:
             reference.set_target(value)

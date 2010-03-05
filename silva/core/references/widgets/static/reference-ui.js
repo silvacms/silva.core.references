@@ -73,10 +73,10 @@ $(document).ready(function() {
    });
 
    $('.reference-dialog-trigger').click(function() {
-        var url = 'http://localhost:8080/silva/docs';
-        var widget = $(this).parent('.reference-widget');
-        var popup = $('#' + widget.attr('id') + '-dialog');
-        var content_list = new ContentList(popup, widget.attr('id'));
+        var widget_id = $(this).parent('.reference-widget').attr('id');
+        var popup = $('#' + widget_id + '-dialog');
+        var url = $('#' + widget_id + '-base').val();
+        var content_list = new ContentList(popup, widget_id);
         content_list.populate(url);
         popup.dialog('open');
         return false;

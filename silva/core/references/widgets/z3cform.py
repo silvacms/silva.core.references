@@ -2,9 +2,12 @@
 # See also LICENSE.txt
 # $Id$
 
+from Acquisition import aq_parent
+
 from zope import component, interface
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
+from silva.core.interfaces import IVersion
 from silva.core.references.interfaces import IReference
 from silva.core.references.reference import get_content_id
 
@@ -27,11 +30,14 @@ class ReferenceWidget(widget.HTMLInputWidget, Widget):
         # ...
         self.value_title = None
         self.value_url = None
-        content_id = int(self.value)
-        if content_id:
-            content = component.getUtility(IIntIds).getObject(content_id)
+        if self.value:
+            content = component.getUtility(IIntIds).getObject(int(self.value))
             self.value_title = content.get_title_or_id()
             self.value_url = absoluteURL(content, self.request)
+        context_lookup = self.context
+        if IVersion.providedBy(context_lookup):
+            context_lookup = context_lookup.object()
+        self.context_lookup_url = absoluteURL(context_lookup, self.request)
 
 
 class ReferenceDataConverter(converter.BaseDataConverter):
@@ -41,10 +47,12 @@ class ReferenceDataConverter(converter.BaseDataConverter):
 
     def toWidgetValue(self, value):
         if value is None:
-            return 0
+            return None
         return get_content_id(value)
 
     def toFieldValue(self, value):
+        if not value:
+            return None
         return int(value)
 
 
