@@ -28,7 +28,9 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
 
     def afterSetUp(self):
         self.add_folder(self.root, 'folder', 'Folder')
+        self.add_folder(self.root, 'cloned_folder', 'Clone')
         self.add_publication(self.root, 'publication', 'Publication')
+        self.add_publication(self.root, 'cloned_publication', 'Clone')
         self.service = component.getUtility(IReferenceService)
 
     def test_new_reference(self):
@@ -107,6 +109,45 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
                 self.root.publication))
         self.assertEquals(len(references_to), 1)
         self.assertEquals(references_to[0], reference)
+
+    def test_clone_references(self):
+        """Test the clone references method.
+        """
+        reference = self.service.new_reference(
+            self.root.folder, name=u'myname')
+        reference.set_target(self.root.publication)
+
+        # Clone reference
+        self.service.clone_references(self.root.folder, self.root.cloned_folder)
+
+        # We should find our reference now
+        cloned_reference = self.service.get_reference(
+            self.root.cloned_folder, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, cloned_reference))
+        self.assertEquals(cloned_reference.target, self.root.publication)
+
+        # The target has two references to itself
+        target_references = list(self.service.get_references_to(
+            self.root.publication))
+        self.failUnless(len(target_references), 2)
+
+        # You can modify the cloned reference
+        cloned_reference.set_target(self.root.cloned_publication)
+
+        # This doesn't change the original reference
+        original_reference = self.service.get_reference(
+            self.root.folder, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, original_reference))
+        self.assertEquals(original_reference.target, self.root.publication)
+
+        # And the original target only have one reference to itself
+        # now, the original one
+        target_references = list(self.service.get_references_to(
+            self.root.publication))
+        self.failUnless(len(target_references), 1)
+        self.assertEquals(
+            original_reference.__name__,
+            target_references[0].__name__)
 
 
 def test_suite():
