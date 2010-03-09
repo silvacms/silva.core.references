@@ -36,3 +36,7 @@ class IReferenceService(ISilvaService):
     def delete_reference(content, name=None):
         """Lookup and remove a reference.
         """
+
+    def clone_references(content, clone):
+        """Clone content reference to clone content.
+        """

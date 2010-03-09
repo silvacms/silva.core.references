@@ -2,12 +2,14 @@
 # See also LICENSE.txt
 # $Id$
 
+from OFS.interfaces import IItem
 from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
 from zc.relation.interfaces import ICatalog
 from zope import component
-from zope.lifecycleevent.interfaces import IObjectCreatedEvent
+from zope.lifecycleevent.interfaces import (
+    IObjectCreatedEvent, IObjectCopiedEvent)
 from zope.location.interfaces import ISite
 import uuid
 
@@ -28,14 +30,15 @@ class ReferenceService(SilvaService):
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
-    def __create_reference(self, content_id, name):
+    def __create_reference(self, content_id, name=None, target_id=0, tags=None):
         """Create and add a new reference
         """
-        tags = []
+        if tags is None:
+            tags = []
         if name is not None:
             tags.append(name)
-        reference = ReferenceValue(content_id, 0, tags=tags)
-        reference_id = uuid.uuid1()
+        reference = ReferenceValue(content_id, target_id, tags=tags)
+        reference_id = str(uuid.uuid1())
         self.references[reference_id] = reference
         return reference
 
@@ -43,7 +46,7 @@ class ReferenceService(SilvaService):
         """Create a new reference.
         """
         content_id = get_content_id(content)
-        return self.__create_reference(content_id, name)
+        return self.__create_reference(content_id, name=name)
 
     def get_reference(self, content, name=None, add=False):
         """Retrieve an existing reference.
@@ -53,7 +56,7 @@ class ReferenceService(SilvaService):
             {'source_id': content_id, 'tag': name}))
         if not len(references):
             if add is True:
-                return self.__create_reference(content_id, name)
+                return self.__create_reference(content_id, name=name)
             return None
         return references[0]
 
@@ -70,6 +73,18 @@ class ReferenceService(SilvaService):
         if reference is not None:
             del self.references[reference.__name__]
 
+    def clone_references(self, content, clone):
+        """Clone content reference to clone content.
+        """
+        content_id = get_content_id(content)
+        clone_id = get_content_id(clone)
+        references = self.catalog.findRelations({'source_id': content_id})
+        for reference in references:
+            self.__create_reference(
+                clone_id,
+                target_id=reference.target_id,
+                tags=list(reference.tags))
+
 
 @grok.subscribe(IReferenceService, IObjectCreatedEvent)
 def configureReferenceService(service, event):
@@ -79,3 +94,12 @@ def configureReferenceService(service, event):
     root = service.get_root()
     sm = root.getSiteManager()
     sm.registerUtility(service.catalog, ICatalog)
+
+
+@grok.subscribe(IItem, IObjectCopiedEvent)
+def cloneReference(content, event):
+    """Clone object references when the object is cloned.
+    """
+    service = component.queryUtility(IReferenceService)
+    if service is not None:
+        service.clone_references(event.original, event.object)
