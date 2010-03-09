@@ -23,7 +23,7 @@ class ServiceTestCase(SilvaTestCase.SilvaTestCase):
 
 
 class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
-    """Test that the service to manage references.
+    """Test that the service manage references.
     """
 
     def afterSetUp(self):
