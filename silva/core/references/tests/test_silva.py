@@ -4,6 +4,7 @@
 
 import unittest
 
+from Acquisition import aq_chain
 from Products.Silva.tests import SilvaTestCase
 from zope import component
 from zope.interface.verify import verifyObject
@@ -35,7 +36,13 @@ class SilvaReferenceTestCase(SilvaTestCase.SilvaTestCase):
             self.root.cloned_folder, name=u'myname')
         self.failUnless(verifyObject(IReferenceValue, cloned_reference))
         self.assertEquals(cloned_reference.source, self.root.cloned_folder)
+        self.assertEquals(
+            aq_chain(cloned_reference.source),
+            aq_chain(self.root.cloned_folder))
         self.assertEquals(cloned_reference.target, self.root.publication)
+        self.assertEquals(
+            aq_chain(cloned_reference.target),
+            aq_chain(self.root.publication))
 
     def test_copy_paste(self):
         """Try to copy and paste a Silva object which have references.
@@ -53,9 +60,13 @@ class SilvaReferenceTestCase(SilvaTestCase.SilvaTestCase):
             self.root.publication.folder, name=u'myname')
         self.failUnless(verifyObject(IReferenceValue, cloned_reference))
         self.assertEquals(cloned_reference.source, self.root.publication.folder)
+        self.assertEquals(
+            aq_chain(cloned_reference.source),
+            aq_chain(self.root.publication.folder))
         self.assertEquals(cloned_reference.target, self.root.publication)
-
-
+        self.assertEquals(
+            aq_chain(cloned_reference.target),
+            aq_chain(self.root.publication))
 
 def test_suite():
     suite = unittest.TestSuite()

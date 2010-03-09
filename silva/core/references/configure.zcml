@@ -14,6 +14,13 @@
 
   <five:registerPackage package="." />
 
+  <!-- Add support for IntIds and OFS clone -->
+  <subscriber
+     handler="five.intid.intid.moveIntIdSubscriber"
+     for="OFS.interfaces.ITraversable
+          OFS.interfaces.IObjectClonedEvent"
+     />
+
   <adapter
      factory="silva.core.references.widgets.z3cform.ReferenceFieldWidget" />
   <adapter
