@@ -157,6 +157,38 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
             list(self.service.get_references_to(self.root.publication)),
             [original_reference])
 
+    def test_add_reference_tag(self):
+        """You can add extra tags to a reference to look for it after.
+        """
+        reference = self.service.new_reference(
+            self.root.folder, name=u'myname')
+        reference.set_target(self.root.publication)
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, searched_reference))
+        self.assertEquals(searched_reference, reference)
+
+        # Add a tag. It must be unicode string
+        self.assertRaises(AssertionError, searched_reference.add_tag, 42)
+        searched_reference.add_tag(u"bleu_relation")
+        self.assertEquals(
+            searched_reference.tags,
+            [u'myname', u'bleu_relation'])
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'bleu_relation')
+        self.failUnless(verifyObject(IReferenceValue, searched_reference))
+        self.assertEquals(searched_reference, reference)
+
+        # If you remove the relation with one tag, it is gone
+        self.service.delete_reference(
+            self.root.folder, name=u"bleu_relation")
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'myname')
+        self.assertEquals(searched_reference, None)
+
 
 def test_suite():
     suite = unittest.TestSuite()

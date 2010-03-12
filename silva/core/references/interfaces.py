@@ -16,6 +16,20 @@ class IReferenceValue(ITaggedRelationValue):
     """Identify a reference between two Silva content.
     """
 
+    def add_tag(name):
+        """Add a tag called name to the relation. You can after look
+        for the relation using this tag as well.
+        """
+
+    def set_target_id(target_id):
+        """Set the target_id of the relation. It must be the an ID
+        given by get_content_id or an Int ID.
+        """
+
+    def set_target(target):
+        """Set the target content of the relation.
+        """
+
 
 class IReferenceService(ISilvaService):
     """Reference Service, used to manage references.

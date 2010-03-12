@@ -34,6 +34,11 @@ class ReferenceValue(TaggedRelationValue):
     """
     interface.implements(IReferenceValue)
 
+    def add_tag(self, name):
+        assert isinstance(name, unicode), 'The tag must be a unicode string'
+        self.tags.append(name)
+        notify(RelationModifiedEvent(self))
+
     def set_target_id(self, target_id):
         self.target_id = target_id
         notify(RelationModifiedEvent(self))
