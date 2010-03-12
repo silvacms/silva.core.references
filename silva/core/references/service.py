@@ -38,7 +38,7 @@ class ReferenceService(SilvaService):
         if name is not None:
             tags.append(name)
         reference = ReferenceValue(content_id, target_id, tags=tags)
-        reference_id = str(uuid.uuid1())
+        reference_id = str(uuid.uuid4())
         self.references[reference_id] = reference
         return reference
 
