@@ -66,6 +66,12 @@ class ReferenceService(SilvaService):
         content_id = get_content_id(content)
         return self.catalog.findRelations({'target_id': content_id})
 
+    def get_references_from(self, content):
+        """Get all references from the given content.
+        """
+        content_id = get_content_id(content)
+        return self.catalog.findRelations({'source_id': content_id})
+
     def delete_reference(self, content, name=None):
         """Lookup and remove a reference.
         """

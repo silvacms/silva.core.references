@@ -89,12 +89,14 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
     def test_set_reference_target(self):
         """We create and use a reference, setting its target.
         """
+        # We no references at first
+        self.assertEquals(
+            list(self.service.get_references_to(self.root.publication)), [])
+        self.assertEquals(
+            list(self.service.get_references_from(self.root.folder)), [])
+
         reference = self.service.new_reference(
             self.root.folder, name=u'link')
-
-        references_to = list(self.service.get_references_to(
-                self.root.publication))
-        self.assertEquals(len(references_to), 0)
 
         self.assertEquals(reference.target, None)
         reference.set_target(self.root.publication)
@@ -105,10 +107,13 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         self.failUnless(verifyObject(IReferenceValue, searched_reference))
         self.assertEquals(searched_reference.target, self.root.publication)
 
-        references_to = list(self.service.get_references_to(
-                self.root.publication))
-        self.assertEquals(len(references_to), 1)
-        self.assertEquals(references_to[0], reference)
+        # We do have now
+        self.assertEquals(
+            list(self.service.get_references_to(self.root.publication)),
+            [reference])
+        self.assertEquals(
+            list(self.service.get_references_from(self.root.folder)),
+            [reference])
 
     def test_clone_references(self):
         """Test the clone references method.
@@ -130,6 +135,12 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         target_references = list(self.service.get_references_to(
             self.root.publication))
         self.failUnless(len(target_references), 2)
+        self.assertEquals(
+            list(self.service.get_references_from(self.root.folder)),
+            [reference])
+        self.assertEquals(
+            list(self.service.get_references_from(self.root.cloned_folder)),
+            [cloned_reference])
 
         # You can modify the cloned reference
         cloned_reference.set_target(self.root.cloned_publication)
@@ -138,16 +149,13 @@ class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
         original_reference = self.service.get_reference(
             self.root.folder, name=u'myname')
         self.failUnless(verifyObject(IReferenceValue, original_reference))
-        self.assertEquals(original_reference.target, self.root.publication)
+        self.assertEquals(original_reference, reference)
 
         # And the original target only have one reference to itself
         # now, the original one
-        target_references = list(self.service.get_references_to(
-            self.root.publication))
-        self.failUnless(len(target_references), 1)
         self.assertEquals(
-            original_reference.__name__,
-            target_references[0].__name__)
+            list(self.service.get_references_to(self.root.publication)),
+            [original_reference])
 
 
 def test_suite():
