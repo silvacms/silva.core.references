@@ -27,6 +27,5 @@ setup(name='silva.core.references',
         'setuptools',
         'silva.core.rest',
         'dolmen.relations',
-        'uuid',
         ],
       )
