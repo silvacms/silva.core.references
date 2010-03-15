@@ -2,9 +2,10 @@
 # See also LICENSE.txt
 # $Id$
 
-from zope.schema.interfaces import IObject
 from dolmen.relations.interfaces import ITaggedRelationValue
 from silva.core.interfaces import ISilvaService
+from zope.interface import Interface
+from zope.schema.interfaces import IObject
 
 
 class IReference(IObject):
@@ -29,6 +30,17 @@ class IReferenceValue(ITaggedRelationValue):
     def set_target(target):
         """Set the target content of the relation.
         """
+
+
+class IDeleteSourceOnTargetDeletion(Interface):
+    """Marker interface for ReferenceValue to indicate that if the
+    relation target is deleted, so should the source.
+    """
+
+
+class IContentScheduledForDeletion(Interface):
+    """Marker interface to say that this content will be deleted.
+    """
 
 
 class IReferenceService(ISilvaService):

@@ -2,14 +2,24 @@
 # See also LICENSE.txt
 # $Id$
 
+from OFS.interfaces import IObjectWillBeRemovedEvent
+from dolmen.relations.events import IRelationTargetDeletedEvent
 from dolmen.relations.events import RelationModifiedEvent
 from dolmen.relations.values import TaggedRelationValue, RelationValue
 from zope import component, interface, schema
 from zope.event import notify
 from zope.intid.interfaces import IIntIds
+from five import grok
 
+from silva.core.views import views as silvaviews
+from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import (
-    IReferenceValue, IReferenceService, IReference)
+    IReferenceValue, IReferenceService, IReference,
+    IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)
+
+from Acquisition import aq_parent
+from zExceptions import BadRequest
+import transaction
 
 
 def get_content_id(content):
@@ -78,4 +88,50 @@ class ReferenceProperty(object):
         service = component.getUtility(IReferenceService)
         service.delete_reference(content, name=self.name)
 
+
+
+class BrokenReferenceError(BadRequest):
+    """The processing of the request will break an existing reference.
+    """
+
+
+@grok.subscribe(ISilvaObject, IObjectWillBeRemovedEvent)
+def mark_content_to_be_deleted(content, event):
+    interface.alsoProvides(content, IContentScheduledForDeletion)
+
+
+@grok.subscribe(ISilvaObject, IRelationTargetDeletedEvent)
+def reference_target_deleted(content, event):
+    try:
+        source = event.relation.source
+    except KeyError:
+        # Due to a bug in five.intid we cannot retrieve the source
+        # anymore. It doesn't mean that it have been removed, it is
+        # just that the parent folder have already been removed from
+        # the tree, and so is not accessible anymore. five.intid fail
+        # traversing through it when it rebuild the acquisition chain
+        # to the object. Adding a KeyError to a try: except: in
+        # five.intid would help to fix this. In any of the following
+        # scenario it is still alright for us.
+        return
+    # Scenario 1, it's a relation where we want to delete always the
+    # source if the target is removed.
+    if IDeleteSourceOnTargetDeletion.providedBy(event.relation):
+        parent_of_source = aq_parent(source)
+        parent_of_source.manage_delObjects([source.getId(),])
+        return
+    # Scenario 2, does the source have been marked for deletion or not
+    if not IContentScheduledForDeletion.providedBy(source):
+        # We cancel everything, it might work in most case to just do
+        # transaction.abort()
+        transaction.abort()
+        raise BrokenReferenceError(event.relation)
+
+
+class BrokenReferenceErrorMessage(silvaviews.SMIView):
+    grok.context(BrokenReferenceError)
+    grok.name('error.html')
+
+    def update(self):
+        self.response.setStatus(406)
 
