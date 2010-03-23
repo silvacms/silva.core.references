@@ -19,6 +19,8 @@ from silva.core.references.interfaces import (
 
 from Acquisition import aq_parent
 from zExceptions import BadRequest
+from AccessControl import ClassSecurityInfo
+from App.class_init import InitializeClass
 import transaction
 
 
@@ -44,6 +46,10 @@ class ReferenceValue(TaggedRelationValue):
     """
     interface.implements(IReferenceValue)
 
+    security = ClassSecurityInfo()
+    security.declareProtected('View', 'target')
+    security.declareProtected('View', 'source')
+
     def add_tag(self, name):
         assert isinstance(name, unicode), 'The tag must be a unicode string'
         self.tags.append(name)
@@ -55,6 +61,8 @@ class ReferenceValue(TaggedRelationValue):
 
     def set_target(self, target):
         self.set_target_id(get_content_id(target))
+
+InitializeClass(ReferenceValue)
 
 
 class ReferenceProperty(object):
