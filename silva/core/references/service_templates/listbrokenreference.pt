@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/@@standard_macros/page">
+
+  <body>
+    <div metal:fill-slot="body">
+
+      <p tal:condition="python:not(view.broken_targets and view.broken_soures)">
+        There is no broken relations.
+      </p>
+
+      <div tal:condition="view/broken_targets"
+           tal:define="relations view/broken_targets">
+        <p>Targets of the following relation are missing:</p>
+        <ul metal:define-macro="list_relations">
+          <li tal:repeat="relation relations">
+            (details:
+            <span tal:replace="python:', '.join(relation.tags)"></span>)
+          </li>
+        </ul>
+      </div>
+
+      <div tal:condition="view/broken_sources"
+           tal:define="relations view/broken_sources">
+        <p>Sources of the following relation are missing:</p>
+        <ul metal:use-macro="template/macros/list_relations" />
+      </div>
+
+    </div>
+  </body>
+</html>
+

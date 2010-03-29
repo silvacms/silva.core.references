@@ -13,10 +13,11 @@ from zope.lifecycleevent.interfaces import (
 from zope.location.interfaces import ISite
 import uuid
 
+from silva.core import conf as silvaconf
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import ReferenceValue, get_content_id
 from silva.core.services.base import SilvaService
-from silva.core import conf as silvaconf
+from silva.core.views import views as silvaviews
 
 
 class ReferenceService(SilvaService):
@@ -24,6 +25,12 @@ class ReferenceService(SilvaService):
     """
     meta_type = 'Silva Reference Service'
     grok.implements(IReferenceService)
+    silvaconf.icon('service.png')
+
+    manage_options = (
+        {'label':'Broken references', 'action':'manage_brokenreferences'},
+        ) + SilvaService.manage_options
+
 
     def __init__(self, id, title):
         super(ReferenceService, self).__init__(id, title)
@@ -90,6 +97,16 @@ class ReferenceService(SilvaService):
                 clone_id,
                 target_id=reference.target_id,
                 tags=list(reference.tags))
+
+
+class ListBrokenReference(silvaviews.ZMIView):
+    grok.name('manage_brokenreferences')
+
+    def update(self):
+        self.broken_targets = list(self.context.catalog.findRelations(
+                {'target_id': 0}))
+        self.broken_sources = list(self.context.catalog.findRelations(
+                {'source_id': 0}))
 
 
 @grok.subscribe(IReferenceService, IObjectCreatedEvent)
