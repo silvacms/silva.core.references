@@ -42,7 +42,7 @@ ReferencedRemoteObject.prototype.title = function() {
     if (data) {
         return data['title'];
     }
-    return 'none';
+    return 'no reference selected';
 };
 
 
@@ -59,7 +59,7 @@ ReferencedRemoteObject.prototype.url = function() {
 ReferencedRemoteObject.prototype.clear = function(reason) {
     // Clear all value related to the remote object
     if (!reason) {
-        reason = 'none';
+        reason = 'no reference selected';
     }
     this.link.text(reason);
     if (this.reference_input) {
