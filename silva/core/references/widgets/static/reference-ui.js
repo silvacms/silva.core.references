@@ -1,11 +1,17 @@
 var ContentList = function(element, widget_id) {
+    this.id = widget_id;
     this.element = $(element);
-    this.widget_id = widget_id;
+    this.reference_interface = $('#' + this.id + '-interface');
 };
 
 ContentList.prototype.populate = function(url) {
     var self = this;
-    $.getJSON(url + '/++rest++items', function (data) {
+    var options = {};
+
+    if (this.reference_interface) {
+        options['interface'] = this.reference_interface.val();
+    };
+    $.getJSON(url + '/++rest++items', options, function (data) {
             self.element.empty();
             $.each(data, function(index, entry) {
                     var child = new ContentListItem(
@@ -15,6 +21,44 @@ ContentList.prototype.populate = function(url) {
         });
 };
 
+var ContentListItem = function(
+        content_list, url, info) {
+    this.content_list = content_list;
+    this.url = url;
+    this.info = info;
+};
+
+ContentListItem.prototype.build = function(root) {
+    var self = this;
+    var link = $('<a />');
+    var icon = $('<img />');
+    var use = $('<input type="checkbox" />');
+    var item = $('<li />');
+
+    link.text(self.info['title']);
+    link.click(function(event){
+            self.content_list.populate.apply(self.content_list, [self.url]);
+            return false;
+        });
+    link.prependTo(item);
+
+    icon.attr('src', self.info['icon']);
+    icon.prependTo(item);
+
+    use.click(function(event){
+        var id = self.content_list.widget_id;
+        var popup = $('#' + id  + '-dialog');
+        var reference = new ReferencedRemoteObject(id);
+
+        reference.render(self.info);
+        popup.dialog('close');
+    });
+    use.prependTo(item);
+
+    item.appendTo(root);
+};
+
+
 var ReferencedRemoteObject = function(widget_id) {
     // Refer a link that can represent a remote object on the
     // server. Its referenece (intid) can be store in a input called
@@ -23,6 +67,7 @@ var ReferencedRemoteObject = function(widget_id) {
     this.widget = $('#' + this.id);
     this.link = $('#' + this.id + '-link');
     this.reference_input = $('#' + this.id + '-value');
+    this.reference_interface = $('#' + this.id + '-interface');
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
@@ -72,12 +117,16 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     // Fetch and render a object from its intid
     var url = $('#' + this.id + '-base').val();
     var self = this;
+    var options = {'intid': intid};
 
     this.link.text('loading ...');
     if (this.reference_input) {
         this.reference_input.val(intid);
     };
-    $.getJSON(url + '/++rest++items', {'intid': intid},
+    if (this.reference_interface) {
+        options['interface'] = this.reference_interface.val();
+    };
+    $.getJSON(url + '/++rest++items', options,
               function(data) {
                   self.render.apply(self, [data]);
               });
@@ -108,54 +157,16 @@ ReferencedRemoteObject.prototype.bind = function(callback) {
 ReferencedRemoteObject.prototype.show = function() {
     // Show widget
     this.widget.show();
-}
+};
 
 ReferencedRemoteObject.prototype.hide = function() {
     // Hide widget
     this.widget.hide();
-}
+};
 
 ReferencedRemoteObject.prototype.toggle = function() {
     // Hide/display widget
     this.widget.toggle();
-}
-
-
-var ContentListItem = function(
-        content_list, url, info) {
-    this.content_list = content_list;
-    this.url = url;
-    this.info = info;
-};
-
-ContentListItem.prototype.build = function(root) {
-    var self = this;
-    var link = $('<a />');
-    var icon = $('<img />');
-    var use = $('<input type="checkbox" />');
-    var item = $('<li />');
-
-    link.text(self.info['title']);
-    link.click(function(event){
-            self.content_list.populate.apply(self.content_list, [self.url]);
-            return false;
-        });
-    link.prependTo(item);
-
-    icon.attr('src', self.info['icon']);
-    icon.prependTo(item);
-
-    use.click(function(event){
-        var id = self.content_list.widget_id;
-        var popup = $('#' + id  + '-dialog');
-        var reference = new ReferencedRemoteObject(id);
-
-        reference.render(self.info);
-        popup.dialog('close');
-    });
-    use.prependTo(item);
-
-    item.appendTo(root);
 };
 
 $(document).ready(function() {
