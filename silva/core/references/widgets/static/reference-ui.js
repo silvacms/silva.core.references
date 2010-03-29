@@ -8,7 +8,7 @@ ContentList.prototype.populate = function(url) {
     var self = this;
     var options = {};
 
-    if (this.reference_interface) {
+    if (this.reference_interface.val()) {
         options['interface'] = this.reference_interface.val();
     };
     $.getJSON(url + '/++rest++items', options, function (data) {
@@ -46,7 +46,7 @@ ContentListItem.prototype.build = function(root) {
     icon.prependTo(item);
 
     use.click(function(event){
-        var id = self.content_list.widget_id;
+        var id = self.content_list.id;
         var popup = $('#' + id  + '-dialog');
         var reference = new ReferencedRemoteObject(id);
 
@@ -123,7 +123,7 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     if (this.reference_input) {
         this.reference_input.val(intid);
     };
-    if (this.reference_interface) {
+    if (this.reference_interface.val()) {
         options['interface'] = this.reference_interface.val();
     };
     $.getJSON(url + '/++rest++items', options,
