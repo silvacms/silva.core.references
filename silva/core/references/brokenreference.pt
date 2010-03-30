@@ -1,0 +1,10 @@
+<p>
+  This action would break a reference from
+  <a href="#"
+     tal:attributes="href view/source/@@absolute_url"
+     tal:content="view/source/get_title_or_id">Source</a> to
+  <a href="#"
+     tal:attributes="href view/target/@@absolute_url"
+     tal:content="view/target/get_title_or_id">Target</a>
+  (<span tal:replace="view/tags" />) so it is denied.
+</p>
