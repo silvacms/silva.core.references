@@ -39,6 +39,67 @@ span.path_outer a img {
   margin-top: 4px;
 }
 
-ul.content_list {
+img.reference_add {
+    cursor: pointer;
+}
+
+table.content_list {
   clear: both;
+  width: 100%;
+}
+
+table.content_list td {
+  font-size: 0.8em;
+  padding: 3px 10px 3px 3px;
+/*  border-bottom: 1px dotted #000;*/
+  background-color: white;
+}
+
+table.content_list td {
+  vertical-align: middle;
+}
+
+table.content_list tr.even td {
+  background-color: #eee;
+}
+
+table.content_list td.cell_icon {
+  width: 16px;
+}
+
+table.content_list td.cell_id {
+  width: 20%;
+}
+
+table.content_list td.cell_actions {
+  text-align: right;
+}
+
+table.content_list tr.folderish td {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+table.content_list td a, table.content_list td a:visited{
+  color: black;
+}
+
+table.content_list tr.folderish-hover td {
+  background-color: #ccc;
+}
+
+table.content_list tr td {
+  line-height: 16px;
+}
+
+table.content_list tr.current td {
+  border-bottom: 1px solid black;
+  line-height: 32px;
+}
+
+table.content_list tr.folderish-hover td.cell_title {
+  background-image: 
+    url('../++resource++silva.core.references.widgets/folder_go.png');
+  background-repeat: no-repeat;
+  background-position: right center;
 }

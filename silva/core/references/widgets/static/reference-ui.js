@@ -6,10 +6,10 @@ var ContentList = function(element, widget_id) {
     this.current = null;
 };
 
-function extract_from_id(data, id) {
+function index_from_id(data, id) {
     for(var i=0; i < data.length; i++) {
         if (data[i]['id'] == id) {
-            return data.splice(i, 1)[0];
+            return i;
         }
     }
     return null;
@@ -25,17 +25,23 @@ ContentList.prototype.populate = function(url) {
 
     $.getJSON(url + '/++rest++items', options, function (data) {
         self.element.empty();
-        var root = $('<ul class="content_list" />');
-        root.appendTo(self.element);
+        var root = $('<table class="content_list" />');
         // get rid of '.' and '..'
-        self.current = extract_from_id(data, '.');
-        self.parent = extract_from_id(data, '..');
+        self.current = data[index_from_id(data, '.')];
+        parent_id = index_from_id(data, '..');
+
+        if (parent_id != null)
+            self.parent = data.splice(parent_id, 1)[0];
+        else
+            self.parent = null
+
         self.build_path.apply(self);
         $.each(data, function(index, entry) {
                 var child = new ContentListItem(
                     self, url + '/' + entry['id'], entry);
-                child.build(root);
+                child.build(root, index);
         });
+        root.appendTo(self.element);
     });
 };
 
@@ -53,6 +59,13 @@ ContentList.prototype.build_path = function() {
     });
 };
 
+ContentList.prototype._item_clicked = function(event, item) {
+    var popup = $('#' + this.id  + '-dialog');
+    var reference = new ReferencedRemoteObject(this.id);
+    reference.render(item.info);
+    popup.dialog('close');
+};
+
 var ContentListItem = function(
         content_list, url, info) {
     this.content_list = content_list;
@@ -60,42 +73,67 @@ var ContentListItem = function(
     this.info = info;
 };
 
-ContentListItem.prototype.build = function(root) {
+ContentListItem.prototype.build = function(root, index) {
     var self = this;
+    var current = (this.info['id'] == '.')
+    var row = $('<tr />');
+    var icon_cell = $('<td class="cell_icon" />');
+    var actions_cell = $('<td class="cell_actions" />');
+    var id_cell = $('<td class="cell_id" />');
     var icon = $('<img />');
-    var item = $('<li />');
-    var link = null
-    if (self.info['folderish']) {
+    var item = $('<td class="cell_title" />');
+    var link = null;
+
+    row.addClass(index % 2 ? "even" : "odd");
+
+    if (self.info['folderish'] && !current) {
+        row.addClass("folderish");
+        id_cell.append($('<a href="#">' + self.info['id'] + "</a>"))
         link = $('<a href="#" />');
-        link.click(function(event){
+        row.click(function(event){
                 self.content_list.populate.apply(self.content_list, [self.url]);
                 return false;
             });
+        row.hover(function(event){
+            // in
+            $(this).addClass('folderish-hover');
+        }, function(event){
+            // out
+            $(this).removeClass('folderish-hover');
+        });
     } else {
+        if (current) {
+            row.addClass('current');
+            id_cell.text('current location');
+        } else {
+            id_cell.text(self.info['id']);
+        }
         link = $('<span />');
     }
 
     link.data('++rest++', self.info);
     link.text(self.info['title']);
-    link.prependTo(item);
+    link.appendTo(item);
 
     icon.attr('src', self.info['icon']);
-    icon.prependTo(item);
+    icon.attr('title', self.info['type']);
+    icon.appendTo(icon_cell);
 
     if (self.info['implements']) {
-        var use = $('<input type="checkbox" />');
+        var use = $('<img class="reference_add"' +
+            'src="../++resource++silva.core.references.widgets/add.png" />');
         use.click(function(event){
-            var id = self.content_list.id;
-            var popup = $('#' + id  + '-dialog');
-            var reference = new ReferencedRemoteObject(id);
-
-            reference.render(self.info);
-            popup.dialog('close');
+            self.content_list._item_clicked.apply(self.content_list,
+                [event, self]);
         });
-        use.prependTo(item);
+        use.appendTo(actions_cell);
     }
 
-    item.appendTo(root);
+    icon_cell.appendTo(row);
+    item.appendTo(row);
+    id_cell.appendTo(row);
+    actions_cell.appendTo(row);
+    row.appendTo(root);
 };
 
 
@@ -277,9 +315,6 @@ PathList.prototype._build_entry = function(info) {
         return false;
     });
 
-    // img.attr('src', info['icon']);
-    // link.prepend(img);
-
     link.appendTo(inner);
     inner.appendTo(outer);
     return outer;
@@ -292,6 +327,7 @@ PathList.prototype._notify = function(event, data) {
 PathList.prototype.bind = function(callback) {
     this.node.bind('path-modified', callback);
 }
+
 
 $(document).ready(function() {
 
