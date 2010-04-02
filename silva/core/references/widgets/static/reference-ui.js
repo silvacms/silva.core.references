@@ -484,21 +484,21 @@ PathList.prototype._notify = function(event, data) {
 
 $(document).ready(function() {
 
-   $('.reference-dialog').dialog({
-        autoOpen: false,
-        modal: true,
-        height: 500,
-        width: 600,
-        buttons: {
-            'Cancel': function() {
-                $(this).dialog('close');
-            }
-        }
-   });
+   $('.reference-dialog-trigger').live('click', function() {
 
-   $('.reference-dialog-trigger').click(function() {
         var widget_id = $(this).parent('.reference-widget').attr('id');
         var popup = $('#' + widget_id + '-dialog');
+        popup.dialog({
+                autoOpen: false,
+                modal: true,
+                height: 500,
+                width: 600,
+                buttons: {
+                   'Cancel': function() {
+                       $(this).dialog('close');
+                   }
+               }
+            });
         var url = $('#' + widget_id + '-base').val();
         var content_list = new ContentList(popup, widget_id,
             {'multiple': true});
