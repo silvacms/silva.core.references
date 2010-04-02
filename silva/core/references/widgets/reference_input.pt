@@ -3,8 +3,6 @@
   <div id="#" title="#" class="ui-widget reference-dialog"
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
-    <ul class="reference-dialog-data">
-    </ul>
   </div>
   <span>Selected:
     <a href="#" id="#" target="_blank"

@@ -1,13 +1,34 @@
 var ContentList = function(element, widget_id, options) {
     this.id = widget_id;
     this.element = $(element);
+    this.element.empty();
     this.reference_interface = $('#' + this.id + '-interface');
     this.parent = null;
     this.current = null;
     this.selection = [];
     this.selectionIndex = {};
-    this.selectionElement = null;
+    this.pathListElement = $('<div class="path_list" />');
+    this.listElement = $('<table class="content_list" />');
+    this.selectionElement = $('<table class="content_list selection_list">');
+    this.url = null;
     this.options = $.extend({'multiple' : true}, options);
+    this.pathList = new PathList(this.pathListElement);
+
+    var self = this;
+
+    this.pathList.element.bind('path-modified', function(event, data){
+        self.populate.apply(self, [data['url']]);
+    });
+
+    this.element.append(this.pathListElement);
+    this.element.append(this.listElement);
+    if (this.options['multiple']) {
+        var selectionView = new ContentListSelectionView(
+            this.selectionElement, this);
+        selectionView.render();
+        this.element.append($('<h3>Selection</h3>'));
+        this.element.append(this.selectionElement)
+    }
 };
 
 function index_from_id(data, id) {
@@ -19,6 +40,7 @@ function index_from_id(data, id) {
     return null;
 }
 
+
 ContentList.prototype.populate = function(url) {
     var self = this;
     var options = {};
@@ -26,10 +48,9 @@ ContentList.prototype.populate = function(url) {
     if (this.reference_interface.val()) {
         options['interface'] = this.reference_interface.val();
     };
-
-    $.getJSON(url + '/++rest++items', options, function (data) {
-        self.element.empty();
-        var root = $('<table class="content_list" />');
+    this.url = url;
+    $.getJSON(url + '/++rest++items', options, function(data) {
+        self.listElement.empty();
         // get rid of '.' and '..'
         self.current = data[index_from_id(data, '.')];
         parent_id = index_from_id(data, '..');
@@ -38,47 +59,17 @@ ContentList.prototype.populate = function(url) {
             self.parent = data.splice(parent_id, 1)[0];
         else
             self.parent = null;
-
-        self.build_path.apply(self);
-        $.each(data, function(index, entry) {
-                var child = new ContentListItem(
-                    self, url + '/' + entry['id'], entry);
-                var childElement = $('<tr />')
-                childElement.attr('id', self.itemDomId(child));
-                childElement.addClass(index % 2 ? "even" : "odd");
-
-                var childView = new ContentListItemView(childElement, child);
-                childView.render();
-                root.append(childElement);
-            });
-        root.appendTo(self.element);
-        if (self.options['multiple']) {
-            self.element.append($('<h2>Your selection :</h2>'));
-            self.selectionElement = $('<table class="content_list">');
-            self.selectionElement.appendTo(self.element);
-            var selectionView = new ContentListSelectionView(
-                self.selectionElement, self);
-            selectionView.render();
-        }
+        view = new ContentListView(self.listElement, self);
+        view.render(data);
     });
+};
+
+ContentList.prototype.build_path = function() {
+    this.pathList.fetch(this.current);
 };
 
 ContentList.prototype.itemDomId = function(item) {
     return 'list-item-' + item.info['intid'];
-};
-
-ContentList.prototype.build_path = function() {
-    var self = this;
-    var element = this.element.find("div.path_list");
-    if (element.length == 0) {
-        element = $('<div class="path_list" />');
-    }
-    var path_list = new PathList(element);
-    this.element.prepend(element);
-    path_list.fetch(this.current);
-    path_list.bind(function(event, data){
-        self.populate.apply(self, [data['url']]);
-    });
 };
 
 ContentList.prototype._itemClicked = function(event, item) {
@@ -94,10 +85,10 @@ ContentList.prototype._itemRemovedFromSelection = function(event, item) {
 };
 
 ContentList.prototype.selectItem = function(item) {
-    var intid = item.info['intid']
+    var intid = item.info['intid'];
     this.selection.push(item);
     this.selectionIndex[item.info['intid']] = this.selection.length - 1;
-    
+
     this.element.trigger('content-list-item-selected', [item]);
     var view = new ContentListSelectionView(this.selectionElement, this);
     view.appendSelectionItem(item);
@@ -122,21 +113,42 @@ ContentList.prototype.deselectItem = function(item) {
 
 ContentList.prototype.isSelected = function(item) {
     var intid = item.info['intid'];
-    var index = this.selectionIndex[intid]
+    var index = this.selectionIndex[intid];
     if (index >= 0)
         return true;
     return false;
 };
 
-var ContentListSelectionView = function(element, contentList, prefix) {
-    this.prefix = prefix || '';
+var ContentListView = function(element, contentList) {
+    this.content_list = contentList;
+    this.element = $(element);
+};
+
+ContentListView.prototype.render = function(data) {
+    var self = this;
+    this.content_list.build_path();
+    $.each(data, function(index, entry) {
+            var child = new ContentListItem(
+                self.content_list,
+                self.content_list.url + '/' + entry['id'], entry);
+            var childElement = $('<tr />');
+            childElement.attr('id', self.content_list.itemDomId(child));
+            childElement.addClass(index % 2 ? "even" : "odd");
+            var childView = new ContentListItemView(childElement, child);
+            childView.render();
+            if (self.content_list.isSelected(child))
+                childView.disableSelectButton()
+            self.element.append(childElement);
+        });
+};
+
+var ContentListSelectionView = function(element, contentList) {
     this.element = $(element);
     this.contentList = contentList;
 };
 
 ContentListSelectionView.prototype.appendSelectionItem = function(item) {
     var self = this;
-    
     var element = $('<tr />');
     view = new SelectionContentListItemView(element, item);
     view.render();
@@ -156,7 +168,7 @@ ContentListSelectionView.prototype.render = function(item) {
 };
 
 ContentListSelectionView.prototype.itemDomId = function(item) {
-    return this.prefix + 'selection-item-' + item.info['intid'];
+    return 'selection-item-' + item.info['intid'];
 };
 
 var ContentListItem = function(
@@ -181,7 +193,7 @@ ContentListItemView.prototype.enableSelectButton = function() {
 
 ContentListItemView.prototype.getSelectButton = function() {
     return this.element.find('td.cell_actions .reference_add');
-}
+};
 
 ContentListItemView.prototype.render = function() {
     var self = this;
@@ -221,7 +233,7 @@ ContentListItemView.prototype.render = function() {
     }
 
     if (this.item.info['implements']) {
-        var img = $('<img class="reference_add"' +
+        var img = $('<img class="button reference_add"' +
             'src="../++resource++silva.core.references.widgets/add.png" />');
         img.click(function(event){
             self.item.content_list._itemClicked.apply(self.item.content_list,
@@ -259,7 +271,7 @@ SelectionContentListItemView.prototype.render = function() {
     var title_cell = $('<td class="cell_title" />');
     var link = $('<span />');;
 
-    var removeButton = $('<img class="reference_remove"' +
+    var removeButton = $('<img class="button reference_remove"' +
         'src="../++resource++silva.core.references.widgets/delete.png" />');
     removeButton.click(function(event){
         self.item.content_list._itemRemovedFromSelection.apply(
@@ -267,7 +279,7 @@ SelectionContentListItemView.prototype.render = function() {
     });
     actions_cell.append(removeButton);
 
-    id_cell.text(this.item.info['id']);
+    id_cell.text(this.item.info['path']);
 
     link.data('++rest++', this.item.info);
     link.text(this.item.info['title']);
@@ -394,8 +406,8 @@ ReferencedRemoteObject.prototype.toggle = function() {
     this.widget.toggle();
 };
 
-var PathList = function(node, options) {
-    this.node = $(node);
+var PathList = function(element, options) {
+    this.element = $(element);
     default_options = {
     // link text
     'display_field': 'title',
@@ -422,16 +434,16 @@ PathList.prototype.render = function(data) {
     var max_items = this.options['max_items'];
     var stop = data.length;
     var start = 1;
-    this.node.empty();
-    this.node.append(this._build_entry(data[0]));
+    this.element.empty();
+    this.element.append(this._build_entry(data[0]));
 
     if (max_items != 0 && len > (max_items + 1)) {
         start = len - max_items;
-        this.node.append(this._build_fake());
+        this.element.append(this._build_fake());
     }
 
     for(var i = start; i < stop; i++) {
-        this.node.append(this._build_entry(data[i]));
+        this.element.append(this._build_entry(data[i]));
     }
 };
 
@@ -450,7 +462,6 @@ PathList.prototype._build_entry = function(info) {
     var self = this;
     var outer = $('<span class="path_outer" />');
     var inner = $('<span class="path_inner" />');
-    // var img = $('<img />')
     var link = $('<a href="#" />');
     link.attr('title', info[this.options['title_field']])
     link.text(info[this.options['display_field']]);
@@ -458,23 +469,18 @@ PathList.prototype._build_entry = function(info) {
 
     link.click(function(event){
         var data = $(this).data('++rest++');
-        self._notify(event, data);
+        self._notify.apply(self, [event, data]);
         return false;
     });
 
     link.appendTo(inner);
     inner.appendTo(outer);
     return outer;
-}
+};
 
 PathList.prototype._notify = function(event, data) {
-  this.node.trigger('path-modified', data);
-}
-
-PathList.prototype.bind = function(callback) {
-    this.node.bind('path-modified', callback);
-}
-
+  this.element.trigger('path-modified', [data]);
+};
 
 $(document).ready(function() {
 
@@ -495,7 +501,7 @@ $(document).ready(function() {
         var popup = $('#' + widget_id + '-dialog');
         var url = $('#' + widget_id + '-base').val();
         var content_list = new ContentList(popup, widget_id,
-            {'multiple': false});
+            {'multiple': true});
         content_list.element.bind('content-list-item-selected',
             function(event, item){
                 var reference = new ReferencedRemoteObject(widget_id);

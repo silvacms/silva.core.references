@@ -46,6 +46,7 @@ img.reference_add {
 table.content_list {
   clear: both;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 table.content_list td {
@@ -69,6 +70,10 @@ table.content_list td.cell_icon {
 
 table.content_list td.cell_id {
   width: 20%;
+}
+
+table.selection_list td.cell_id {
+  width: 50%;
 }
 
 table.content_list td.cell_actions {
@@ -102,4 +107,14 @@ table.content_list tr.folderish-hover td.cell_title {
     url('../++resource++silva.core.references.widgets/folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
+}
+
+.reference-dialog h3 {
+  padding-left: 10px;
+  color: black;
+  background-color: #ccc;
+}
+
+table.content_list img.button {
+  cursor: pointer;
 }
