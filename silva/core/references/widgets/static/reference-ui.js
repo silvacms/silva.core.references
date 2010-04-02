@@ -1,9 +1,13 @@
-var ContentList = function(element, widget_id) {
+var ContentList = function(element, widget_id, options) {
     this.id = widget_id;
     this.element = $(element);
     this.reference_interface = $('#' + this.id + '-interface');
     this.parent = null;
     this.current = null;
+    this.selection = [];
+    this.selectionIndex = {};
+    this.selectionElement = null;
+    this.options = $.extend({'multiple' : true}, options);
 };
 
 function index_from_id(data, id) {
@@ -33,16 +37,34 @@ ContentList.prototype.populate = function(url) {
         if (parent_id != null)
             self.parent = data.splice(parent_id, 1)[0];
         else
-            self.parent = null
+            self.parent = null;
 
         self.build_path.apply(self);
         $.each(data, function(index, entry) {
                 var child = new ContentListItem(
                     self, url + '/' + entry['id'], entry);
-                child.build(root, index);
-        });
+                var childElement = $('<tr />')
+                childElement.attr('id', self.itemDomId(child));
+                childElement.addClass(index % 2 ? "even" : "odd");
+
+                var childView = new ContentListItemView(childElement, child);
+                childView.render();
+                root.append(childElement);
+            });
         root.appendTo(self.element);
+        if (self.options['multiple']) {
+            self.element.append($('<h2>Your selection :</h2>'));
+            self.selectionElement = $('<table class="content_list">');
+            self.selectionElement.appendTo(self.element);
+            var selectionView = new ContentListSelectionView(
+                self.selectionElement, self);
+            selectionView.render();
+        }
     });
+};
+
+ContentList.prototype.itemDomId = function(item) {
+    return 'list-item-' + item.info['intid'];
 };
 
 ContentList.prototype.build_path = function() {
@@ -59,11 +81,82 @@ ContentList.prototype.build_path = function() {
     });
 };
 
-ContentList.prototype._item_clicked = function(event, item) {
-    var popup = $('#' + this.id  + '-dialog');
-    var reference = new ReferencedRemoteObject(this.id);
-    reference.render(item.info);
-    popup.dialog('close');
+ContentList.prototype._itemClicked = function(event, item) {
+    if (this.isSelected(item)) {
+        this.deselectItem(item);
+    } else {
+        this.selectItem(item);
+    }
+};
+
+ContentList.prototype._itemRemovedFromSelection = function(event, item) {
+    this.deselectItem(item);
+};
+
+ContentList.prototype.selectItem = function(item) {
+    var intid = item.info['intid']
+    this.selection.push(item);
+    this.selectionIndex[item.info['intid']] = this.selection.length - 1;
+    
+    this.element.trigger('content-list-item-selected', [item]);
+    var view = new ContentListSelectionView(this.selectionElement, this);
+    view.appendSelectionItem(item);
+    var listitemview = new ContentListItemView(
+        $('#' + this.itemDomId(item)), item);
+    listitemview.disableSelectButton();
+};
+
+ContentList.prototype.deselectItem = function(item) {
+    var intid = item.info['intid'];
+    var index = this.selectionIndex[intid];
+    this.selection.splice(index, 1);
+    delete this.selectionIndex[intid];
+
+    this.element.trigger('content-list-item-deselected', [item]);
+    var selview = new ContentListSelectionView(this.selectionElement, this);
+    selview.removeSelectionItem(item);
+    var listitemview = new ContentListItemView(
+        $('#' + this.itemDomId(item)), item);
+    listitemview.enableSelectButton();
+};
+
+ContentList.prototype.isSelected = function(item) {
+    var intid = item.info['intid'];
+    var index = this.selectionIndex[intid]
+    if (index >= 0)
+        return true;
+    return false;
+};
+
+var ContentListSelectionView = function(element, contentList, prefix) {
+    this.prefix = prefix || '';
+    this.element = $(element);
+    this.contentList = contentList;
+};
+
+ContentListSelectionView.prototype.appendSelectionItem = function(item) {
+    var self = this;
+    
+    var element = $('<tr />');
+    view = new SelectionContentListItemView(element, item);
+    view.render();
+    element.attr('id', this.itemDomId(item));
+    this.element.append(element);
+};
+
+ContentListSelectionView.prototype.removeSelectionItem = function(item) {
+    $('#' + this.itemDomId(item)).remove();
+};
+
+ContentListSelectionView.prototype.render = function(item) {
+    this.element.empty();
+    for(var i=0; i < this.contentList.selection.length; i++) {
+        this.appendSelectionItem(this.contentList.selection[i]);
+    }
+};
+
+ContentListSelectionView.prototype.itemDomId = function(item) {
+    return this.prefix + 'selection-item-' + item.info['intid'];
 };
 
 var ContentListItem = function(
@@ -73,28 +166,44 @@ var ContentListItem = function(
     this.info = info;
 };
 
-ContentListItem.prototype.build = function(root, index) {
+var ContentListItemView = function(element, item) {
+    this.item = item;
+    this.element = $(element);
+};
+
+ContentListItemView.prototype.disableSelectButton = function() {
+    this.getSelectButton().hide();
+};
+
+ContentListItemView.prototype.enableSelectButton = function() {
+    this.getSelectButton().show();
+};
+
+ContentListItemView.prototype.getSelectButton = function() {
+    return this.element.find('td.cell_actions .reference_add');
+}
+
+ContentListItemView.prototype.render = function() {
     var self = this;
-    var current = (this.info['id'] == '.')
-    var row = $('<tr />');
+    this.element.empty();
+    var current = (this.item.info['id'] == '.')
     var icon_cell = $('<td class="cell_icon" />');
     var actions_cell = $('<td class="cell_actions" />');
     var id_cell = $('<td class="cell_id" />');
     var icon = $('<img />');
-    var item = $('<td class="cell_title" />');
-    var link = null;
+    var title_cell = $('<td class="cell_title" />');
+    var link = null
 
-    row.addClass(index % 2 ? "even" : "odd");
-
-    if (self.info['folderish'] && !current) {
-        row.addClass("folderish");
-        id_cell.append($('<a href="#">' + self.info['id'] + "</a>"))
+    if (this.item.info['folderish'] && !current) {
+        this.element.addClass("folderish");
+        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"))
         link = $('<a href="#" />');
-        row.click(function(event){
-                self.content_list.populate.apply(self.content_list, [self.url]);
-                return false;
-            });
-        row.hover(function(event){
+        this.element.click(function(event){
+            self.item.content_list.populate.apply(
+                self.item.content_list, [self.item.url]);
+            return false;
+        });
+        this.element.hover(function(event){
             // in
             $(this).addClass('folderish-hover');
         }, function(event){
@@ -103,37 +212,75 @@ ContentListItem.prototype.build = function(root, index) {
         });
     } else {
         if (current) {
-            row.addClass('current');
+            this.element.addClass('current');
             id_cell.text('current location');
         } else {
-            id_cell.text(self.info['id']);
+            id_cell.text(this.item.info['id']);
         }
         link = $('<span />');
     }
 
-    link.data('++rest++', self.info);
-    link.text(self.info['title']);
-    link.appendTo(item);
-
-    icon.attr('src', self.info['icon']);
-    icon.attr('title', self.info['type']);
-    icon.appendTo(icon_cell);
-
-    if (self.info['implements']) {
-        var use = $('<img class="reference_add"' +
+    if (this.item.info['implements']) {
+        var img = $('<img class="reference_add"' +
             'src="../++resource++silva.core.references.widgets/add.png" />');
-        use.click(function(event){
-            self.content_list._item_clicked.apply(self.content_list,
-                [event, self]);
+        img.click(function(event){
+            self.item.content_list._itemClicked.apply(self.item.content_list,
+                [event, self.item]);
+            event.stopPropagation();
         });
-        use.appendTo(actions_cell);
+        actions_cell.append(img);
     }
 
-    icon_cell.appendTo(row);
-    item.appendTo(row);
-    id_cell.appendTo(row);
-    actions_cell.appendTo(row);
-    row.appendTo(root);
+    link.data('++rest++', this.item.info);
+    link.text(this.item.info['title']);
+    link.appendTo(title_cell);
+
+    icon.attr('src', this.item.info['icon']);
+    icon.attr('title', this.item.info['type']);
+    icon.appendTo(icon_cell);
+
+    icon_cell.appendTo(this.element);
+    title_cell.appendTo(this.element);
+    id_cell.appendTo(this.element);
+    actions_cell.appendTo(this.element);
+};
+
+var SelectionContentListItemView = function(element, item) {
+    this.item = item;
+    this.element = $(element);
+};
+
+SelectionContentListItemView.prototype.render = function() {
+    var self = this;
+    var icon_cell = $('<td class="cell_icon" />');
+    var actions_cell = $('<td class="cell_actions" />');
+    var id_cell = $('<td class="cell_id" />');
+    var icon = $('<img />');
+    var title_cell = $('<td class="cell_title" />');
+    var link = $('<span />');;
+
+    var removeButton = $('<img class="reference_remove"' +
+        'src="../++resource++silva.core.references.widgets/delete.png" />');
+    removeButton.click(function(event){
+        self.item.content_list._itemRemovedFromSelection.apply(
+            self.item.content_list, [event, self.item]);
+    });
+    actions_cell.append(removeButton);
+
+    id_cell.text(this.item.info['id']);
+
+    link.data('++rest++', this.item.info);
+    link.text(this.item.info['title']);
+    link.appendTo(title_cell);
+
+    icon.attr('src', this.item.info['icon']);
+    icon.attr('title', this.item.info['type']);
+    icon.appendTo(icon_cell);
+
+    icon_cell.appendTo(this.element);
+    title_cell.appendTo(this.element);
+    id_cell.appendTo(this.element);
+    actions_cell.appendTo(this.element);
 };
 
 
@@ -347,7 +494,15 @@ $(document).ready(function() {
         var widget_id = $(this).parent('.reference-widget').attr('id');
         var popup = $('#' + widget_id + '-dialog');
         var url = $('#' + widget_id + '-base').val();
-        var content_list = new ContentList(popup, widget_id);
+        var content_list = new ContentList(popup, widget_id,
+            {'multiple': false});
+        content_list.element.bind('content-list-item-selected',
+            function(event, item){
+                var reference = new ReferencedRemoteObject(widget_id);
+                reference.render(item.info);
+                var popup = $('#' + widget_id + '-dialog');
+                popup.dialog('close');
+            });
         content_list.populate(url);
         popup.dialog('open');
         return false;
