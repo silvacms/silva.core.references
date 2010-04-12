@@ -2,6 +2,7 @@
 # See also LICENSE.txt
 # $Id$
 
+import AccessControl
 from Products.Formulator.Field import ZMIField
 from Products.Formulator.FieldRegistry import FieldRegistry
 from Products.Formulator.Validator import StringBaseValidator
@@ -11,6 +12,13 @@ from Products.Formulator.DummyField import fields
 from silva.core.interfaces import IVersion
 from zope.traversing.browser import absoluteURL
 from five import grok
+
+
+def get_request():
+    """Return the request when you are lost.
+    """
+    manager = AccessControl.getSecurityManager()
+    return manager.getUser().REQUEST
 
 
 class BindedReferenceWidget(object):
@@ -36,7 +44,8 @@ class BindedReferenceWidget(object):
 
     def default_namespace(self):
         return {'context': self.context,
-                'request': self.request}
+                'request': self.request,
+                'view': self}
 
     def namespace(self):
         return {}
@@ -57,9 +66,12 @@ class ReferenceWidget(Widget):
         required=0)
 
     def render(self, field, key, value, REQUEST):
-        # REQUEST is None. So you have to find it again ...
-        request = field.REQUEST
-        widget = BindedReferenceWidget(request['model'], request, field, value)
+        # REQUEST is None. So you have to find it again. By default we
+        # can the Silva model as context, if it is present, or the
+        # field in the later case.
+        request = get_request()
+        context = request.get('model', field)
+        widget = BindedReferenceWidget(context, request, field, value)
         return widget()
 
 
