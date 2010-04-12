@@ -34,6 +34,7 @@ class BindedReferenceWidget(object):
         self.id = field.getId()
         self.name = field.getId()
         self.title = field.title()
+        self.interface = field.get_value('interface')
         self.value = value
         self.value_title = None
         self.value_url = None
@@ -64,6 +65,13 @@ class ReferenceWidget(Widget):
         description='default value',
         default="",
         required=0)
+
+    interface = fields.StringField(
+        'interface',
+        title='Interface',
+        description='interface that the selected content must comply with',
+        default="silva.core.interfaces.content.ISilvaObject",
+        required=1)
 
     def render(self, field, key, value, REQUEST):
         # REQUEST is None. So you have to find it again. By default we

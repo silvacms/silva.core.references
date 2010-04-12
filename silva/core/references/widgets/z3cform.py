@@ -28,6 +28,7 @@ class ReferenceWidget(widget.HTMLInputWidget, Widget):
     def update(self):
         super(ReferenceWidget, self).update()
         # ...
+        self.interface = None
         self.value_title = None
         self.value_url = None
         if self.value:
