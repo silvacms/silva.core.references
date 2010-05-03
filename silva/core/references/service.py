@@ -31,9 +31,8 @@ class ReferenceService(SilvaService):
         {'label':'Broken references', 'action':'manage_brokenreferences'},
         ) + SilvaService.manage_options
 
-
-    def __init__(self, id, title):
-        super(ReferenceService, self).__init__(id, title)
+    def __init__(self, id):
+        super(ReferenceService, self).__init__(id)
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
