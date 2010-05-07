@@ -12,7 +12,7 @@ from zope.intid.interfaces import IIntIds
 from z3c.form import button
 from five import grok
 
-from silva.core.views import z3cforms as silvaz3cforms
+from silva.core.forms import z3cforms as silvaz3cforms
 from silva.core.interfaces import ISilvaObject
 from silva.translations import translate as _
 from silva.core.references.interfaces import (
