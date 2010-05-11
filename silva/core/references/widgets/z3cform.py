@@ -2,8 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from Acquisition import aq_parent
-
 from zope import component, interface
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL

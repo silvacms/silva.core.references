@@ -5,7 +5,7 @@
 from OFS.interfaces import IObjectWillBeRemovedEvent
 from dolmen.relations.events import IRelationTargetDeletedEvent
 from dolmen.relations.events import RelationModifiedEvent
-from dolmen.relations.values import TaggedRelationValue, RelationValue
+from dolmen.relations.values import TaggedRelationValue
 from zope import component, interface, schema
 from zope.event import notify
 from zope.intid.interfaces import IIntIds
@@ -14,7 +14,6 @@ from five import grok
 
 from silva.core.forms import z3cforms as silvaz3cforms
 from silva.core.interfaces import ISilvaObject
-from silva.translations import translate as _
 from silva.core.references.interfaces import (
     IReferenceValue, IReferenceService, IReference,
     IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)

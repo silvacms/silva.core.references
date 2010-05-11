@@ -10,7 +10,6 @@ from zc.relation.interfaces import ICatalog
 from zope import component
 from zope.lifecycleevent.interfaces import (
     IObjectCreatedEvent, IObjectCopiedEvent)
-from zope.location.interfaces import ISite
 import uuid
 
 from silva.core import conf as silvaconf
