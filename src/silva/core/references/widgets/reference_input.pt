@@ -4,12 +4,12 @@
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
   </div>
-  <span>Selected:
-    <a href="#" id="#" target="_blank"
-       tal:attributes="id string:${view/id}-link;
-                       href view/value_url"
-       tal:content="view/value_title"></a>
-  </span>
+  <a href="#" id="#" target="_blank"
+     tal:attributes="id string:${view/id}-link;
+                     href view/value_url"
+     tal:content="view/value_title"></a>
+  <button class="reference-dialog-trigger">
+  </button>
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
                          name view/name;
@@ -21,7 +21,4 @@
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />
-  <button class="button reference-dialog-trigger">
-      Change
-  </button>
 </div>

@@ -1,6 +1,25 @@
+button.reference-dialog-trigger {
+  background-color: #E0E7EF;
+  background-image: url('search.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+  border: 1px solid #333333;
+  float: left;
+  height: 20px;
+  height:20px;
+  margin: 1px 5px 0px 0px;
+  padding: 0px;
+  width: 20px;
+}
+
+button.reference-dialog-trigger:hover {
+  background-color:#B3D4BF;
+  border:1px solid #6BB591;
+}
+
 div.path_list {
   background-color: #aaa;
-  background-image: url('../++resource++silva.core.references.widgets/gradient.png');
+  background-image: url('gradient.png');
   background-repeat: repeat-x;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid: #666;
@@ -15,7 +34,7 @@ span.path_outer {
 }
 
 span.path_inner {
-  background-image: url('../++resource++silva.core.references.widgets/drillup-r.png');
+  background-image: url('drillup-r.png');
   background-position: top right;
   background-repeat: no-repeat;
   display:block;
@@ -103,8 +122,7 @@ table.content_list tr.current td {
 }
 
 table.content_list tr.folderish-hover td.cell_title {
-  background-image: 
-    url('../++resource++silva.core.references.widgets/folder_go.png');
+  background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
 }
