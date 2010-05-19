@@ -26,8 +26,17 @@ import transaction
 
 
 def get_content_id(content):
+    """Return the ID of a content.
+    """
     utility = component.getUtility(IIntIds)
     return utility.register(content)
+
+
+def get_content_from_id(content_id):
+    """Return a content from its ID.
+    """
+    utility = component.getUtility(IIntIds)
+    return utility.getObject(int(content_id))
 
 
 class Reference(schema.Field):
@@ -38,7 +47,7 @@ class Reference(schema.Field):
     missing_value = None
 
     def _validate(self, value):
-        # No validation for the moment
+        # XXX No validation for the moment
         pass
 
 

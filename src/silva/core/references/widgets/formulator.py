@@ -11,10 +11,12 @@ from Products.Formulator.Widget import Widget, render_element
 from Products.Formulator.DummyField import fields
 
 from five import grok
-from silva.core.interfaces import IVersion, ISilvaObject
 from zope.component import queryUtility
 from zope.interface.interfaces import IInterface
 from zope.traversing.browser import absoluteURL
+
+from silva.core.interfaces import IVersion, ISilvaObject
+from silva.core.references.widgets import ReferenceWidgetInfo
 
 
 class InterfaceValidator(Validator):
@@ -85,7 +87,7 @@ def get_request():
     return manager.getUser().REQUEST
 
 
-class BindedReferenceWidget(object):
+class BindedReferenceWidget(ReferenceWidgetInfo):
 
     template = grok.PageTemplateFile('reference_input.pt')
 
@@ -94,18 +96,14 @@ class BindedReferenceWidget(object):
         self.request = request
         # For security
         self.__parent__ = context
+
         # For the widget
         self.id = field.getId()
         self.name = field.getId()
         self.title = field.title()
+
+        self.updateReferenceWidget(self.context, '')
         self.interface = field.get_interface()
-        self.value = value
-        self.value_title = None
-        self.value_url = None
-        context_lookup = self.context
-        if IVersion.providedBy(context_lookup):
-            context_lookup = context_lookup.object()
-        self.context_lookup_url = absoluteURL(context_lookup, self.request)
 
     def default_namespace(self):
         return {'context': self.context,

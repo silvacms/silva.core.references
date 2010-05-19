@@ -4,12 +4,15 @@
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
   </div>
-  <a href="#" id="#" target="_blank"
-     tal:attributes="id string:${view/id}-link;
-                     href view/value_url"
-     tal:content="view/value_title"></a>
   <button class="reference-dialog-trigger">
   </button>
+  <a href="#" id="#" target="_blank"
+     tal:attributes="id string:${view/id}-link;
+                     href view/value_url">
+    <img tal:condition="view/value_icon"
+         tal:attributes="src view/value_icon" />
+    <span tal:replace="view/value_title" />
+  </a>
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
                          name view/name;
