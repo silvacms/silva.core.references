@@ -39,7 +39,7 @@ def get_content_from_id(content_id):
     return utility.getObject(int(content_id))
 
 
-class Reference(schema.Field):
+class Reference(schema.Object):
     """Store a reference to an object.
     """
     interface.implements(IReference)

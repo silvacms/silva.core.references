@@ -31,7 +31,12 @@ class ReferenceWidget(SchemaFieldWidget, ReferenceWidgetInfo):
 
     def update(self):
         super(ReferenceWidget, self).update()
-        self.updateReferenceWidget(self.form.context, self.inputValue())
+        
+        interface = self.component.get_field().schema
+        interface_name = "%s.%s" % (interface.__module__, interface.__name__)
+        self.updateReferenceWidget(
+            self.form.context, self.inputValue(),
+            interface=interface_name)
 
 
 class ReferenceWidgetExtractor(WidgetExtractor):

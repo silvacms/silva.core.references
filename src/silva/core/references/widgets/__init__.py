@@ -23,8 +23,8 @@ class ReferenceWidgetInfo(object):
     different form implementation.
     """
 
-    def updateReferenceWidget(self, context, value_id):
-        self.interface = None
+    def updateReferenceWidget(self, context, value_id, interface=None):
+        self.interface = interface
         self.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
 
