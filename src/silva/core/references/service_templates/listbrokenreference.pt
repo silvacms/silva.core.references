@@ -7,7 +7,7 @@
   <body>
     <div metal:fill-slot="body">
 
-      <p tal:condition="python:not(view.broken_targets and view.broken_soures)">
+      <p tal:condition="python:not(view.broken_targets and view.broken_sources)">
         There are no broken references.
       </p>
 
