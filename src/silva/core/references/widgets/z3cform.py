@@ -28,6 +28,8 @@ class ReferenceWidget(widget.HTMLInputWidget, Widget, ReferenceWidgetInfo):
     def update(self):
         super(ReferenceWidget, self).update()
         self.updateReferenceWidget(self.context, self.value)
+        self.interface = None
+        self.reference = None
 
 
 class ReferenceDataConverter(converter.BaseDataConverter):

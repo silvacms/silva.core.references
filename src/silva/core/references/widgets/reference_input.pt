@@ -21,6 +21,11 @@
          tal:condition="view/interface"
          tal:attributes="id string:${view/id}-interface;
                          value view/interface" />
+  <input type="hidden" value="#" id="#" name="#"
+         tal:condition="view/reference"
+         tal:attributes="id string:${view/id}-reference;
+                         name string:${view/name}_reference;
+                         value view/reference" />
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />

@@ -2,6 +2,8 @@
 # See also LICENSE.txt
 # $Id$
 
+import uuid
+
 from Acquisition import aq_parent
 import AccessControl
 from Products.Formulator.Field import ZMIField
@@ -16,6 +18,7 @@ from zope.interface.interfaces import IInterface
 from zope.traversing.browser import absoluteURL
 
 from silva.core.interfaces import IVersion, ISilvaObject
+from silva.core.references.interfaces import IReferenceService
 from silva.core.references.widgets import ReferenceWidgetInfo
 
 
@@ -87,8 +90,31 @@ def get_request():
     return manager.getUser().REQUEST
 
 
-class BindedReferenceWidget(ReferenceWidgetInfo):
+class ReferenceValidator(Validator):
+    """Extract and validate a reference.
+    """
 
+    def validate(self, field, key, REQUEST):
+        context = REQUEST.get('model', None)
+        if context is not None and ISilvaObject.providedBy(context):
+            value = REQUEST.form.get(key, None)
+            reference_id = REQUEST.form.get(key + '_reference', None)
+            service = queryUtility(IReferenceService)
+            if reference_id is not None:
+                reference = service.get_reference(context, name=reference_id)
+            else:
+                reference_id = unicode(uuid.uuid4())
+                reference = service.new_reference(
+                    context, name=unicode(field.title()))
+                reference.add_tag(reference_id)
+            reference.set_target_id(int(value))
+            return reference_id
+        return ''
+
+
+class BindedReferenceWidget(ReferenceWidgetInfo):
+    """Render a widget.
+    """
     template = grok.PageTemplateFile('reference_input.pt')
 
     def __init__(self, context, request, field, value):
@@ -98,11 +124,23 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
         self.__parent__ = context
 
         # For the widget
-        self.id = field.getId()
-        self.name = field.getId()
+        self.id = field.generate_field_html_id()
+        self.name = field.generate_field_key()
         self.title = field.title()
 
-        self.updateReferenceWidget(self.context, '')
+        self.value = ''
+        self.reference = ''
+        if ISilvaObject.providedBy(self.context):
+            # If you have a SilvaObject as context, when the field is
+            # used for real.
+            if value:
+                # We have a value. It is a tag of the reference. We
+                # want here to lookup the value of the reference.
+                service = queryUtility(IReferenceService)
+                reference = service.get_reference(self.context, name=value)
+                self.value = reference.target_id
+                self.reference = value
+        self.updateReferenceWidget(self.context, self.value)
         self.interface = field.get_interface()
 
     def default_namespace(self):
@@ -120,7 +158,6 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
 class ReferenceWidget(Widget):
     """Widget to select a reference.
     """
-
     property_names = Widget.property_names + ['interface', 'multiple']
 
     default = fields.ReferenceField(
@@ -161,7 +198,7 @@ class ReferenceField(ZMIField):
     """
     meta_type = "ReferenceField"
     widget = ReferenceWidget()
-    validator = StringBaseValidator()
+    validator = ReferenceValidator()
 
     @property
     def REQUEST(self):
