@@ -3,6 +3,10 @@ import os
 
 version = '1.0dev'
 
+tests_require = [
+    'Products.Silva [test]',
+    ]
+
 setup(name='silva.core.references',
       version=version,
       description="Define a references engine usable by Silva content",
@@ -28,11 +32,19 @@ setup(name='silva.core.references',
         'dolmen.relations',
         'five.grok',
         'setuptools',
-        'silva.core.services',
+        'silva.core.conf',
         'silva.core.interfaces',
+        'silva.core.services',
+        'silva.core.views',
+        'zc.relation',
         'zope.component',
+        'zope.event',
         'zope.interface',
+        'zope.intid',
         'zope.lifecycleevent',
         'zope.schema',
+        'zope.traversing',
         ],
+      tests_require = tests_require,
+      extras_require = {'test': tests_require},
       )

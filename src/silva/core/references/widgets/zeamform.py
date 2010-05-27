@@ -4,7 +4,6 @@
 
 from five import grok
 from zope.interface import Interface
-from zope.traversing.browser import absoluteURL
 
 from zeam.form.base.widgets import WidgetExtractor
 from zeam.form.ztk.fields import SchemaField, SchemaFieldWidget
@@ -31,7 +30,7 @@ class ReferenceWidget(SchemaFieldWidget, ReferenceWidgetInfo):
 
     def update(self):
         super(ReferenceWidget, self).update()
-        
+
         interface = self.component.get_field().schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
         self.updateReferenceWidget(

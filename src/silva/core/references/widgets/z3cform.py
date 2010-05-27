@@ -3,14 +3,11 @@
 # $Id$
 
 from zope import component, interface
-from zope.intid.interfaces import IIntIds
-from zope.traversing.browser import absoluteURL
 
 from z3c.form import interfaces, converter
 from z3c.form.widget import Widget, FieldWidget
 from z3c.form.browser import widget
 
-from silva.core.interfaces import IVersion
 from silva.core.references.interfaces import IReference
 from silva.core.references.reference import get_content_id
 from silva.core.references.widgets import ReferenceWidgetInfo

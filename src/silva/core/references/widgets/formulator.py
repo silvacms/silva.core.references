@@ -8,16 +8,15 @@ from Acquisition import aq_parent
 import AccessControl
 from Products.Formulator.Field import ZMIField
 from Products.Formulator.FieldRegistry import FieldRegistry
-from Products.Formulator.Validator import Validator, StringBaseValidator
+from Products.Formulator.Validator import Validator
 from Products.Formulator.Widget import Widget, render_element
 from Products.Formulator.DummyField import fields
 
 from five import grok
 from zope.component import queryUtility
 from zope.interface.interfaces import IInterface
-from zope.traversing.browser import absoluteURL
 
-from silva.core.interfaces import IVersion, ISilvaObject
+from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.widgets import ReferenceWidgetInfo
 
