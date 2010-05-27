@@ -1,0 +1,15 @@
+<div class="reference-widget" id="#"
+     tal:define="id widget.htmlId()"
+     tal:attributes="id id">
+  <div id="#" title="#" class="ui-widget reference-dialog"
+       tal:attributes="id string:${id}-dialog;
+                       title widget.title">
+  </div>
+  <a href="#" id="#" target="_blank"
+     tal:attributes="id string:${id}-link;
+                     href widget.value_url">
+    <img tal:condition="widget.value_icon"
+         tal:attributes="src widget.value_icon" />
+    <span tal:replace="widget.value_title" />
+  </a>
+</div>

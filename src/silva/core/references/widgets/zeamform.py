@@ -5,6 +5,7 @@
 from five import grok
 from zope.interface import Interface
 
+from zeam.form.base.markers import DISPLAY, INPUT
 from zeam.form.base.widgets import WidgetExtractor
 from zeam.form.ztk.fields import SchemaField, SchemaFieldWidget
 from zeam.form.ztk.fields import registerSchemaField
@@ -22,20 +23,24 @@ class ReferenceSchemaField(SchemaField):
 registerSchemaField(ReferenceSchemaField, IReference)
 
 
-class ReferenceWidget(SchemaFieldWidget, ReferenceWidgetInfo):
+class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
-
+    grok.name(str(INPUT))
     def valueToUnicode(self, value):
         return unicode(get_content_id(value))
 
     def update(self):
-        super(ReferenceWidget, self).update()
+        super(ReferenceWidgetInput, self).update()
 
         interface = self.component.get_field().schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
         self.updateReferenceWidget(
             self.form.context, self.inputValue(),
             interface=interface_name)
+
+
+class ReferenceWidgetDisplay(ReferenceWidgetInput):
+    grok.name(str(DISPLAY))
 
 
 class ReferenceWidgetExtractor(WidgetExtractor):
