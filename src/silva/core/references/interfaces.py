@@ -31,6 +31,17 @@ class IReferenceValue(ITaggedRelationValue):
         """Set the target content of the relation.
         """
 
+    def is_target_inside_container(container):
+        """Verify that the target of the reference is located inside
+        the given container.
+        """
+
+    def relative_path_to(content):
+        """Return the relative path from the given content to the
+        target of the reference.
+        """
+
+
 
 class IDeleteSourceOnTargetDeletion(Interface):
     """Marker interface for ReferenceValue to indicate that if the

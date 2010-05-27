@@ -4,15 +4,18 @@
 
 import unittest
 
-from Products.Silva.tests import SilvaTestCase
+from Products.Silva.testing import FunctionalLayer
+
 from zope import component
 from zope.interface.verify import verifyObject
+
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 
 
-class ServiceTestCase(SilvaTestCase.SilvaTestCase):
+class ServiceTestCase(unittest.TestCase):
     """Test reference system.
     """
+    layer = FunctionalLayer
 
     def test_service_implementation(self):
         """Test the service installation and interface. It should be
@@ -22,15 +25,18 @@ class ServiceTestCase(SilvaTestCase.SilvaTestCase):
         self.failUnless(verifyObject(IReferenceService, service))
 
 
-class ServiceManageReferenceTestCase(SilvaTestCase.SilvaTestCase):
+class ServiceManageReferenceTestCase(unittest.TestCase):
     """Test that the service manage references.
     """
+    layer = FunctionalLayer
 
-    def afterSetUp(self):
-        self.add_folder(self.root, 'folder', 'Folder')
-        self.add_folder(self.root, 'cloned_folder', 'Clone')
-        self.add_publication(self.root, 'publication', 'Publication')
-        self.add_publication(self.root, 'cloned_publication', 'Clone')
+    def setUp(self):
+        self.root = self.layer.get_application()
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory.manage_addFolder('cloned_folder', 'Clone')
+        factory.manage_addPublication('publication', 'Publication')
+        factory.manage_addPublication('cloned_publication', 'Clone')
         self.service = component.getUtility(IReferenceService)
 
     def test_new_reference(self):

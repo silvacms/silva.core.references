@@ -9,10 +9,8 @@ from dolmen.relations.values import TaggedRelationValue
 from zope import component, interface, schema
 from zope.event import notify
 from zope.intid.interfaces import IIntIds
-from z3c.form import button
 from five import grok
 
-from silva.core.forms import z3cforms as silvaz3cforms
 from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import (
     IReferenceValue, IReferenceService, IReference,
@@ -37,6 +35,23 @@ def get_content_from_id(content_id):
     """
     utility = component.getUtility(IIntIds)
     return utility.getObject(int(content_id))
+
+
+def relative_path(path_orig, path_dest):
+    """Takes two path as list of ids and return a new path that is the
+    relative path the second against the first.
+    """
+    path_orig = list(path_orig)
+    path_dest = list(path_dest)
+    while ((path_orig and path_dest) and
+           (path_orig[0] == path_dest[0])):
+        path_orig.pop(0)
+        path_dest.pop(0)
+    result_path = ['..'] * len(path_orig)
+    result_path.extend(path_dest)
+    if not result_path:
+        return ['.']
+    return result_path
 
 
 class Reference(schema.Object):
@@ -71,6 +86,18 @@ class ReferenceValue(TaggedRelationValue):
 
     def set_target(self, target):
         self.set_target_id(get_content_id(target))
+
+    def is_target_inside_container(self, container):
+        target_path = self.target.getPhysicalPath()
+        container_path = container.getPhysicalPath()
+        if len(target_path) < len(container_path):
+            return False
+        return container_path == target_path[:len(container_path)]
+
+    def relative_path_to(self, content):
+        return relative_path(
+            content.getPhysicalPath(),
+            self.target.getPhysicalPath())
 
 InitializeClass(ReferenceValue)
 
@@ -151,30 +178,30 @@ def can_break_reference(view):
     return sm.checkPermission('Break a Silva reference', view.context)
 
 
-class BrokenReferenceErrorMessage(silvaz3cforms.PageForm):
-    grok.context(BrokenReferenceError)
-    grok.name('error.html')
+# class BrokenReferenceErrorMessage(silvaz3cforms.PageForm):
+#     grok.context(BrokenReferenceError)
+#     grok.name('error.html')
 
-    label = u"Possible broken reference"
-    description_template = grok.PageTemplate(filename="brokenreference.pt")
+#     label = u"Possible broken reference"
+#     description_template = grok.PageTemplate(filename="brokenreference.pt")
 
-    def namespace(self):
-        namespace = super(BrokenReferenceErrorMessage, self).namespace()
-        # We change the context back to model, since due to SilvaViews
-        # we are completely lost.
-        namespace['context'] = self.request['model']
-        return namespace
+#     def namespace(self):
+#         namespace = super(BrokenReferenceErrorMessage, self).namespace()
+#         # We change the context back to model, since due to SilvaViews
+#         # we are completely lost.
+#         namespace['context'] = self.request['model']
+#         return namespace
 
-    def update(self):
-        self.relation = self.error.args[0]
-        self.source = self.relation.source
-        self.target = self.relation.target
-        self.tags = u', '.join(self.relation.tags)
-        self.description = self.description_template.render(self)
-        self.response.setStatus(406)
+#     def update(self):
+#         self.relation = self.error.args[0]
+#         self.source = self.relation.source
+#         self.target = self.relation.target
+#         self.tags = u', '.join(self.relation.tags)
+#         self.description = self.description_template.render(self)
+#         self.response.setStatus(406)
 
-    @button.buttonAndHandler(u"break reference",
-                             name="break_reference",
-                             condition=lambda form: can_break_reference(form))
-    def break_reference(self, action):
-        pass
+#     @button.buttonAndHandler(u"break reference",
+#                              name="break_reference",
+#                              condition=lambda form: can_break_reference(form))
+#     def break_reference(self, action):
+#         pass

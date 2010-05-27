@@ -7,8 +7,10 @@ import transaction
 
 from Acquisition import aq_chain
 from Products.Silva.tests import SilvaTestCase
+
 from zope import component, interface
 from zope.interface.verify import verifyObject
+
 from silva.core.references.reference import BrokenReferenceError
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.interfaces import IDeleteSourceOnTargetDeletion
