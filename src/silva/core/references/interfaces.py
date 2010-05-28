@@ -33,12 +33,15 @@ class IReferenceValue(ITaggedRelationValue):
 
     def is_target_inside_container(container):
         """Verify that the target of the reference is located inside
-        the given container.
+        the given container. This always return False if the reference
+        as no target.
         """
 
     def relative_path_to(content):
         """Return the relative path from the given content to the
-        target of the reference.
+        target of the reference. This return an empty path only if the
+        reference is broken. '.' is returned if content is the same
+        object than the target of the reference.
         """
 
 
