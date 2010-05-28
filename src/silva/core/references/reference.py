@@ -88,13 +88,21 @@ class ReferenceValue(TaggedRelationValue):
         self.set_target_id(get_content_id(target))
 
     def is_target_inside_container(self, container):
-        target_path = self.target.getPhysicalPath()
+        target = self.target
+        if target is None:
+            # The reference is broken
+            return False
+        target_path = target.getPhysicalPath()
         container_path = container.getPhysicalPath()
         if len(target_path) < len(container_path):
             return False
         return container_path == target_path[:len(container_path)]
 
     def relative_path_to(self, content):
+        target = self.target
+        if target is None:
+            # The reference is broken
+            return []
         return relative_path(
             content.getPhysicalPath(),
             self.target.getPhysicalPath())

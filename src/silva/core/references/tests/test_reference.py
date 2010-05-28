@@ -82,6 +82,24 @@ class ReferenceTestCase(unittest.TestCase):
             reference.is_target_inside_container(self.root.folder.publication),
             False)
 
+    def test_is_broken_target_inside_container(self):
+        """Test is_target_in_container on a broken reference.
+        """
+        reference = self.service.new_reference(
+            self.root.folder.link, name=u'link')
+        self.assertEqual(
+            reference.is_target_inside_container(self.root.publication),
+            False)
+        self.assertEqual(
+            reference.is_target_inside_container(self.root.folder),
+            False)
+        self.assertEqual(
+            reference.is_target_inside_container(self.root.folder.folder),
+            False)
+        self.assertEqual(
+            reference.is_target_inside_container(self.root.folder.publication),
+            False)
+
     def test_relative_path(self):
         """Test relative_path_to on a reference.
         """
@@ -104,6 +122,28 @@ class ReferenceTestCase(unittest.TestCase):
         self.assertEqual(
             reference.relative_path_to(self.root.folder.folder.link),
             ['..'])
+
+    def test_broken_relative_path(self):
+        """Test relative_path_to on a broken reference.
+        """
+        reference = self.service.new_reference(
+            self.root.folder.link, name=u'link')
+
+        self.assertEqual(
+            reference.relative_path_to(self.root.publication),
+            [])
+        self.assertEqual(
+            reference.relative_path_to(self.root.folder),
+            [])
+        self.assertEqual(
+            reference.relative_path_to(self.root.folder.folder),
+            [])
+        self.assertEqual(
+            reference.relative_path_to(self.root.folder.link),
+            [])
+        self.assertEqual(
+            reference.relative_path_to(self.root.folder.folder.link),
+            [])
 
 
 def test_suite():
