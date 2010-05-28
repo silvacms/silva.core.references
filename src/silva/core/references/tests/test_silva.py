@@ -6,7 +6,7 @@ import unittest
 import transaction
 
 from Acquisition import aq_chain
-from Products.Silva.tests import SilvaTestCase
+from Products.Silva.testing import FunctionalLayer, TestCase
 
 from zope import component, interface
 from zope.interface.verify import verifyObject
@@ -16,15 +16,19 @@ from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.interfaces import IDeleteSourceOnTargetDeletion
 
 
-class SilvaReferenceTestCase(SilvaTestCase.SilvaTestCase):
+class SilvaReferenceTestCase(unittest.TestCase):
     """Test that Silva objects behave with the references (clone,
     copy, paste, move).
     """
+    layer = FunctionalLayer
 
-    def afterSetUp(self):
-        self.add_folder(self.root, 'folder', 'Folder')
-        self.add_publication(self.root, 'publication', 'Publication')
-        self.add_publication(self.root, 'other', 'Other')
+    def setUp(self):
+        self.root = self.layer.get_application()
+        self.layer.login('editor')
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory.manage_addPublication('publication', 'Publication')
+        factory.manage_addPublication('other', 'Other')
         self.service = component.getUtility(IReferenceService)
 
     def test_clone(self):
@@ -123,18 +127,24 @@ class SilvaReferenceTestCase(SilvaTestCase.SilvaTestCase):
             aq_chain(self.root.other.publication))
 
 
-class SilvaReferenceDeletionTestCase(SilvaTestCase.SilvaTestCase):
+class SilvaReferenceDeletionTestCase(TestCase):
     """Test various scenario on Silva content deletion: if a reference
     would be broken by that deletion, an error will be triggered.
     """
+    layer = FunctionalLayer
 
-    def afterSetUp(self):
-        self.add_publication(self.root, 'pub', 'Publication')
-        self.add_folder(self.root.pub, 'folder', 'Folder')
-        self.add_file(self.root.pub.folder, 'target', 'Target')
-        self.add_document(self.root.pub.folder, 'source', 'Source')
-        self.add_file(self.root.pub, 'target', 'Target')
-        self.add_document(self.root.pub, 'source', 'Source')
+    def setUp(self):
+        self.root = self.layer.get_application()
+        self.layer.login('editor')
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addPublication('pub', 'Publication')
+        factory = self.root.pub.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory.manage_addFile('target', 'Target')
+        factory.manage_addFile('source', 'Source')
+        factory = self.root.pub.folder.manage_addProduct['Silva']
+        factory.manage_addFile('target', 'Target')
+        factory.manage_addFile('source', 'Source')
         self.service = component.getUtility(IReferenceService)
 
     def test_delete_no_target(self):
