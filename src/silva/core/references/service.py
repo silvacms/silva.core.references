@@ -65,17 +65,23 @@ class ReferenceService(SilvaService):
             return None
         return references[0]
 
-    def get_references_to(self, content):
+    def get_references_to(self, content, name=None):
         """Get all references to the given content.
         """
         content_id = get_content_id(content)
-        return self.catalog.findRelations({'target_id': content_id})
+        query = {'target_id': content_id}
+        if name is not None:
+            query['tag'] = name
+        return self.catalog.findRelations(query)
 
-    def get_references_from(self, content):
+    def get_references_from(self, content, name=None):
         """Get all references from the given content.
         """
         content_id = get_content_id(content)
-        return self.catalog.findRelations({'source_id': content_id})
+        query = {'source_id': content_id}
+        if name is not None:
+            query['tag'] = name
+        return self.catalog.findRelations(query)
 
     def delete_reference(self, content, name=None):
         """Lookup and remove a reference.

@@ -69,12 +69,14 @@ class IReferenceService(ISilvaService):
         """Retrieve an unique existing reference.
         """
 
-    def get_references_to(content):
-        """Get all references where the given content is a target.
+    def get_references_to(content, name=None):
+        """Get all references where the given content is a target,
+        optionaly tagged with name.
         """
 
-    def get_references_from(content):
-        """Get all references where the given content is a source.
+    def get_references_from(content, name=None):
+        """Get all references where the given content is a source,
+        optionaly tagged with name.
         """
 
     def delete_reference(content, name=None):
