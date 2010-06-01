@@ -45,6 +45,10 @@ class IReferenceValue(ITaggedRelationValue):
         """
 
 
+class IWeakReferenceValue(IReferenceValue):
+    """ This type of reference will just be deleted if the target is deleted
+    """
+
 
 class IDeleteSourceOnTargetDeletion(Interface):
     """Marker interface for ReferenceValue to indicate that if the
@@ -77,6 +81,11 @@ class IReferenceService(ISilvaService):
     def get_references_from(content, name=None):
         """Get all references where the given content is a source,
         optionaly tagged with name.
+        """
+
+    def get_references_between(source, target, name=None):
+        """Get all references binding source and target with an optional
+        name.
         """
 
     def delete_reference(content, name=None):

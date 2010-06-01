@@ -13,7 +13,7 @@ from five import grok
 
 from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import (
-    IReferenceValue, IReferenceService, IReference,
+    IReferenceValue, IWeakReferenceValue, IReferenceService, IReference,
     IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)
 
 from Acquisition import aq_parent
@@ -107,7 +107,30 @@ class ReferenceValue(TaggedRelationValue):
             content.getPhysicalPath(),
             self.target.getPhysicalPath())
 
+    def cleanup(self):
+        if IDeleteSourceOnTargetDeletion.providedBy(self):
+            parent_of_source = aq_parent(self.source)
+            parent_of_source.manage_delObjects([self.source.getId(),])
+            return
+        # the source have been marked for deletion or not
+        if not IContentScheduledForDeletion.providedBy(self.source):
+            transaction.abort()
+            raise BrokenReferenceError(self)
+
+
 InitializeClass(ReferenceValue)
+
+
+class WeakReferenceValue(ReferenceValue):
+    """ This reference type do not enforce the relation to be kept
+    """
+    grok.implements(IWeakReferenceValue)
+
+    def cleanup(self):
+        if IDeleteSourceOnTargetDeletion.providedBy(self):
+            parent_of_source = aq_parent(self.source)
+            parent_of_source.manage_delObjects([self.source.getId(),])
+            return
 
 
 class ReferenceProperty(object):
@@ -167,18 +190,8 @@ def reference_target_deleted(content, event):
         # five.intid would help to fix this. In any of the following
         # scenario it is still alright for us.
         return
-    # Scenario 1, it's a relation where we want to delete always the
-    # source if the target is removed.
-    if IDeleteSourceOnTargetDeletion.providedBy(event.relation):
-        parent_of_source = aq_parent(source)
-        parent_of_source.manage_delObjects([source.getId(),])
-        return
-    # Scenario 2, does the source have been marked for deletion or not
-    if not IContentScheduledForDeletion.providedBy(source):
-        # We cancel everything, it might work in most case to just do
-        # transaction.abort()
-        transaction.abort()
-        raise BrokenReferenceError(event.relation)
+    event.relation.cleanup()
+
 
 
 def can_break_reference(view):

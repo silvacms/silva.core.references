@@ -13,7 +13,7 @@ from zope.lifecycleevent.interfaces import (
 import uuid
 
 from silva.core import conf as silvaconf
-from silva.core.references.interfaces import IReferenceService
+from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.reference import ReferenceValue, get_content_id
 from silva.core.services.base import SilvaService
 from silva.core.views import views as silvaviews
@@ -35,25 +35,30 @@ class ReferenceService(SilvaService):
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
-    def __create_reference(self, content_id, name=None, target_id=0, tags=None):
+    def __create_reference(self, content_id, name=None, target_id=0,
+            tags=None, factory=ReferenceValue):
         """Create and add a new reference
         """
+        if not IReferenceValue.implementedBy(factory):
+            raise TypeError('Wrong factory %s for reference, '
+                'it should implement IReferenceValue' % factory)
         if tags is None:
             tags = []
         if name is not None:
             tags.append(name)
-        reference = ReferenceValue(content_id, target_id, tags=tags)
+        reference = factory(content_id, target_id, tags=tags)
         reference_id = str(uuid.uuid4())
         self.references[reference_id] = reference
         return reference
 
-    def new_reference(self, content, name=None):
+    def new_reference(self, content, name=None, factory=ReferenceValue):
         """Create a new reference.
         """
         content_id = get_content_id(content)
-        return self.__create_reference(content_id, name=name)
+        return self.__create_reference(content_id, name=name, factory=factory)
 
-    def get_reference(self, content, name=None, add=False):
+    def get_reference(self, content, name=None, add=False,
+            factory=ReferenceValue):
         """Retrieve an existing reference.
         """
         content_id = get_content_id(content)
@@ -61,7 +66,8 @@ class ReferenceService(SilvaService):
             {'source_id': content_id, 'tag': name}))
         if not len(references):
             if add is True:
-                return self.__create_reference(content_id, name=name)
+                return self.__create_reference(
+                    content_id, name=name, factory=factory)
             return None
         return references[0]
 
@@ -83,12 +89,22 @@ class ReferenceService(SilvaService):
             query['tag'] = name
         return self.catalog.findRelations(query)
 
+    def get_references_between(self, source, target, name=None):
+        query = {'source_id': get_content_id(source),
+                 'target_id': get_content_id(target)}
+        if name is not None:
+            query['tag'] = name
+        return self.catalog.findRelations(query)
+
     def delete_reference(self, content, name=None):
         """Lookup and remove a reference.
         """
         reference = self.get_reference(content, name=name, add=False)
         if reference is not None:
             del self.references[reference.__name__]
+
+    def delete_reference_by_name(self, name):
+        del self.references[name]
 
     def clone_references(self, content, clone):
         """Clone content reference to clone content.

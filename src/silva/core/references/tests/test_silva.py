@@ -12,6 +12,7 @@ from zope import component, interface
 from zope.interface.verify import verifyObject
 
 from silva.core.references.reference import BrokenReferenceError
+from silva.core.references.reference import WeakReferenceValue
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.interfaces import IDeleteSourceOnTargetDeletion
 
@@ -255,6 +256,14 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertEquals(list(self.service.get_references_to(target)), [])
         self.assertListEqual(self.root.pub.objectIds(), ['target'])
+
+    def test_weak_reference(self):
+        reference = self.service.new_reference(
+            self.root.pub.source, name=u'weak ref', factory=WeakReferenceValue)
+        target = self.root.pub.folder.target
+        reference.set_target(target)
+
+        self.root.pub.folder.manage_delObjects(['target'])
 
 
 def test_suite():
