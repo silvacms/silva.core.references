@@ -30,6 +30,9 @@ class SilvaReferenceTestCase(unittest.TestCase):
         factory.manage_addFolder('folder', 'Folder')
         factory.manage_addPublication('publication', 'Publication')
         factory.manage_addPublication('other', 'Other')
+        factory = self.root.folder.manage_addProduct['Silva']
+        factory.manage_addFolder('contained', 'Contained Folder')
+        factory.manage_addFolder('data', 'Data Folder')
         self.service = component.getUtility(IReferenceService)
 
     def test_clone(self):
@@ -73,8 +76,11 @@ class SilvaReferenceTestCase(unittest.TestCase):
         reference = self.service.get_reference(
             self.root.publication.folder, name=u"myname")
         self.assertEqual(reference.target, self.root.publication)
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.publication))),
+            1)
 
-    def test_source_copy_paste(self):
+    def test_copy_paste_source(self):
         """Try to copy and paste a Silva object which have references.
         """
         reference = self.service.new_reference(
@@ -92,14 +98,112 @@ class SilvaReferenceTestCase(unittest.TestCase):
         cloned_reference = self.service.get_reference(
             self.root.publication.folder, name=u'myname')
         self.failUnless(verifyObject(IReferenceValue, cloned_reference))
-        self.assertEquals(cloned_reference.source, self.root.publication.folder)
+        self.assertEquals(
+            cloned_reference.source,
+            self.root.publication.folder)
         self.assertEquals(
             aq_chain(cloned_reference.source),
             aq_chain(self.root.publication.folder))
-        self.assertEquals(cloned_reference.target, self.root.publication)
+        self.assertEquals(
+            cloned_reference.target,
+            self.root.publication)
         self.assertEquals(
             aq_chain(cloned_reference.target),
             aq_chain(self.root.publication))
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.publication))),
+            2)
+
+    def test_copy_paste_contained_source(self):
+        """Copy and paste a folder that contained a Silva which have
+        references out of this folder.
+        """
+        reference = self.service.new_reference(
+            self.root.folder.contained, name=u'myname')
+        reference.set_target(self.root.publication)
+
+        # Copy/paste folder
+        token = self.root.manage_copyObjects(['folder',])
+        self.root.publication.manage_pasteObjects(token)
+
+        self.failUnless('folder' in self.root.objectIds())
+        self.failUnless('folder' in self.root.publication.objectIds())
+
+        # The reference should have been cloned
+        cloned_reference = self.service.get_reference(
+            self.root.publication.folder.contained, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, cloned_reference))
+        self.assertEquals(
+            cloned_reference.source,
+            self.root.publication.folder.contained)
+        self.assertEquals(
+            aq_chain(cloned_reference.source),
+            aq_chain(self.root.publication.folder.contained))
+        self.assertEquals(
+            cloned_reference.target,
+            self.root.publication)
+        self.assertEquals(
+            aq_chain(cloned_reference.target),
+            aq_chain(self.root.publication))
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.publication))),
+            2)
+
+    def test_copy_paste_contained_source_and_target(self):
+        """Copy and paste a folder that contained a Silva which have
+        references in the same folder.
+        """
+        reference = self.service.new_reference(
+            self.root.folder.contained, name=u'myname')
+        reference.set_target(self.root.folder.data)
+
+        # Copy/paste folder
+        token = self.root.manage_copyObjects(['folder',])
+        self.root.publication.manage_pasteObjects(token)
+
+        self.failUnless('folder' in self.root.objectIds())
+        self.failUnless('folder' in self.root.publication.objectIds())
+
+        # The reference should have been cloned
+        cloned_reference = self.service.get_reference(
+            self.root.publication.folder.contained, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, cloned_reference))
+        self.assertEquals(
+            cloned_reference.source,
+            self.root.publication.folder.contained)
+        self.assertEquals(
+            aq_chain(cloned_reference.source),
+            aq_chain(self.root.publication.folder.contained))
+        self.assertEquals(
+            cloned_reference.target,
+            self.root.publication.folder.data)
+        self.assertEquals(
+            aq_chain(cloned_reference.target),
+            aq_chain(self.root.publication.folder.data))
+        self.assertEqual(
+            len(list(self.service.get_references_to(
+                        self.root.publication.folder.data))),
+            1)
+
+        # The original one is not touched
+        reference = self.service.get_reference(
+            self.root.folder.contained, name=u'myname')
+        self.failUnless(verifyObject(IReferenceValue, reference))
+        self.assertEquals(
+            reference.source,
+            self.root.folder.contained)
+        self.assertEquals(
+            aq_chain(reference.source),
+            aq_chain(self.root.folder.contained))
+        self.assertEquals(
+            reference.target,
+            self.root.folder.data)
+        self.assertEquals(
+            aq_chain(reference.target),
+            aq_chain(self.root.folder.data))
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.folder.data))),
+            1)
 
     def test_source_move(self):
         """Make a reference and move the Silva source around.

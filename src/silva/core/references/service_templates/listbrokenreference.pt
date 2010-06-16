@@ -7,7 +7,7 @@
   <body>
     <div metal:fill-slot="body">
 
-      <p tal:condition="python:not(view.broken_targets and view.broken_sources)">
+      <p tal:condition="python:not(view.broken_targets or view.broken_sources)">
         There are no broken references.
       </p>
 
@@ -16,6 +16,14 @@
         <p>Targets of the following reference are missing:</p>
         <ul metal:define-macro="list_references">
           <li tal:repeat="reference references">
+            Source
+            <a href="#"
+               tal:define="source reference/source;
+                           source_url source/absolute_url"
+               tal:attributes="href source_url"
+               tal:content="python:'/'.join(source.getPhysicalPath())">
+              Name
+            </a>
             (details:
             <span tal:replace="python:', '.join(reference.tags)"></span>)
           </li>

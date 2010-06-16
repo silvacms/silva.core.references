@@ -14,7 +14,8 @@ import uuid
 
 from silva.core import conf as silvaconf
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
-from silva.core.references.reference import ReferenceValue, get_content_id
+from silva.core.references.reference import (
+    ReferenceValue, get_content_id, relative_path)
 from silva.core.services.base import SilvaService
 from silva.core.views import views as silvaviews
 
@@ -106,16 +107,31 @@ class ReferenceService(SilvaService):
     def delete_reference_by_name(self, name):
         del self.references[name]
 
-    def clone_references(self, content, clone):
-        """Clone content reference to clone content.
+    def clone_references(
+        self, content, clone, copy_source=None, copy_target=None):
+        """Clone content reference to clone content unless source and
+        target are both in container.
         """
         content_id = get_content_id(content)
         clone_id = get_content_id(clone)
         references = self.catalog.findRelations({'source_id': content_id})
         for reference in references:
+            clone_target_id = reference.target_id
+            if copy_source is not None:
+                target_path = reference.target.getPhysicalPath()
+                copy_source_path = copy_source.getPhysicalPath()
+                if (len(target_path) >= len(copy_source_path) and
+                    target_path[:len(copy_source_path)] == copy_source_path):
+                    # Reference target is in copy_source, so we need to
+                    # set target to the corresponding one in
+                    # copy_target.
+                    assert copy_target is not None
+                    clone_target = copy_target.unrestrictedTraverse(
+                        relative_path(copy_source_path, target_path))
+                    clone_target_id =  get_content_id(clone_target)
             self.__create_reference(
                 clone_id,
-                target_id=reference.target_id,
+                target_id=clone_target_id,
                 tags=list(reference.tags))
 
 
@@ -145,4 +161,17 @@ def cloneReference(content, event):
     """
     service = component.queryUtility(IReferenceService)
     if service is not None:
-        service.clone_references(event.original, event.object)
+        # This event is called for all content contained in
+        # event.object. We need to find the corresponding original
+        # content matching content to call clone_references.
+        copy_path = content.getPhysicalPath()[1:]
+        original = event.original
+        if len(copy_path):
+            # basically event.object != content. content is the copy
+            # of event.original, so the relative path event.object to
+            # content should exists as well from event.original.
+            original = original.unrestrictedTraverse(copy_path)
+        service.clone_references(
+            original, content,
+            copy_source=event.original, copy_target=event.object)
+
