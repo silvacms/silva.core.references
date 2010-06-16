@@ -55,7 +55,26 @@ class SilvaReferenceTestCase(unittest.TestCase):
             aq_chain(cloned_reference.target),
             aq_chain(self.root.publication))
 
-    def test_copy_paste(self):
+    def test_cut_paste(self):
+        """Try to cut and paste a Silva object which have
+        references. They should be copied as well.
+        """
+        reference = self.service.new_reference(
+            self.root.folder, name=u'myname')
+        reference.set_target(self.root.publication)
+
+        # Cut/paste folder
+        token = self.root.manage_cutObjects(['folder',])
+        self.root.publication.manage_pasteObjects(token)
+
+        self.failIf('folder' in self.root.objectIds())
+        self.failUnless('folder' in self.root.publication.objectIds())
+
+        reference = self.service.get_reference(
+            self.root.publication.folder, name=u"myname")
+        self.assertEqual(reference.target, self.root.publication)
+
+    def test_source_copy_paste(self):
         """Try to copy and paste a Silva object which have references.
         """
         reference = self.service.new_reference(
@@ -65,6 +84,9 @@ class SilvaReferenceTestCase(unittest.TestCase):
         # Copy/paste folder
         token = self.root.manage_copyObjects(['folder',])
         self.root.publication.manage_pasteObjects(token)
+
+        self.failUnless('folder' in self.root.objectIds())
+        self.failUnless('folder' in self.root.publication.objectIds())
 
         # The reference should have been cloned
         cloned_reference = self.service.get_reference(
