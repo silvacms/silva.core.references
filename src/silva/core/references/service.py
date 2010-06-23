@@ -117,6 +117,8 @@ class ReferenceService(SilvaService):
         references = self.catalog.findRelations({'source_id': content_id})
         for reference in references:
             clone_target_id = reference.target_id
+            if clone_target_id == 0:
+                continue
             if copy_source is not None:
                 target_path = reference.target.getPhysicalPath()
                 copy_source_path = copy_source.getPhysicalPath()
