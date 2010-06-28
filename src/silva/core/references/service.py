@@ -147,6 +147,36 @@ class ListBrokenReference(silvaviews.ZMIView):
                 {'source_id': 0}))
 
 
+class ReferenceGraph(silvaviews.ZMIView):
+    grok.name('graph.gv')
+
+    def render(self):
+        seen = set()
+        self.response.setHeader('Content-Type', 'text/vnd.graphviz')
+        self.response.write("digraph site {\n")
+        self.response.write("node [shape=box];")
+        for reference_key in self.context.references.keys():
+            reference = self.context.references[reference_key]
+            if reference.target_id not in seen:
+                self.response.write(" %s;" % reference.target_id)
+                seen.add(reference.target_id)
+            if reference.source_id not in seen:
+                self.response.write(" %s;" % reference.source_id)
+                seen.add(reference.source_id)
+        self.response.write("\n")
+        for reference_key in self.context.references.keys():
+            reference = self.context.references[reference_key]
+            self.response.write(
+                "%s->%s;\n" % (reference.target_id, reference.source_id))
+
+        self.response.write("\n")
+        self.response.write("""
+overlap=false;
+fontsize=12;
+}
+""")
+
+
 @grok.subscribe(IReferenceService, IObjectCreatedEvent)
 def configureReferenceService(service, event):
     """Configure the reference after it have been created. Register
