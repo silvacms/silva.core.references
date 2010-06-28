@@ -155,21 +155,34 @@ class ReferenceGraph(silvaviews.ZMIView):
         self.response.setHeader('Content-Type', 'text/vnd.graphviz')
         self.response.write("digraph site {\n")
         self.response.write("node [shape=box];")
+        count = 0
+        buffer = ""
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
             if reference.target_id not in seen:
-                self.response.write(" %s;" % reference.target_id)
+                buffer += " %s;" % reference.target_id
                 seen.add(reference.target_id)
             if reference.source_id not in seen:
-                self.response.write(" %s;" % reference.source_id)
+                buffer += " %s;" % reference.source_id
                 seen.add(reference.source_id)
-        self.response.write("\n")
+            count += 1
+            if count > 1000:
+                count = 0
+                self.response.write(buffer)
+                buffer = ""
+                self.context._p_jar.cacheMinimize()
+        del seen
+        buffer += "\n"
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
             self.response.write(
                 "%s->%s;\n" % (reference.source_id, reference.target_id))
-
-        self.response.write("\n")
+            count += 1
+            if count > 1000:
+                count = 0
+                self.response.write(buffer)
+                buffer = ""
+                self.context._p_jar.cacheMinimize()
         self.response.write("""
 overlap=false;
 fontsize=12;
