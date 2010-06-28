@@ -167,7 +167,7 @@ class ReferenceGraph(silvaviews.ZMIView):
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
             self.response.write(
-                "%s->%s;\n" % (reference.target_id, reference.source_id))
+                "%s->%s;\n" % (reference.source_id, reference.target_id))
 
         self.response.write("\n")
         self.response.write("""
