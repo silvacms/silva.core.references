@@ -166,7 +166,7 @@ class ReferenceGraph(silvaviews.ZMIView):
                 buffer += " %s;" % reference.source_id
                 seen.add(reference.source_id)
             count += 1
-            if count > 1000:
+            if count > 3000:
                 count = 0
                 self.response.write(buffer)
                 buffer = ""
@@ -175,14 +175,15 @@ class ReferenceGraph(silvaviews.ZMIView):
         buffer += "\n"
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
-            self.response.write(
-                "%s->%s;\n" % (reference.source_id, reference.target_id))
+            buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
             count += 1
-            if count > 1000:
+            if count > 3000:
                 count = 0
                 self.response.write(buffer)
                 buffer = ""
                 self.context._p_jar.cacheMinimize()
+        if count:
+            self.response.write(buffer)
         self.response.write("""
 overlap=false;
 fontsize=12;
