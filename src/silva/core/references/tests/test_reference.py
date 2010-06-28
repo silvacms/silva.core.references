@@ -130,20 +130,28 @@ class ReferenceTestCase(unittest.TestCase):
             self.root.folder.link, name=u'link')
 
         self.assertEqual(
-            reference.relative_path_to(self.root.publication),
-            [])
+            reference.relative_path_to(self.root.publication), [])
         self.assertEqual(
-            reference.relative_path_to(self.root.folder),
-            [])
+            reference.relative_path_to(self.root.folder), [])
         self.assertEqual(
-            reference.relative_path_to(self.root.folder.folder),
-            [])
+            reference.relative_path_to(self.root.folder.folder), [])
         self.assertEqual(
-            reference.relative_path_to(self.root.folder.link),
-            [])
+            reference.relative_path_to(self.root.folder.link), [])
         self.assertEqual(
-            reference.relative_path_to(self.root.folder.folder.link),
-            [])
+            reference.relative_path_to(self.root.folder.folder.link), [])
+
+    def test_broken_reference(self):
+        """Create a reference and set it broken.
+        """
+        reference = self.service.new_reference(self.root.folder, name=u'link')
+        reference.set_target(None)
+        self.assertEqual(reference.target, None)
+        self.assertEqual(reference.target_id, 0)
+
+        reference = self.service.new_reference(self.root.folder, name=u'other')
+        reference.set_target_id(0)
+        self.assertEqual(reference.target, None)
+        self.assertEqual(reference.target_id, 0)
 
 
 def test_suite():

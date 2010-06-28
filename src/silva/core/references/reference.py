@@ -26,6 +26,8 @@ import transaction
 def get_content_id(content):
     """Return the ID of a content.
     """
+    if content is None:
+        return 0
     utility = component.getUtility(IIntIds)
     return utility.register(content)
 
@@ -33,6 +35,8 @@ def get_content_id(content):
 def get_content_from_id(content_id):
     """Return a content from its ID.
     """
+    if content_id == 0:
+        return None
     utility = component.getUtility(IIntIds)
     return utility.getObject(int(content_id))
 
