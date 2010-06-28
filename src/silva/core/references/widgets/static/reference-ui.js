@@ -501,7 +501,7 @@ $(document).ready(function() {
             });
         var url = $('#' + widget_id + '-base').val();
         var content_list = new ContentList(popup, widget_id,
-            {'multiple': true});
+            {'multiple': false});
         content_list.element.bind('content-list-item-selected',
             function(event, item){
                 var reference = new ReferencedRemoteObject(widget_id);
