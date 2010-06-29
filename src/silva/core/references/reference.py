@@ -109,7 +109,7 @@ class ReferenceValue(TaggedRelationValue):
         return is_inside_container(container, self.target)
 
     def is_source_inside_container(self, container):
-        return is_inside_container(container, self.soure)
+        return is_inside_container(container, self.source)
 
     def relative_path_to(self, content):
         target = self.target
