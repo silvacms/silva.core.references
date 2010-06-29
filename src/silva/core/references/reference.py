@@ -150,7 +150,10 @@ class WeakReferenceValue(ReferenceValue):
 
 
 class ReferenceProperty(object):
-    """Represent a reference.
+    """Represent a reference, where you can set and get the target by
+    its content id (IntId). We don't return directly the target object
+    because of Acquisition magic when the property is used on an
+    Acquisition aware object.
     """
 
     def __init__(self, name):
@@ -164,7 +167,7 @@ class ReferenceProperty(object):
             raise AttributeError()
         service = component.getUtility(IReferenceService)
         reference = service.get_reference(content, name=self.name, add=True)
-        return reference.target
+        return reference.target_id
 
     def __set__(self, content, value):
         service = component.getUtility(IReferenceService)
