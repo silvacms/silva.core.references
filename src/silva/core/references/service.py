@@ -223,12 +223,12 @@ class ReferenceGraph(silvaviews.ZMIView):
 
         for reference in generator():
             source_id = reference.source_id
-            if source_id not in seen:
+            if source_id and source_id not in seen:
                 buffer += graphviz_content_node(
                     reference.source, source_id, self.request)
                 seen.add(source_id)
             target_id = reference.target_id
-            if target_id not in seen:
+            if target_id and target_id not in seen:
                 buffer += graphviz_content_node(
                     reference.target, target_id, self.request)
                 seen.add(target_id)
@@ -242,7 +242,11 @@ class ReferenceGraph(silvaviews.ZMIView):
         buffer += "\n"
 
         for reference in generator():
-            buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
+            source_id = reference.source_id
+            target_id = reference.target_id
+            if (not source_id) or (not target_id):
+                continue
+            buffer += "%s->%s;\n" % (source_id, target_id)
             count += 1
             if count > GRAPH_THRESHOLD:
                 self.context._p_jar.cacheMinimize()
