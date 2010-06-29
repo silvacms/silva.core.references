@@ -58,6 +58,20 @@ def relative_path(path_orig, path_dest):
     return result_path
 
 
+def is_inside_container(container, content):
+    """Tell you if a given content is inside the container. This is
+    done by a comparaison on the object paths.
+    """
+    if content is None:
+        # The reference is broken
+        return False
+    content_path = content.getPhysicalPath()
+    container_path = container.getPhysicalPath()
+    if len(content_path) < len(container_path):
+        return False
+    return container_path == content_path[:len(container_path)]
+
+
 class Reference(schema.Object):
     """Store a reference to an object.
     """
@@ -92,15 +106,10 @@ class ReferenceValue(TaggedRelationValue):
         self.set_target_id(get_content_id(target))
 
     def is_target_inside_container(self, container):
-        target = self.target
-        if target is None:
-            # The reference is broken
-            return False
-        target_path = target.getPhysicalPath()
-        container_path = container.getPhysicalPath()
-        if len(target_path) < len(container_path):
-            return False
-        return container_path == target_path[:len(container_path)]
+        return is_inside_container(container, self.target)
+
+    def is_source_inside_container(self, container):
+        return is_inside_container(container, self.soure)
 
     def relative_path_to(self, content):
         target = self.target
@@ -112,6 +121,9 @@ class ReferenceValue(TaggedRelationValue):
             self.target.getPhysicalPath())
 
     def cleanup(self):
+        """This method is called when the reference is removed. In any
+        case, you should not consider to call this yourself.
+        """
         if IDeleteSourceOnTargetDeletion.providedBy(self):
             parent_of_source = aq_parent(self.source)
             parent_of_source.manage_delObjects([self.source.getId(),])

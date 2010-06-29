@@ -7,6 +7,7 @@ from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
 from zc.relation.interfaces import ICatalog
+from zope.traversing.browser import absoluteURL
 from zope import component
 from zope.lifecycleevent.interfaces import (
     IObjectCreatedEvent, IObjectCopiedEvent)
@@ -15,9 +16,13 @@ import uuid
 from silva.core import conf as silvaconf
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.reference import (
-    ReferenceValue, get_content_id, relative_path)
+    ReferenceValue, get_content_id, get_content_from_id, relative_path,
+    is_inside_container)
 from silva.core.services.base import SilvaService
 from silva.core.views import views as silvaviews
+
+
+GRAPH_THRESHOLD = 2000
 
 
 class ReferenceService(SilvaService):
@@ -148,25 +153,44 @@ class ListBrokenReference(silvaviews.ZMIView):
 
 
 class ReferenceGraph(silvaviews.ZMIView):
+    """This view create a graphivz file with all contained references.
+    """
     grok.name('graph.gv')
 
-    def render(self):
+    def render(self, only_in=None):
+        if only_in is not None:
+            only_in = self.context.get_root().restrictedTraverse(only_in)
+        sources = set()
         seen = set()
         self.response.setHeader('Content-Type', 'text/vnd.graphviz')
-        self.response.write("digraph site {\n")
+        self.response.write("digraph references {\n")
         self.response.write("node [shape=box];")
         count = 0
         buffer = ""
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
-            if reference.target_id not in seen:
-                buffer += " %s;" % reference.target_id
-                seen.add(reference.target_id)
-            if reference.source_id not in seen:
-                buffer += " %s;" % reference.source_id
-                seen.add(reference.source_id)
+            source = reference.source
+            if only_in is not None:
+                if not is_inside_container(only_in, source):
+                    continue
+            source_id = reference.source_id
+            if source_id not in seen:
+                buffer += " %s [URL=%s,tooltip=%s,target=_graphivz];" % (
+                    source_id,
+                    absoluteURL(source, self.request),
+                    source.get_title_or_id())
+                seen.add(source_id)
+                sources.add(source_id)
+            target_id = reference.target_id
+            if target_id not in seen:
+                target = reference.target
+                buffer += " %s [URL=%s,tooltip=%s,target=_graphivz];" % (
+                    target_id,
+                    absoluteURL(target, self.request),
+                    source.get_title_or_id())
+                seen.add(target_id)
             count += 1
-            if count > 3000:
+            if count > GRAPH_THRESHOLD:
                 count = 0
                 self.response.write(buffer)
                 buffer = ""
@@ -175,9 +199,11 @@ class ReferenceGraph(silvaviews.ZMIView):
         buffer += "\n"
         for reference_key in self.context.references.keys():
             reference = self.context.references[reference_key]
+            if reference.source_id not in sources:
+                continue
             buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
             count += 1
-            if count > 3000:
+            if count > GRAPH_THRESHOLD:
                 count = 0
                 self.response.write(buffer)
                 buffer = ""

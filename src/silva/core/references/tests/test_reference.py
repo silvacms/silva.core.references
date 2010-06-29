@@ -82,6 +82,26 @@ class ReferenceTestCase(unittest.TestCase):
             reference.is_target_inside_container(self.root.folder.publication),
             False)
 
+    def test_is_source_inside_container(self):
+        """Test is_source_in_container on a reference.
+        """
+        reference = self.service.new_reference(
+            self.root.folder.link, name=u'link')
+        reference.set_target(self.root.folder.folder.link)
+
+        self.assertEqual(
+            reference.is_source_inside_container(self.root.publication),
+            False)
+        self.assertEqual(
+            reference.is_source_inside_container(self.root.folder),
+            True)
+        self.assertEqual(
+            reference.is_source_inside_container(self.root.folder.folder),
+            False)
+        self.assertEqual(
+            reference.is_source_inside_container(self.root.folder.publication),
+            False)
+
     def test_is_broken_target_inside_container(self):
         """Test is_target_in_container on a broken reference.
         """

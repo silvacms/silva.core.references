@@ -37,6 +37,12 @@ class IReferenceValue(ITaggedRelationValue):
         as no target.
         """
 
+    def is_source_inside_container(container):
+        """Verify that the source of the reference is located inside
+        the given container. This always return False if the reference
+        as no source.
+        """
+
     def relative_path_to(content):
         """Return the relative path from the given content to the
         target of the reference. This return an empty path only if the
