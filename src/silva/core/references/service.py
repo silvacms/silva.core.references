@@ -171,12 +171,16 @@ def graphviz_color_type(content):
         return 'deepskyblue'
     if interfaces.IAsset.providedBy(content):
         return 'lightskyblue1'
+    if interfaces.IGhostVersion.providedBy(content):
+        return 'darkolivegreen3'
     return 'white'
 
 
 def graphviz_content_node(content, content_id, request):
     """Return a line describing a content.
     """
+    if content is None:
+        return ''
     try:
         url = absoluteURL(content, request)
     except:
@@ -215,20 +219,20 @@ class ReferenceGraph(silvaviews.ZMIView):
 
         seen = set()
         count = 0
-        buffer = ""
+        buffer = 'digraph references {\n'
+        buffer += 'node [shape=oval,style=filled];\n'
+        buffer += '0 [tooltip="broken",label="Broken",fillcolor=red];\n'
 
         self.response.setHeader('Content-Type', 'text/vnd.graphviz')
-        self.response.write("digraph references {\n")
-        self.response.write("node [shape=oval,style=filled];\n")
 
         for reference in generator():
             source_id = reference.source_id
-            if source_id and source_id not in seen:
+            if source_id not in seen:
                 buffer += graphviz_content_node(
                     reference.source, source_id, self.request)
                 seen.add(source_id)
             target_id = reference.target_id
-            if target_id and target_id not in seen:
+            if target_id not in seen:
                 buffer += graphviz_content_node(
                     reference.target, target_id, self.request)
                 seen.add(target_id)
@@ -242,11 +246,7 @@ class ReferenceGraph(silvaviews.ZMIView):
         buffer += "\n"
 
         for reference in generator():
-            source_id = reference.source_id
-            target_id = reference.target_id
-            if (not source_id) or (not target_id):
-                continue
-            buffer += "%s->%s;\n" % (source_id, target_id)
+            buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
             count += 1
             if count > GRAPH_THRESHOLD:
                 self.context._p_jar.cacheMinimize()
