@@ -15,12 +15,14 @@ from silva.core.references.reference import get_content_id
 from silva.core.references.widgets import ReferenceWidgetInfo
 
 
+def register():
+    registerSchemaField(ReferenceSchemaField, IReference)
+
+
 class ReferenceSchemaField(SchemaField):
     """Reference field.
     """
 
-
-registerSchemaField(ReferenceSchemaField, IReference)
 
 
 class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
