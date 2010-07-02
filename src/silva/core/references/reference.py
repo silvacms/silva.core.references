@@ -188,6 +188,9 @@ class ReferenceProperty(object):
 class BrokenReferenceError(BadRequest):
     """The processing of the request will break an existing reference.
     """
+    def __init__(self, reference):
+        super(BrokenReferenceError, self).__init__(reference)
+        self.reference = reference
 
 
 @grok.subscribe(ISilvaObject, IObjectWillBeRemovedEvent)
