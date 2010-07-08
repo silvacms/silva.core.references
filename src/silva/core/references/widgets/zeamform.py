@@ -5,7 +5,7 @@
 from five import grok
 from zope.interface import Interface
 
-from zeam.form.base.markers import DISPLAY, INPUT
+from zeam.form.base.markers import DISPLAY, INPUT, NO_VALUE
 from zeam.form.base.widgets import WidgetExtractor
 from zeam.form.ztk.fields import SchemaField, SchemaFieldWidget
 from zeam.form.ztk.fields import registerSchemaField
@@ -52,6 +52,8 @@ class ReferenceWidgetExtractor(WidgetExtractor):
         value, error = super(ReferenceWidgetExtractor, self).extract()
         if error is not None:
             return None, error
+        if value is NO_VALUE:
+            return value, None
         try:
             return int(value), None
         except ValueError:
