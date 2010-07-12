@@ -174,10 +174,8 @@ class ReferenceProperty(object):
         reference = service.get_reference(content, name=self.name, add=True)
         if value is None:
             reference.set_target_id(0)
-        elif isinstance(value, int):
-            reference.set_target_id(value)
-        else:
-            reference.set_target(value)
+        assert isinstance(value, int)
+        reference.set_target_id(value)
 
     def __delete__(self, content):
         service = component.getUtility(IReferenceService)
