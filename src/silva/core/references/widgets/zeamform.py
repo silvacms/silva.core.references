@@ -24,10 +24,10 @@ class ReferenceSchemaField(SchemaField):
     """
 
 
-
 class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
     grok.name(str(INPUT))
+
     def valueToUnicode(self, value):
         return unicode(get_content_id(value))
 
