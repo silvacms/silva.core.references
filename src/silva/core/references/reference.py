@@ -149,40 +149,6 @@ class WeakReferenceValue(ReferenceValue):
             return
 
 
-class ReferenceProperty(object):
-    """Represent a reference, where you can set and get the target by
-    its content id (IntId). We don't return directly the target object
-    because of Acquisition magic when the property is used on an
-    Acquisition aware object.
-    """
-
-    def __init__(self, name):
-        if IReference.providedBy(name):
-            name = name.__name__
-        assert isinstance(name, unicode), "Name must be a unicode string"
-        self.name = name
-
-    def __get__(self, content, cls=None):
-        if content is None:
-            raise AttributeError()
-        service = component.getUtility(IReferenceService)
-        reference = service.get_reference(content, name=self.name, add=True)
-        return reference.target_id
-
-    def __set__(self, content, value):
-        service = component.getUtility(IReferenceService)
-        reference = service.get_reference(content, name=self.name, add=True)
-        if value is None:
-            reference.set_target_id(0)
-        assert isinstance(value, int)
-        reference.set_target_id(value)
-
-    def __delete__(self, content):
-        service = component.getUtility(IReferenceService)
-        service.delete_reference(content, name=self.name)
-
-
-
 class BrokenReferenceError(BadRequest):
     """The processing of the request will break an existing reference.
     """
