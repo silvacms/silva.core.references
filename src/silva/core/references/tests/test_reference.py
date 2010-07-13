@@ -9,7 +9,7 @@ from zope import component
 from Products.Silva.testing import FunctionalLayer
 
 from silva.core.references.reference import relative_path
-from silva.core.references.interfaces import IReferenceService, IReferenceValue
+from silva.core.references.interfaces import IReferenceService
 
 
 class HelpersTestCase(unittest.TestCase):

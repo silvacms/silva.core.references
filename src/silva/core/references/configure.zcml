@@ -1,6 +1,5 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:z3c="http://namespaces.zope.org/z3c"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:grok="http://namespaces.zope.org/grok"
@@ -26,23 +25,6 @@
           OFS.interfaces.IObjectClonedEvent"
      />
 
-  <adapter
-     factory="silva.core.references.widgets.z3cform.ReferenceFieldWidget" />
-  <adapter
-     factory="silva.core.references.widgets.z3cform.ReferenceDataConverter" />
-
-  <z3c:widgetTemplate
-     mode="input"
-     widget="silva.core.references.widgets.z3cform.IReferenceWidget"
-     layer="z3c.form.interfaces.IFormLayer"
-     template="widgets/reference_input.pt" />
-
-  <z3c:widgetTemplate
-     mode="display"
-     widget="silva.core.references.widgets.z3cform.IReferenceWidget"
-     layer="z3c.form.interfaces.IFormLayer"
-     template="widgets/reference_display.pt" />
-
   <browser:resourceInclude
      layer="silva.core.smi.interfaces.ISMILayer"
      include="reference-ui.js"
@@ -53,6 +35,6 @@
     include="reference-ui.css"
     base="silva.core.references.widgets" />
 
-  <grok:grok package="." />
+  <grok:grok package="." exclude="z3cform" />
 
 </configure>

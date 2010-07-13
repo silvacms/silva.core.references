@@ -13,12 +13,12 @@ from five import grok
 
 from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import (
-    IReferenceValue, IWeakReferenceValue, IReferenceService, IReference,
+    IReferenceValue, IWeakReferenceValue, IReference,
     IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)
 
 from Acquisition import aq_parent
 from zExceptions import BadRequest
-from AccessControl import ClassSecurityInfo, getSecurityManager
+from AccessControl import ClassSecurityInfo
 from App.class_init import InitializeClass
 import transaction
 
@@ -178,37 +178,3 @@ def reference_target_deleted(content, event):
         return
     event.relation.cleanup()
 
-
-
-def can_break_reference(view):
-    sm = getSecurityManager()
-    return sm.checkPermission('Break a Silva reference', view.context)
-
-
-# class BrokenReferenceErrorMessage(silvaz3cforms.PageForm):
-#     grok.context(BrokenReferenceError)
-#     grok.name('error.html')
-
-#     label = u"Possible broken reference"
-#     description_template = grok.PageTemplate(filename="brokenreference.pt")
-
-#     def namespace(self):
-#         namespace = super(BrokenReferenceErrorMessage, self).namespace()
-#         # We change the context back to model, since due to SilvaViews
-#         # we are completely lost.
-#         namespace['context'] = self.request['model']
-#         return namespace
-
-#     def update(self):
-#         self.relation = self.error.args[0]
-#         self.source = self.relation.source
-#         self.target = self.relation.target
-#         self.tags = u', '.join(self.relation.tags)
-#         self.description = self.description_template.render(self)
-#         self.response.setStatus(406)
-
-#     @button.buttonAndHandler(u"break reference",
-#                              name="break_reference",
-#                              condition=lambda form: can_break_reference(form))
-#     def break_reference(self, action):
-#         pass

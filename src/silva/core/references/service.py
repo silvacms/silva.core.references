@@ -17,8 +17,7 @@ from silva.core import conf as silvaconf
 from silva.core import interfaces
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.reference import (
-    ReferenceValue, get_content_id, get_content_from_id, relative_path,
-    is_inside_container)
+    ReferenceValue, get_content_id, relative_path)
 from silva.core.services.base import SilvaService
 from silva.core.services.utils import walk_silva_tree
 from silva.core.views import views as silvaviews
