@@ -7,7 +7,7 @@ and target. With the help of a central catalog, you have the
 possibility to query the references in both direction: who is the
 target if I am the source, and who is the source if I am the target.
 
-References are tagged can be tagged with different names, and can be
+References are tagged with different names, and can be
 found by searching on one of those names.
 
 Unless you use weak references, you can't remove an content which is a
