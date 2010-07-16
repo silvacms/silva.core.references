@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0dev'
+version = '1.0'
 
 tests_require = [
     'Products.Silva [test]',
@@ -44,9 +44,13 @@ setup(name='silva.core.references',
         'zope.lifecycleevent',
         'zope.schema',
         'zope.traversing',
+        'zeam.form.base',
+        'zeam.form.ztk',
+        'zeam.form.silva',
         ],
       tests_require = tests_require,
-      extras_require = {'test': tests_require},
+      extras_require = {'test': tests_require,
+                        'z3c.form': ['z3c.form']},
       entry_points="""
       # -*- Entry points: -*-
       [zeam.form.components]

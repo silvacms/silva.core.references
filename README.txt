@@ -3,19 +3,16 @@ silva.core.references
 =====================
 
 ``silva.core.references`` defines directed references between a source
-and target. However you still have the possibility with the help of a
-central catalog to query the references in both direction: who is the
+and target. With the help of a central catalog, you have the
+possibility to query the references in both direction: who is the
 target if I am the source, and who is the source if I am the target.
 
 References are tagged can be tagged with different names, and can be
-lookup by using one of those names.
+found by searching on one of those names.
 
-By default you don't have the right to remove a content if it is the
-target of a existing reference. However by applying a special
-interface on your reference, you can trigger the deletion of the
-source at the same time that the target is deleted.
+Unless you use weak references, you can't remove an content which is a
+target of a reference, you will get an error. If you used a weak
+reference, the source will be removed.
 
-Limitation: Don't try to break the rule explained above if you just
-created the reference in the same request that you are trying to break
-it.
-
+This extension provides you with a set of fields and widgets that can
+be used in forms.
