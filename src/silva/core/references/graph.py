@@ -86,7 +86,7 @@ class Grapher(grok.MultiAdapter):
         self.context = context
         self.request = request
 
-    def references(self, *kwargs):
+    def references(self):
         service = getUtility(IReferenceService)
         producer = service.get_references_from
         for content in walk_silva_tree(self.context, version=True):
