@@ -28,7 +28,6 @@ class ReferenceWidget(widget.HTMLInputWidget, Widget, ReferenceWidgetInfo):
         self.interface = None
         self.reference = None
 
-
 class ReferenceDataConverter(converter.BaseDataConverter):
     """Data converter for ReferenceWidget.
     """

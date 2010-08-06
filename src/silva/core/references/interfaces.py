@@ -101,3 +101,16 @@ class IReferenceService(ISilvaService):
     def clone_references(content, clone, copy_source=None, copy_target=None):
         """Clone content reference to clone content.
         """
+
+
+class IReferenceGrapher(Interface):
+    """Adapt a Silva object to vizulize references into it.
+    """
+
+    def dot(stream):
+        """Create a graphivz .dot file on the given stream.
+        """
+
+    def svg(stream):
+        """Create a SVG graph on the given stream.
+        """

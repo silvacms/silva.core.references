@@ -7,23 +7,18 @@ from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
 from zc.relation.interfaces import ICatalog
-from zope.traversing.browser import absoluteURL
 from zope import component
 from zope.lifecycleevent.interfaces import (
     IObjectCreatedEvent, IObjectCopiedEvent)
 import uuid
 
 from silva.core import conf as silvaconf
-from silva.core import interfaces
-from silva.core.references.interfaces import IReferenceService, IReferenceValue
+from silva.core.references.interfaces import (
+    IReferenceService, IReferenceValue, IReferenceGrapher)
 from silva.core.references.reference import (
     ReferenceValue, get_content_id, relative_path)
 from silva.core.services.base import SilvaService
-from silva.core.services.utils import walk_silva_tree
 from silva.core.views import views as silvaviews
-
-
-GRAPH_THRESHOLD = 2500
 
 
 class ReferenceService(SilvaService):
@@ -153,114 +148,21 @@ class ListBrokenReference(silvaviews.ZMIView):
                 {'source_id': 0}))
 
 
-def graphviz_safe_id(string):
-    """Create a sensible Graphivz ID.
-    """
-    if isinstance(string, unicode):
-        string = string.encode('utf-8')
-    return '"%s"' % string.replace('"', '\\"').replace('\n', '\\n')
-
-
-def graphviz_color_type(content):
-    """Return a different color for each content type.
-    """
-    if interfaces.ILinkVersion.providedBy(content):
-        return 'salmon2'
-    if interfaces.IImage.providedBy(content):
-        return 'deepskyblue'
-    if interfaces.IAsset.providedBy(content):
-        return 'lightskyblue1'
-    if interfaces.IGhostVersion.providedBy(content):
-        return 'darkolivegreen3'
-    return 'white'
-
-
-def graphviz_content_node(content, content_id, request):
-    """Return a line describing a content.
-    """
-    if content is None:
-        return ''
-    try:
-        url = absoluteURL(content, request)
-    except:
-        url = '#'
-    return '%s [URL=%s,tooltip=%s,fillcolor=%s,target=_graphivz];\n' % (
-        content_id,
-        graphviz_safe_id(url),
-        graphviz_safe_id(content.get_title_or_id()),
-        graphviz_color_type(content))
-
-
 class ReferenceGraph(silvaviews.ZMIView):
     """This view create a graphivz file with all contained references.
     """
-    grok.name('graph.dot')
-
-    def container_references(self, container):
-        def reference_generator():
-            for content in walk_silva_tree(container, version=True):
-                for reference in self.context.get_references_from(content):
-                    yield reference
-        return reference_generator
-
-    def all_references(self):
-        def reference_generator():
-            for reference_key in self.context.references.keys():
-                yield self.context.references[reference_key]
-        return reference_generator
+    grok.name('graph.svg')
 
     def render(self, only_in=None):
         root = self.context.get_root()
-        generator = self.all_references()
         if only_in is not None:
             root = root.restrictedTraverse(only_in)
-            generator = self.container_references(root)
-
-        seen = set()
-        count = 0
-        buffer = 'digraph references {\n'
-        buffer += 'node [shape=oval,style=filled];\n'
-        buffer += '0 [tooltip="broken",label="Broken",fillcolor=red];\n'
 
         self.response.setHeader('Content-Type', 'text/vnd.graphviz')
-
-        for reference in generator():
-            source_id = reference.source_id
-            if source_id not in seen:
-                buffer += graphviz_content_node(
-                    reference.source, source_id, self.request)
-                seen.add(source_id)
-            target_id = reference.target_id
-            if target_id not in seen:
-                buffer += graphviz_content_node(
-                    reference.target, target_id, self.request)
-                seen.add(target_id)
-            count += 1
-            if count > GRAPH_THRESHOLD:
-                self.context._p_jar.cacheMinimize()
-                self.response.write(buffer)
-                buffer = ""
-                count = 0
-        del seen
-        buffer += "\n"
-
-        for reference in generator():
-            buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
-            count += 1
-            if count > GRAPH_THRESHOLD:
-                self.context._p_jar.cacheMinimize()
-                self.response.write(buffer)
-                buffer = ""
-                count = 0
-
-        if count:
-            self.response.write(buffer)
-        self.response.write("""
-label=%s;
-overlap=false;
-fontsize=10;
-}
-""" % graphviz_safe_id(root.get_title_or_id()))
+        grapher = component.getMultiAdapter(
+            (root, self.request), IReferenceGrapher)
+        grapher.dot(self.response)
+        return ''
 
 
 @grok.subscribe(IReferenceService, IObjectCreatedEvent)
@@ -292,4 +194,3 @@ def cloneReference(content, event):
         service.clone_references(
             original, content,
             copy_source=event.original, copy_target=event.object)
-
