@@ -28,18 +28,22 @@ def graphviz_safe_id(string):
     return '"%s"' % string.replace('"', '\\"').replace('\n', '\\n')
 
 
-def graphviz_color_type(content):
+def graphviz_type(content):
     """Return a different color for each content type.
     """
     if interfaces.ILinkVersion.providedBy(content):
-        return 'salmon2'
+        return ('salmon2', 'oval')
     if interfaces.IImage.providedBy(content):
-        return 'deepskyblue'
+        return ('deepskyblue', 'oval')
     if interfaces.IAsset.providedBy(content):
-        return 'lightskyblue1'
-    if interfaces.IGhostVersion.providedBy(content):
-        return 'darkolivegreen3'
-    return 'white'
+        return ('lightskyblue1', 'oval')
+    if interfaces.IGhostAware.providedBy(content):
+        return ('darkolivegreen3', 'hexagon')
+    if interfaces.IIndexer.providedBy(content):
+        return ('plum', 'hexagon')
+    if interfaces.ISilvaObject.providedBy(content):
+        return ('white', 'note')
+    return ('lightgrey', 'circle')
 
 
 def graphviz_content_node(content, content_id, request):
@@ -59,12 +63,13 @@ def graphviz_content_node(content, content_id, request):
         title = content.get_title_or_id()
     else:
         title = content.getId()
-    return '%s [label=%s,URL=%s,tooltip=%s,fillcolor=%s,target=_graphivz];\n' % (
+    color, shape = graphviz_type(content)
+    return '%s [label=%s,URL=%s,tooltip=%s,fillcolor=%s,shape=%s,target=_graphivz];\n' % (
         content_id,
         graphviz_safe_id(zope_id),
         graphviz_safe_id(url),
         graphviz_safe_id(title),
-        graphviz_color_type(content))
+        color, shape)
 
 
 class Grapher(grok.MultiAdapter):
@@ -86,9 +91,10 @@ class Grapher(grok.MultiAdapter):
         seen = set()
         count = 1
         buffer = 'digraph references {\n'
-        buffer += 'node [shape=oval,style=filled];\n'
+        buffer += 'node [style=filled,fontsize=9,fontname="monospace"];\n'
         buffer += '0 [tooltip="references to this element are broken",'
         buffer += 'label="broken",fillcolor=red];\n'
+
 
         for reference in self.references():
             source_id = reference.source_id
@@ -111,7 +117,10 @@ class Grapher(grok.MultiAdapter):
         buffer += "\n"
 
         for reference in self.references():
-            buffer += "%s->%s;\n" % (reference.source_id, reference.target_id)
+            buffer += "%s->%s [tooltip=%s];\n" % (
+                reference.source_id,
+                reference.target_id,
+                graphviz_safe_id(reference.tags[0]))
             count += 1
             if count > GRAPH_THRESHOLD:
                 self.context._p_jar.cacheMinimize()
@@ -121,14 +130,17 @@ class Grapher(grok.MultiAdapter):
 
         if count:
             stream.write(buffer)
+        title = self.context.get_title_or_id()
         stream.write("""
+tooltip=%s;
 label=%s;
 splines=true;
 K=0.5;
 maxiter=5;
 fontsize=10;
 }
-""" % graphviz_safe_id(self.context.get_title_or_id()))
+""" % (graphviz_safe_id("Relations between contents of '%s'" % title),
+       graphviz_safe_id(title)))
 
     def svg(self, stream):
         with tempfile.TemporaryFile() as source:
