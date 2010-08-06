@@ -64,7 +64,8 @@ def graphviz_content_node(content, content_id, request):
         zope_id = content.get_content().getId()
     else:
         zope_id = content.getId()
-    if interfaces.ISilvaObject.providedBy(content):
+    if interfaces.ISilvaObject.providedBy(content) or\
+            interfaces.IVersion.providedBy(content):
         title = content.get_title_or_id()
     else:
         title = content.getId()
