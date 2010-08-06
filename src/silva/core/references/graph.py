@@ -41,7 +41,8 @@ def graphviz_type(content):
         return ('darkolivegreen3', 'hexagon')
     if interfaces.IIndexer.providedBy(content):
         return ('plum', 'hexagon')
-    if interfaces.ISilvaObject.providedBy(content):
+    if interfaces.ISilvaObject.providedBy(content) or \
+            interfaces.IVersion.providedBy(content):
         return ('white', 'note')
     return ('lightgrey', 'circle')
 
@@ -91,7 +92,7 @@ class Grapher(grok.MultiAdapter):
         seen = set()
         count = 1
         buffer = 'digraph references {\n'
-        buffer += 'node [style=filled,fontsize=9,fontname="monospace"];\n'
+        buffer += 'node [style=filled,fontsize="9pt",fontname="monospace"];\n'
         buffer += '0 [tooltip="references to this element are broken",'
         buffer += 'label="broken",fillcolor=red];\n'
 
