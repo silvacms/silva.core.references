@@ -52,14 +52,18 @@ def graphviz_content_node(content, content_id, request):
     except:
         url = '#'
     if interfaces.IVersion.providedBy(content):
-        silva_id = content.get_content().getId()
+        zope_id = content.get_content().getId()
     else:
-        silva_id = content.getId()
+        zope_id = content.getId()
+    if interfaces.ISilvaObject.providedBy(content):
+        title = content.get_title_or_id()
+    else:
+        title = content.getId()
     return '%s [label=%s,URL=%s,tooltip=%s,fillcolor=%s,target=_graphivz];\n' % (
         content_id,
-        graphviz_safe_id(silva_id),
+        graphviz_safe_id(zope_id),
         graphviz_safe_id(url),
-        graphviz_safe_id(content.get_title_or_id()),
+        graphviz_safe_id(title),
         graphviz_color_type(content))
 
 
@@ -83,7 +87,8 @@ class Grapher(grok.MultiAdapter):
         count = 1
         buffer = 'digraph references {\n'
         buffer += 'node [shape=oval,style=filled];\n'
-        buffer += '0 [tooltip="broken",label="Broken",fillcolor=red];\n'
+        buffer += '0 [tooltip="references to this element are broken",'
+        buffer += 'label="broken",fillcolor=red];\n'
 
         for reference in self.references():
             source_id = reference.source_id
