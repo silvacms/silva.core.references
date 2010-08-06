@@ -32,20 +32,22 @@ def graphviz_type(content):
     """Return a different color for each content type.
     """
     if interfaces.ILinkVersion.providedBy(content):
-        return ('salmon2', 'oval')
+        return ('salmon2', 'note')
     if interfaces.IImage.providedBy(content):
         return ('deepskyblue', 'oval')
     if interfaces.IAsset.providedBy(content):
         return ('lightskyblue1', 'oval')
     if interfaces.IGhostAware.providedBy(content):
-        return ('darkolivegreen3', 'hexagon')
+        return ('darkolivegreen3', 'note')
     if interfaces.IIndexer.providedBy(content):
-        return ('plum', 'hexagon')
+        return ('plum', 'octagon')
     if interfaces.IContainer.providedBy(content):
-        return ('silver', 'note')
-    if interfaces.ISilvaObject.providedBy(content) or \
+        return ('silver', 'octagon')
+    if interfaces.IPublishable.providedBy(content) or \
             interfaces.IVersion.providedBy(content):
         return ('white', 'note')
+    if interfaces.ISilvaObject.providedBy(content):
+        return ('white', 'oval')
     return ('white', 'circle')
 
 
@@ -84,10 +86,11 @@ class Grapher(grok.MultiAdapter):
         self.context = context
         self.request = request
 
-    def references(self):
+    def references(self, *kwargs):
         service = getUtility(IReferenceService)
+        producer = service.get_references_from
         for content in walk_silva_tree(self.context, version=True):
-            for reference in service.get_references_from(content):
+            for reference in producer(content):
                 yield reference
 
     def dot(self, stream):
