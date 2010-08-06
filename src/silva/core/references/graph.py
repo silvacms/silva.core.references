@@ -124,7 +124,7 @@ class Grapher(grok.MultiAdapter):
         stream.write("""
 label=%s;
 splines=true;
-K=1;
+K=0.5;
 maxiter=5;
 fontsize=10;
 }
