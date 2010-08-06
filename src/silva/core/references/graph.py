@@ -92,7 +92,7 @@ class Grapher(grok.MultiAdapter):
         seen = set()
         count = 1
         buffer = 'digraph references {\n'
-        buffer += 'node [style=filled,fontsize="9pt",fontname="monospace"];\n'
+        buffer += 'node [style=filled,fontsize="9pt",fontname="sans-serif"];\n'
         buffer += '0 [tooltip="references to this element are broken",'
         buffer += 'label="broken",fillcolor=red];\n'
 
