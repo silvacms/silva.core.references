@@ -18,6 +18,19 @@ from silva.core.references.interfaces import (
 
 
 GRAPH_THRESHOLD = 2500
+GRAPH_NODE_SETTINGS = [
+    (interfaces.ILinkVersion, 'salmon2', 'note'),
+    (interfaces.IImage, 'deepskyblue', 'oval'),
+    (interfaces.IAsset, 'lightskyblue1', 'oval'),
+    (interfaces.IGhostFolder, 'darkolivegreen3', 'octagon'),
+    (interfaces.IGhostAware, 'darkolivegreen3', 'note'),
+    (interfaces.IIndexer, 'plum', 'octagon'),
+    (interfaces.IContainer, 'silver', 'octagon'),
+    (interfaces.IVersionedContent, 'white', 'note'),
+    (interfaces.IVersion, 'white', 'note'),
+    (interfaces.IPublishable, 'khaki', 'note'),
+    (interfaces.ISilvaObject, 'white', 'oval')
+    ]
 
 
 def graphviz_safe_id(string):
@@ -31,23 +44,9 @@ def graphviz_safe_id(string):
 def graphviz_type(content):
     """Return a different color for each content type.
     """
-    if interfaces.ILinkVersion.providedBy(content):
-        return ('salmon2', 'note')
-    if interfaces.IImage.providedBy(content):
-        return ('deepskyblue', 'oval')
-    if interfaces.IAsset.providedBy(content):
-        return ('lightskyblue1', 'oval')
-    if interfaces.IGhostAware.providedBy(content):
-        return ('darkolivegreen3', 'note')
-    if interfaces.IIndexer.providedBy(content):
-        return ('plum', 'octagon')
-    if interfaces.IContainer.providedBy(content):
-        return ('silver', 'octagon')
-    if interfaces.IPublishable.providedBy(content) or \
-            interfaces.IVersion.providedBy(content):
-        return ('white', 'note')
-    if interfaces.ISilvaObject.providedBy(content):
-        return ('white', 'oval')
+    for interface, color, shape in GRAPH_NODE_SETTINGS:
+        if interface.providedBy(content):
+            return (color, shape)
     return ('white', 'circle')
 
 
