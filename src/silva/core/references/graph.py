@@ -41,10 +41,12 @@ def graphviz_type(content):
         return ('darkolivegreen3', 'hexagon')
     if interfaces.IIndexer.providedBy(content):
         return ('plum', 'hexagon')
+    if interfaces.IContainer.providedBy(content):
+        return ('silver', 'note')
     if interfaces.ISilvaObject.providedBy(content) or \
             interfaces.IVersion.providedBy(content):
         return ('white', 'note')
-    return ('lightgrey', 'circle')
+    return ('white', 'circle')
 
 
 def graphviz_content_node(content, content_id, request):
