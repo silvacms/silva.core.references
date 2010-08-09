@@ -8,7 +8,7 @@ from zope import component
 
 from Products.Silva.testing import FunctionalLayer
 
-from silva.core.references.reference import relative_path
+from silva.core.references.reference import relative_path, canonical_path
 from silva.core.references.interfaces import IReferenceService
 
 
@@ -42,6 +42,33 @@ class HelpersTestCase(unittest.TestCase):
                 ['root', 'publication', 'origin'],
                 ['root', 'publication', 'origin']),
             ['.'])
+
+    def test_canonical_path(self):
+        self.assertEqual(
+            canonical_path('/root/silva/docs/2.2'),
+            '/root/silva/docs/2.2')
+        self.assertEqual(
+            canonical_path('folder/.'),
+            'folder')
+        self.assertEqual(
+            canonical_path('/root/../folder/./silva'),
+            '/folder/silva')
+        self.assertEqual(
+            canonical_path('/root/////silva'),
+            '/root/silva')
+        self.assertEqual(
+            canonical_path('/////root/.'),
+            '/root')
+        self.assertEqual(
+            canonical_path('./folder/.'),
+            'folder')
+        self.assertEqual(
+            canonical_path('/folder/'),
+            '/folder')
+
+        self.assertRaises(ValueError, canonical_path, '../root/folder')
+        self.assertRaises(ValueError, canonical_path, 'root/../../../')
+        self.assertRaises(ValueError, canonical_path, '/../')
 
 
 class ReferenceTestCase(unittest.TestCase):

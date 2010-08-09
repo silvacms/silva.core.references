@@ -41,6 +41,22 @@ def get_content_from_id(content_id):
     return utility.getObject(int(content_id))
 
 
+def canonical_path(path):
+    """Make a Zope path the smallest possible.
+    """
+    canonical_path = []
+    for item in path.split('/'):
+        if item == '..':
+            if not canonical_path or not canonical_path[-1]:
+                raise ValueError("Invalid path")
+            canonical_path.pop()
+        elif item != '.':
+            if item == '' and canonical_path:
+                continue
+            canonical_path.append(item)
+    return '/'.join(canonical_path)
+
+
 def relative_path(path_orig, path_dest):
     """Takes two path as list of ids and return a new path that is the
     relative path the second against the first.
