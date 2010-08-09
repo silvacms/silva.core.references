@@ -44,6 +44,7 @@ def get_content_from_id(content_id):
 def canonical_path(path):
     """Make a Zope path the smallest possible.
     """
+    # XXX should not we work on lists instead of strings ?
     canonical_path = []
     for item in path.split('/'):
         if item == '..':
