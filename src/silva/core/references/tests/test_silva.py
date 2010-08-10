@@ -274,7 +274,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
         factory.manage_addFile('source', 'Source')
         self.service = component.getUtility(IReferenceService)
 
-    def test_delete_no_target(self):
+    def test_delete_source_no_target(self):
         """We delete a element that is a source of a reference, but
         that reference as no target.
         The reference is just deleted.
@@ -293,7 +293,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.assertEquals(references, [])
         self.failIf(reference_id in self.service.references.keys())
 
-    def test_delete_target_outside(self):
+    def test_delete_container_target_outside(self):
         """We now delete a folder that contain a content which is source of a
         reference to a target which is not being deleted.
 
@@ -314,7 +314,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.assertEquals(list(self.service.get_references_to(target)), [])
         self.assertListEqual(self.root.pub.objectIds(), ['source', 'target'])
 
-    def test_delete_source_outside(self):
+    def test_delete_container_source_outside(self):
         """Now we delete a folder that contain a content which is a
         target of a reference where the source is not being deleted.
 
@@ -342,9 +342,10 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.assertListEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
-    def test_delete_source_and_target(self):
+    def test_delete_container_with_source_and_target(self):
         """In that test we deleted the source and the target of a
-        relation in one shoot.
+        relation in one shoot by deleting a container that contains
+        both of them.
 
         We should not get any error at all.
         """
@@ -383,13 +384,25 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.assertEquals(list(self.service.get_references_to(target)), [])
         self.assertListEqual(self.root.pub.objectIds(), ['target'])
 
-    def test_weak_reference(self):
+    def test_delete_weak_reference(self):
+        """Delete the target of a weak reference. Nothing wrong should happen.
+        """
         reference = self.service.new_reference(
             self.root.pub.source, name=u'weak ref', factory=WeakReferenceValue)
         target = self.root.pub.folder.target
         reference.set_target(target)
 
         self.root.pub.folder.manage_delObjects(['target'])
+
+    def test_delete_source_and_target(self):
+        """We delete both the source and the target of a reference in
+        one call to manage_delObjects.
+        """
+        reference = self.service.new_reference(
+            self.root.pub.source, name=u"simple reference")
+        reference.set_target(self.root.pub.target)
+
+        self.root.pub.manage_delObjects(['source', 'target'])
 
 
 def test_suite():
