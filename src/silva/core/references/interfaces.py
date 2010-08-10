@@ -79,14 +79,20 @@ class IReferenceService(ISilvaService):
         """Retrieve an unique existing reference.
         """
 
-    def get_references_to(content, name=None):
+    def get_references_to(content, name=None, depth=None):
         """Get all references where the given content is a target,
         optionaly tagged with name.
+
+        If depth is mentioned, search for all content from which
+        you can reach the given content in less than depth steps.
         """
 
-    def get_references_from(content, name=None):
+    def get_references_from(content, name=None, depth=None):
         """Get all references where the given content is a source,
         optionaly tagged with name.
+
+        If depth is mentioned, search all reacheable content from the
+        given content in less than depth steps.
         """
 
     def get_references_between(source, target, name=None):
@@ -104,7 +110,7 @@ class IReferenceService(ISilvaService):
 
 
 class IReferenceGrapher(Interface):
-    """Adapt a Silva object to vizulize references into it.
+    """Adapt a Silva content to visualize references inside it.
     """
 
     def dot(stream):
@@ -114,3 +120,8 @@ class IReferenceGrapher(Interface):
     def svg(stream):
         """Create a SVG graph on the given stream.
         """
+
+
+class IDependenciesReferenceGrapher(Interface):
+    """Adapt a Silva content to visualize references from it.
+    """

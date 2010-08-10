@@ -14,7 +14,7 @@ from zope.traversing.browser import absoluteURL
 from silva.core import interfaces
 from silva.core.services.utils import walk_silva_tree
 from silva.core.references.interfaces import (
-    IReferenceService, IReferenceGrapher)
+    IReferenceService, IReferenceGrapher, IDependenciesReferenceGrapher)
 
 
 GRAPH_THRESHOLD = 2500
@@ -50,13 +50,14 @@ def graphviz_type(content):
     return ('white', 'circle')
 
 
-def graphviz_content_node(content, content_id, request):
+def graphviz_content_node(
+    content, content_id, request, view_name='/edit'):
     """Return a line describing a content.
     """
     if content is None:
         return ''
     try:
-        url = absoluteURL(content, request)
+        url = absoluteURL(content, request) + view_name
     except:
         url = '#'
     if interfaces.IVersion.providedBy(content):
@@ -172,6 +173,16 @@ class RootGrapher(Grapher):
             yield service.references[reference_key]
 
 
+class DependenciesGrapher(Grapher):
+    grok.implements(IDependenciesReferenceGrapher)
+    grok.provides(IDependenciesReferenceGrapher)
+
+    def references(self):
+        service = getUtility(IReferenceService)
+        for reference in service.get_references_to(self.context, depth=10):
+            yield reference
+
+
 class DotReferenceGraph(grok.View):
     grok.context(interfaces.ISilvaObject)
     grok.name('graph_references.dot')
@@ -194,5 +205,18 @@ class SVGReferenceGraph(grok.View):
         self.response.setHeader('Content-Type', 'image/svg+xml')
         grapher = getMultiAdapter(
             (self.context, self.request), IReferenceGrapher)
+        grapher.svg(self.response)
+        return ''
+
+
+class SVGDependenciesReferenceGraph(grok.View):
+    grok.context(interfaces.ISilvaObject)
+    grok.name('graph_dependencies.svg')
+    grok.require('silva.ReadSilvaContent')
+
+    def render(self):
+        self.response.setHeader('Content-Type', 'image/svg+xml')
+        grapher = getMultiAdapter(
+            (self.context, self.request), IDependenciesReferenceGrapher)
         grapher.svg(self.response)
         return ''

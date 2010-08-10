@@ -7,6 +7,7 @@ from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
 from zc.relation.interfaces import ICatalog
+from zc.relation.queryfactory import TransposingTransitive
 from zope import component
 from zope.lifecycleevent.interfaces import (
     IObjectCreatedEvent, IObjectCopiedEvent)
@@ -73,23 +74,33 @@ class ReferenceService(SilvaService):
             return None
         return references[0]
 
-    def get_references_to(self, content, name=None):
+    def get_references_to(self, content, name=None, depth=1):
         """Get all references to the given content.
         """
         content_id = get_content_id(content)
         query = {'target_id': content_id}
+        options = {}
         if name is not None:
             query['tag'] = name
-        return self.catalog.findRelations(query)
+        if depth:
+            options['queryFactory'] = TransposingTransitive(
+                'source_id', 'target_id')
+            options['maxDepth'] = depth
+        return self.catalog.findRelations(query, **options)
 
-    def get_references_from(self, content, name=None):
+    def get_references_from(self, content, name=None, depth=0):
         """Get all references from the given content.
         """
         content_id = get_content_id(content)
         query = {'source_id': content_id}
+        options = {}
         if name is not None:
             query['tag'] = name
-        return self.catalog.findRelations(query)
+        if depth:
+            options['queryFactory'] = TransposingTransitive(
+                'souce_id', 'target_id')
+            options['maxDepth'] = depth
+        return self.catalog.findRelations(query, **options)
 
     def get_references_between(self, source, target, name=None):
         query = {'source_id': get_content_id(source),
