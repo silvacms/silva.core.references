@@ -61,7 +61,9 @@ def graphviz_content_node(
     except:
         url = '#'
     if interfaces.IVersion.providedBy(content):
-        zope_id = content.get_content().getId()
+        zope_id = '%s (%s)' % (
+            content.get_content().getId(),
+            content.getId())
     else:
         zope_id = content.getId()
     if interfaces.ISilvaObject.providedBy(content) or\
@@ -179,7 +181,7 @@ class DependenciesGrapher(Grapher):
 
     def references(self):
         service = getUtility(IReferenceService)
-        for reference in service.get_references_to(self.context, depth=10):
+        for reference in service.get_references_to(self.context):
             yield reference
 
 
