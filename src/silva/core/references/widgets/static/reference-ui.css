@@ -18,8 +18,8 @@ button.reference-dialog-trigger:hover {
 }
 
 div.path_list {
-  background-color: #aaa;
-  background-image: url('gradient.png');
+  background-color:#1F626D;
+  background-image: url('reflection.png');
   background-repeat: repeat-x;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid: #666;
@@ -48,8 +48,13 @@ span.path_outer a {
 span.path_outer a,
 span.path_outer a:visited,
 span.path_outer a:hover {
-  color: black;
+  color:#B3FFFB;
   text-decoration: none;
+}
+
+span.path_outer a:hover {
+  color: #C5D4CA;
+  text-decoration: underline;
 }
 
 span.path_outer a img {
