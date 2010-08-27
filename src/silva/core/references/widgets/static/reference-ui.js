@@ -494,16 +494,16 @@ $(document).ready(function() {
                 height: 500,
                 width: 600,
                 buttons: {
-                   'Cancel': function() {
+                   'cancel': function() {
                        $(this).dialog('close');
                    }
                }
             });
         var url = $('#' + widget_id + '-base').val();
-        var content_list = new ContentList(popup, widget_id,
-            {'multiple': false});
+        var content_list = new ContentList(
+            popup, widget_id, {'multiple': false});
         content_list.element.bind('content-list-item-selected',
-            function(event, item){
+            function(event, item) {
                 var reference = new ReferencedRemoteObject(widget_id);
                 reference.render(item.info);
                 var popup = $('#' + widget_id + '-dialog');
@@ -515,5 +515,3 @@ $(document).ready(function() {
     });
 
 });
-
-
