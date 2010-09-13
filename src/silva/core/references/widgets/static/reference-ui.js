@@ -371,12 +371,21 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
 
 ReferencedRemoteObject.prototype.render = function(info) {
     // Render a link to a remote object from fetched information.
+    var self = this;
     var icon = $('<img />');
+    var set_or_remove_attr = function(name, value) {
+        if (value) {
+            self.link.attr(name, value);
+        }
+        else {
+            self.link.removeAttr(name);
+        };
+    };
 
     this.link.empty();
     this.link.text(info['title']);
-    this.link.attr('href', info['url']);
-    this.link.attr('title', info['path']);
+    set_or_remove_attr('href', info['url']);
+    set_or_remove_attr('title', info['path']);
     this.link.data('content', info);
     icon.attr('src', info['icon']);
     icon.prependTo(this.link);
