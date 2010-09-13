@@ -38,7 +38,10 @@ def get_content_from_id(content_id):
     if content_id == 0:
         return None
     utility = component.getUtility(IIntIds)
-    return utility.getObject(int(content_id))
+    try:
+        return utility.getObject(int(content_id))
+    except KeyError:
+        return None
 
 
 def canonical_path(path):
