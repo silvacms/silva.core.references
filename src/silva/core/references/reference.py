@@ -13,7 +13,7 @@ from five import grok
 
 from silva.core.interfaces import ISilvaObject
 from silva.core.references.interfaces import (
-    IReferenceValue, IWeakReferenceValue, IReference,
+    IReferenceValue, IWeakReferenceValue, IReference, IReferenceService,
     IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)
 
 from Acquisition import aq_parent
@@ -167,6 +167,62 @@ class WeakReferenceValue(ReferenceValue):
             parent_of_source = aq_parent(self.source)
             parent_of_source.manage_delObjects([self.source.getId(),])
             return
+
+
+class ReferenceSet(object):
+    """ A object wrapper around multiple references relationship between
+    a unique source and several objects.
+    """
+
+    def __init__(self, source, name, factory=WeakReferenceValue):
+        self._source = source
+        self._factory = factory
+        self._name = unicode(name)
+        self._service = component.getUtility(IReferenceService)
+
+    def get_references(self):
+        return self._service.get_references_from(
+            self._source, name=self._name)
+
+    def set(self, items):
+        reference_names = set(map(lambda r: r.__name__, self.get_references()))
+
+        for item in items:
+            reference = self.add(item)
+            if reference.__name__ in reference_names:
+                reference_names.remove(reference.__name__)
+
+        if reference_names:
+            for name in reference_names:
+                self._service.delete_reference_by_name(name)
+
+    def add(self, item):
+        references = self._service.get_references_between(
+            self._source, item, name=self._name)
+        try:
+            reference = references.next()
+        except StopIteration:
+            reference = self._service.new_reference(
+                self._source, name=self._name, factory=self._factory)
+            reference.set_target(item)
+        return reference
+
+    def remove(self, item):
+        refs = list(self._service.get_references_between(
+                self._source, item, name=self._name))
+        if len(refs) > 0:
+            self._service.delete_reference_by_name(refs[0].__name__)
+            return refs[0]
+        return None
+
+    def __contains__(self, item):
+        refs = list(self._service.get_references_between(
+                self._source, item, name=self._name))
+        return len(refs) > 0
+
+    def __iter__(self):
+        for reference in self.get_references():
+            yield get_content_from_id(reference.target_id)
 
 
 class BrokenReferenceError(BadRequest):

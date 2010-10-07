@@ -13,6 +13,7 @@ from zope.interface.verify import verifyObject
 
 from silva.core.references.reference import BrokenReferenceError
 from silva.core.references.reference import WeakReferenceValue
+from silva.core.references.reference import ReferenceSet, get_content_from_id
 from silva.core.references.interfaces import IReferenceService, IReferenceValue
 from silva.core.references.interfaces import IDeleteSourceOnTargetDeletion
 
@@ -405,8 +406,84 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.root.pub.manage_delObjects(['source', 'target'])
 
 
+class SilvaReferenceSetTestCase(unittest.TestCase):
+    """ test silva.core.references.reference.ReferenceSet utility
+    """
+
+    layer = FunctionalLayer
+
+    def setUp(self):
+        self.root = self.layer.get_application()
+        self.layer.login('editor')
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory.manage_addLink('link0', 'Link')
+        factory.manage_addLink('link1', 'Link')
+        factory.manage_addLink('link2', 'Link')
+        factory.manage_addLink('link3', 'Link')
+
+        self.links = [self.root.link0,
+                 self.root.link1,
+                 self.root.link2,
+                 self.root.link3]
+
+        self.service = component.getUtility(IReferenceService)
+
+    def test_add_a_relation(self):
+        """ A an object to the set and check creation of the reference
+        """
+        reference_set = ReferenceSet(self.root.folder, u'links')
+        reference_set.add(self.links[1])
+
+        self.assertEquals([self.links[1]], list(reference_set))
+        refs = list(self.service.get_references_between(self.root.folder,
+                                                        self.links[1],
+                                                        name=u'links'))
+        self.assertEquals(1, len(refs))
+        self.assertEquals(self.links[1],
+                          get_content_from_id(refs[0].target_id))
+
+    def test_remove_object_from_set(self):
+        """ Set a list of objects and remove one
+        """
+        reference_set = ReferenceSet(self.root.folder, u'links')
+        reference_set.set(self.links)
+        refs = list(self.service.get_references_from(self.root.folder,
+                                                     name=u'links'))
+        self.assertEquals(len(self.links), len(refs))
+
+        self.assertTrue(self.links[1] in reference_set)
+        removed_ref = reference_set.remove(self.links[1])
+        self.assertTrue(removed_ref)
+        self.assertTrue(self.links[1] not in reference_set)
+
+        refs = list(self.service.get_references_from(self.root.folder,
+                                                     name=u'links'))
+        self.assertTrue(removed_ref not in refs)
+
+    def test_set_objects(self):
+        """ Test setting objects referenced from a list
+        """
+        reference_set = ReferenceSet(self.root.folder, u'links')
+        reference_set.set(self.links)
+        self.assertEquals(set(self.links), set(reference_set))
+
+        reference_set.set(self.links[1:-1])
+        self.assertEquals(set(self.links[1:-1]), set(reference_set))
+
+
+    def test_remove_target_object(self):
+        reference_set = ReferenceSet(self.root.folder, u'links')
+        reference_set.set(self.links)
+
+        self.assertTrue(self.links[1] in reference_set)
+        self.root.manage_delObjects(['link1'])
+        self.assertTrue(self.links[1] not in reference_set)
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(SilvaReferenceTestCase))
     suite.addTest(unittest.makeSuite(SilvaReferenceDeletionTestCase))
+    suite.addTest(unittest.makeSuite(SilvaReferenceSetTestCase))
     return suite
