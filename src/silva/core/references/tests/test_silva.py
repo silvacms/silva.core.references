@@ -473,6 +473,9 @@ class SilvaReferenceSetTestCase(unittest.TestCase):
 
 
     def test_remove_target_object(self):
+        """ Test remove a referenced object from zodb. It should also disappear
+        from the reference set.
+        """
         reference_set = ReferenceSet(self.root.folder, u'links')
         reference_set.set(self.links)
 
