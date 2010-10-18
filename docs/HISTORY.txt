@@ -1,10 +1,15 @@
 Changes
 =======
 
-2.3.1 (unreleased)
+2.3.1 (2010/10/18)
 ------------------
 
-- ...
+- Improve references graphs representation.
+
+- Add a ``ReferenceSet``.
+
+- Fix some bugs in case of duplication of broken references.
+
 
 2.3 (2010/07/16)
 ----------------
