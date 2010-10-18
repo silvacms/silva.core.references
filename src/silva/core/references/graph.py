@@ -33,6 +33,17 @@ GRAPH_NODE_SETTINGS = [
     ]
 
 
+@apply
+def HAVE_GRAPHING_CAPABILITIES():
+    try:
+        test_command = subprocess.Popen(
+            ['fdp', '-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except OSError:
+        return False
+    result = test_command.communicate()
+    return result[1].startswith('fdp - graphviz version')
+
+
 def graphviz_safe_id(string):
     """Create a sensible Graphivz ID.
     """
@@ -186,6 +197,8 @@ class DependenciesGrapher(Grapher):
 
 
 class DotReferenceGraph(grok.View):
+    """Create a graphviz file representing content references.
+    """
     grok.context(interfaces.ISilvaObject)
     grok.name('graph_references.dot')
     grok.require('silva.ReadSilvaContent')
@@ -199,6 +212,8 @@ class DotReferenceGraph(grok.View):
 
 
 class SVGReferenceGraph(grok.View):
+    """Show a content references.
+    """
     grok.context(interfaces.ISilvaObject)
     grok.name('graph_references.svg')
     grok.require('silva.ReadSilvaContent')
@@ -212,6 +227,8 @@ class SVGReferenceGraph(grok.View):
 
 
 class SVGDependenciesReferenceGraph(grok.View):
+    """Show a content dependencies.
+    """
     grok.context(interfaces.ISilvaObject)
     grok.name('graph_dependencies.svg')
     grok.require('silva.ReadSilvaContent')
