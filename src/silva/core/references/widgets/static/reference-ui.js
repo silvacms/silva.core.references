@@ -503,6 +503,11 @@ $(document).ready(function() {
                 height: 500,
                 width: 600,
                 buttons: {
+                   'clear': function() {
+                       var reference = new ReferencedRemoteObject(widget_id);
+                       reference.render({});
+                       $(this).dialog('close');
+                   },
                    'cancel': function() {
                        $(this).dialog('close');
                    }
