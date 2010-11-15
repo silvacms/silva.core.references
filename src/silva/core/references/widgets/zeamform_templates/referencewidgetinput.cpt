@@ -14,10 +14,11 @@
          tal:attributes="src widget.value_icon" />
     <span tal:replace="widget.value_title" />
   </a>
-  <input type="hidden" value="#" id="#" name=""
+  <input type="hidden" value="#" id="#" name="" class=""
          tal:attributes="id string:${id}-value;
                          name widget.identifier;
-                         value widget.inputValue()" />
+                         value widget.inputValue();
+                         class widget.required and 'required' or ''" />
   <input type="hidden" value="#" id="#"
          tal:condition="widget.interface"
          tal:attributes="id string:${id}-interface;

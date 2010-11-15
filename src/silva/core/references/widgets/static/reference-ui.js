@@ -493,26 +493,31 @@ PathList.prototype._notify = function(event, data) {
 
 $(document).ready(function() {
 
-   $('.reference-dialog-trigger').live('click', function() {
+    $('.reference-dialog-trigger').live('click', function() {
 
         var widget_id = $(this).parent('.reference-widget').attr('id');
         var popup = $('#' + widget_id + '-dialog');
+
+        var popup_buttons = {'cancel': function() {
+            $(this).dialog('close');
+        }};
+
+        if (!$('#' + widget_id + '-value').hasClass('required')) {
+            popup_buttons['clear'] = function(){
+                var reference = new ReferencedRemoteObject(widget_id);
+                reference.clear();
+                $(this).dialog('close');
+            };
+        }
+
         popup.dialog({
-                autoOpen: false,
-                modal: true,
-                height: 500,
-                width: 600,
-                buttons: {
-                   'clear': function() {
-                       var reference = new ReferencedRemoteObject(widget_id);
-                       reference.render({});
-                       $(this).dialog('close');
-                   },
-                   'cancel': function() {
-                       $(this).dialog('close');
-                   }
-               }
-            });
+            autoOpen: false,
+            modal: true,
+            height: 500,
+            width: 600,
+            buttons: popup_buttons
+        });
+
         var url = $('#' + widget_id + '-base').val();
         var content_list = new ContentList(
             popup, widget_id, {'multiple': false});
@@ -527,5 +532,4 @@ $(document).ready(function() {
         popup.dialog('open');
         return false;
     });
-
 });
