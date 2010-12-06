@@ -307,13 +307,13 @@ class SilvaReferenceDeletionTestCase(TestCase):
         reference.set_target(target)
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
-        self.assertListEqual(
+        self.assertItemsEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
         self.root.pub.manage_delObjects(['folder'],)
 
         self.assertEquals(list(self.service.get_references_to(target)), [])
-        self.assertListEqual(self.root.pub.objectIds(), ['source', 'target'])
+        self.assertItemsEqual(self.root.pub.objectIds(), ['source', 'target'])
 
     def test_delete_container_source_outside(self):
         """Now we delete a folder that contain a content which is a
@@ -332,7 +332,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
-        self.assertListEqual(
+        self.assertItemsEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
         self.assertRaises(
@@ -340,7 +340,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
-        self.assertListEqual(
+        self.assertItemsEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
     def test_delete_container_with_source_and_target(self):
@@ -357,13 +357,13 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
-        self.assertListEqual(
+        self.assertItemsEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
         self.root.pub.manage_delObjects(['folder'],)
 
         self.assertEquals(list(self.service.get_references_to(target)), [])
-        self.assertListEqual(self.root.pub.objectIds(), ['source', 'target'])
+        self.assertItemsEqual(self.root.pub.objectIds(), ['source', 'target'])
 
     def test_delete_source_if_delete_target(self):
         """In that test, we want to delete the source anyway if the
@@ -377,13 +377,13 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
-        self.assertListEqual(
+        self.assertItemsEqual(
             self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
         self.root.pub.manage_delObjects(['folder'],)
 
         self.assertEquals(list(self.service.get_references_to(target)), [])
-        self.assertListEqual(self.root.pub.objectIds(), ['target'])
+        self.assertItemsEqual(self.root.pub.objectIds(), ['target'])
 
     def test_delete_weak_reference(self):
         """Delete the target of a weak reference. Nothing wrong should happen.
