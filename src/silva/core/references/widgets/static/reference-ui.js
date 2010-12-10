@@ -303,6 +303,7 @@ var ReferencedRemoteObject = function(widget_id) {
     this.id = widget_id;
     this.widget = $('#' + this.id);
     this.link = $('#' + this.id + '-link');
+    this.edit_link = $('#' + this.id + '-edit-link');
     this.reference_input = $('#' + this.id + '-value');
     this.reference_interface = $('#' + this.id + '-interface');
 };
@@ -343,7 +344,12 @@ ReferencedRemoteObject.prototype.clear = function(reason) {
     if (!reason) {
         reason = 'no reference selected';
     }
+    this.edit_link.hide();
+    this.edit_link.removeAttr('href');
     this.link.text(reason);
+    this.link.bind('click', function () { return false; });
+    this.link.removeAttr('href');
+    this.link.removeAttr('title');
     if (this.reference_input) {
         this.reference_input.val('');
     };
@@ -386,6 +392,12 @@ ReferencedRemoteObject.prototype.render = function(info) {
     this.link.text(info['title']);
     set_or_remove_attr('href', info['url']);
     set_or_remove_attr('title', info['path']);
+    this.link.unbind('click');
+    if (info['url']) {
+        this.edit_link.show();
+        // XXX edit URL should come from data.
+        this.edit_link.attr('href', info['url'] + '/edit');
+    };
     this.link.data('content', info);
     icon.attr('src', info['icon']);
     icon.prependTo(this.link);
