@@ -515,6 +515,7 @@ $(document).ready(function() {
             modal: true,
             height: 500,
             width: 600,
+            zIndex: 12000,
             buttons: popup_buttons
         });
 
