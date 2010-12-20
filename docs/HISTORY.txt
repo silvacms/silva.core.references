@@ -1,10 +1,13 @@
 Changes
 =======
 
-2.3.2 (unreleased)
+2.3.2 (2010/12/20)
 ------------------
 
-- ...
+- Add a clear fonctionality to the JS reference selection popup.
+
+- If nothing is selected in the JS reference popup, no link is generated
+  in the field. An edit link in the field have been added as well.
 
 2.3.1 (2010/10/18)
 ------------------
