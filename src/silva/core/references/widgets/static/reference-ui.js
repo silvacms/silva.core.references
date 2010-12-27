@@ -27,7 +27,7 @@ var ContentList = function(element, widget_id, options) {
             this.selectionElement, this);
         selectionView.render();
         this.element.append($('<h3>Selection</h3>'));
-        this.element.append(this.selectionElement)
+        this.element.append(this.selectionElement);
     }
 };
 
@@ -137,7 +137,7 @@ ContentListView.prototype.render = function(data) {
             var childView = new ContentListItemView(childElement, child);
             childView.render();
             if (self.content_list.isSelected(child))
-                childView.disableSelectButton()
+                childView.disableSelectButton();
             self.element.append(childElement);
         });
 };
@@ -150,7 +150,7 @@ var ContentListSelectionView = function(element, contentList) {
 ContentListSelectionView.prototype.appendSelectionItem = function(item) {
     var self = this;
     var element = $('<tr />');
-    view = new SelectionContentListItemView(element, item);
+    var view = new SelectionContentListItemView(element, item);
     view.render();
     element.attr('id', this.itemDomId(item));
     this.element.append(element);
@@ -198,17 +198,17 @@ ContentListItemView.prototype.getSelectButton = function() {
 ContentListItemView.prototype.render = function() {
     var self = this;
     this.element.empty();
-    var current = (this.item.info['id'] == '.')
+    var current = (this.item.info['id'] == '.');
     var icon_cell = $('<td class="cell_icon" />');
     var actions_cell = $('<td class="cell_actions" />');
     var id_cell = $('<td class="cell_id" />');
     var icon = $('<img />');
     var title_cell = $('<td class="cell_title" />');
-    var link = null
+    var link = null;
 
     if (this.item.info['folderish'] && !current) {
         this.element.addClass("folderish");
-        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"))
+        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"));
         link = $('<a href="#" />');
         this.element.click(function(event){
             self.item.content_list.populate.apply(
@@ -301,21 +301,36 @@ var ReferencedRemoteObject = function(widget_id) {
     // server. Its referenece (intid) can be store in a input called
     // widget_id-value.
     this.id = widget_id;
-    this.widget = $('#' + this.id);
-    this.link = $('#' + this.id + '-link');
-    this.edit_link = $('#' + this.id + '-edit-link');
-    this.reference_input = $('#' + this.id + '-value');
-    this.reference_interface = $('#' + this.id + '-interface');
+};
+
+ReferencedRemoteObject.prototype.get_content_link = function () {
+    return $('#' + this.id + '-link');
+};
+
+ReferencedRemoteObject.prototype.get_content_edit_link = function() {
+    return $('#' + this.id + '-edit-link');
+};
+
+ReferencedRemoteObject.prototype.get_widget = function() {
+    return $('#' + this.id);
+};
+
+ReferencedRemoteObject.prototype.get_reference_input = function() {
+    return $('#' + this.id + '-value');
+};
+
+ReferencedRemoteObject.prototype.get_reference_interface = function() {
+    return $('#' + this.id + '-interface').val();
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
     // Return reference (intid) to the remote object
-    return this.reference_input.val();
+    return this.get_reference_input().val();
 };
 
 ReferencedRemoteObject.prototype.data = function() {
     // Return information to the remote object
-    return this.link.data('content');
+    return this.get_content_link().data('content');
 };
 
 ReferencedRemoteObject.prototype.title = function() {
@@ -341,19 +356,23 @@ ReferencedRemoteObject.prototype.url = function() {
 
 ReferencedRemoteObject.prototype.clear = function(reason) {
     // Clear all value related to the remote object
+    var link = this.get_content_link();
+    var edit_link = this.get_content_edit_link();
+    var ref_input = this.get_reference_input();
+
     if (!reason) {
         reason = 'no reference selected';
     }
-    this.edit_link.hide();
-    this.edit_link.removeAttr('href');
-    this.link.text(reason);
-    this.link.bind('click', function () { return false; });
-    this.link.removeAttr('href');
-    this.link.removeAttr('title');
-    if (this.reference_input) {
-        this.reference_input.val('');
+    edit_link.hide();
+    edit_link.removeAttr('href');
+    link.text(reason);
+    link.bind('click', function () { return false; });
+    link.removeAttr('href');
+    link.removeAttr('title');
+    if (ref_input) {
+        ref_input.val('');
     };
-    this.link.trigger('reference-modified', {});
+    link.trigger('reference-modified', {});
 };
 
 ReferencedRemoteObject.prototype.fetch = function(intid) {
@@ -361,75 +380,81 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     var url = $('#' + this.id + '-base').val();
     var self = this;
     var options = {'intid': intid};
+    var ref_interface = this.get_reference_interface();
+    var ref_input = this.get_reference_input();
 
-    this.link.text('loading ...');
-    if (this.reference_input) {
-        this.reference_input.val(intid);
+    this.get_content_link().text('loading ...');
+    if (ref_input) {
+        ref_input.val(intid);
     };
-    if (this.reference_interface.val()) {
-        options['interface'] = this.reference_interface.val();
+    if (ref_interface) {
+        options['interface'] = ref_interface;
     };
-    $.getJSON(url + '/++rest++items', options,
-              function(data) {
-                  self.render.apply(self, [data]);
-              });
+    $.getJSON(
+        url + '/++rest++items', options,
+        function(data) {
+            self.render.apply(self, [data]);
+        });
 };
 
 ReferencedRemoteObject.prototype.render = function(info) {
     // Render a link to a remote object from fetched information.
-    var self = this;
     var icon = $('<img />');
+    var link = this.get_content_link();
+    var edit_link = this.get_content_edit_link();
+    var ref_input = this.get_reference_input();
+
     var set_or_remove_attr = function(name, value) {
         if (value) {
-            self.link.attr(name, value);
+            link.attr(name, value);
         }
         else {
-            self.link.removeAttr(name);
+            link.removeAttr(name);
         };
     };
 
-    this.link.empty();
-    this.link.text(info['title']);
+    link.empty();
+    link.text(info['title']);
     set_or_remove_attr('href', info['url']);
     set_or_remove_attr('title', info['path']);
-    this.link.unbind('click');
+    link.unbind('click');
     if (info['url']) {
-        this.edit_link.show();
+        edit_link.show();
         // XXX edit URL should come from data.
-        this.edit_link.attr('href', info['url'] + '/edit');
+        edit_link.attr('href', info['url'] + '/edit');
     };
-    this.link.data('content', info);
+    link.data('content', info);
     icon.attr('src', info['icon']);
-    icon.prependTo(this.link);
-    if (this.reference_input) {
-        this.reference_input.val(info['intid']);
+    icon.prependTo(link);
+    if (ref_input) {
+        ref_input.val(info['intid']);
     };
-    this.link.trigger('reference-modified', info);
+    link.trigger('reference-modified', info);
 };
 
 ReferencedRemoteObject.prototype.change = function(callback) {
     // Bind to a modification of the reference
-    this.link.bind('reference-modified', callback);
+    this.get_content_link().bind('reference-modified', callback);
 };
 
 ReferencedRemoteObject.prototype.show = function() {
     // Show widget
-    this.widget.show();
+    this.get_widget().show();
 };
 
 ReferencedRemoteObject.prototype.hide = function() {
     // Hide widget
-    this.widget.hide();
+    this.get_widget().hide();
 };
 
 ReferencedRemoteObject.prototype.toggle = function() {
     // Hide/display widget
-    this.widget.toggle();
+    this.get_widget().toggle();
 };
 
 var PathList = function(element, options) {
     this.element = $(element);
-    default_options = {
+    var default_options = {
     // link text
     'display_field': 'title',
     // link title attribute
@@ -444,10 +469,12 @@ var PathList = function(element, options) {
 PathList.prototype.fetch = function(info) {
     var self = this;
     var url = info['url'];
-    $.getJSON(url + '/++rest++parents',
-                function(data) {
-                    self.render.apply(self, [data]);
-                });
+
+    $.getJSON(
+        url + '/++rest++parents',
+        function(data) {
+            self.render.apply(self, [data]);
+        });
 };
 
 PathList.prototype.render = function(data) {
@@ -484,7 +511,7 @@ PathList.prototype._build_entry = function(info) {
     var outer = $('<span class="path_outer" />');
     var inner = $('<span class="path_inner" />');
     var link = $('<a href="#" />');
-    link.attr('title', info[this.options['title_field']])
+    link.attr('title', info[this.options['title_field']]);
     link.text(info[this.options['display_field']]);
     link.data('++rest++', info);
 
