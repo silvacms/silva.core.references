@@ -434,7 +434,7 @@ ReferencedRemoteObject.prototype.render = function(info) {
 
 ReferencedRemoteObject.prototype.change = function(callback) {
     // Bind to a modification of the reference
-    this.get_content_link().bind('reference-modified', callback);
+    this.get_content_link().live('reference-modified', callback);
 };
 
 ReferencedRemoteObject.prototype.show = function() {
