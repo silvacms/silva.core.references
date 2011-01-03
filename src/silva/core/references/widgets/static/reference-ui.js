@@ -8,6 +8,7 @@ var ContentList = function(element, widget_id, options) {
     this.selection = [];
     this.selectionIndex = {};
     this.pathListElement = $('<div class="path_list" />');
+    this.actionListElement = $('<div class="content-list-actions">');
     this.listElement = $('<table class="content_list" />');
     this.selectionElement = $('<table class="content_list selection_list">');
     this.url = null;
@@ -21,6 +22,7 @@ var ContentList = function(element, widget_id, options) {
     });
 
     this.element.append(this.pathListElement);
+    this.element.append(this.actionListElement)
     this.element.append(this.listElement);
     if (this.options['multiple']) {
         var selectionView = new ContentListSelectionView(
@@ -127,6 +129,7 @@ var ContentListView = function(element, contentList) {
 ContentListView.prototype.render = function(data) {
     var self = this;
     this.content_list.build_path();
+    this.buildActions();
     $.each(data, function(index, entry) {
             var child = new ContentListItem(
                 self.content_list,
@@ -140,6 +143,48 @@ ContentListView.prototype.render = function(data) {
                 childView.disableSelectButton()
             self.element.append(childElement);
         });
+};
+
+var Action = function(element, contentListView) {
+    var self = this;
+    this.element = $(element);
+    this.contentListView = contentListView;
+    this.run = function(){ }
+    this.element.click(function(event){
+        event.preventDefault();
+        self.run.apply(self, [event]);
+    });
+};
+
+var Refresh = function(element, contentListView) {
+    Action.apply(this, [element, contentListView]);
+    this.run = function() {
+        contentList = this.contentListView.content_list;
+        if (contentList) {
+            contentList.populate(contentList.url);
+        }
+    };
+};
+
+var Add = function(element, contentListView) {
+    Action.apply(this, [element, contentListView]);
+    this.run = function() {
+        var contentList = this.contentListView.content_list;
+        if (contentList.current) {
+            var url = contentList.current.url + '/edit/+'
+            window.open(url);
+        }
+    };
+}
+
+ContentListView.prototype.buildActions = function() {
+  var refreshLink = $('<a href="#">refresh</a>');
+  var refresh = new Refresh(refreshLink, this);
+  var addLink = $('<a href="#">add in current folder</a>');
+  var add = new Add(addLink, this);
+
+  this.content_list.actionListElement.empty();
+  this.content_list.actionListElement.append(refreshLink, addLink);
 };
 
 var ContentListSelectionView = function(element, contentList) {
