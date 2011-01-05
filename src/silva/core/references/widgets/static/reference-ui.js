@@ -1,39 +1,4 @@
-var ContentList = function(element, widget_id, options) {
-    this.id = widget_id;
-    this.element = $(element);
-    this.element.empty();
-    this.reference_interface = $('#' + this.id + '-interface');
-    this.parent = null;
-    this.current = null;
-    this.selection = [];
-    this.selectionIndex = {};
-    this.pathListElement = $('<div class="path_list" />');
-    this.actionListElement = $('<div class="content-list-actions">');
-    this.listElement = $('<table class="content_list" />');
-    this.selectionElement = $('<table class="content_list selection_list">');
-    this.url = null;
-    this.options = $.extend({'multiple' : true}, options);
-    this.pathList = new PathList(this.pathListElement);
-
-    var self = this;
-
-    this.pathList.element.bind('path-modified', function(event, data){
-        self.populate.apply(self, [data['url']]);
-    });
-
-    this.element.append(this.pathListElement);
-    this.element.append(this.actionListElement)
-    this.element.append(this.listElement);
-    if (this.options['multiple']) {
-        var selectionView = new ContentListSelectionView(
-            this.selectionElement, this);
-        selectionView.render();
-        this.element.append($('<h3>Selection</h3>'));
-        this.element.append(this.selectionElement)
-    }
-};
-
-function index_from_id(data, id) {
+function indexFromId(data, id) {
     for(var i=0; i < data.length; i++) {
         if (data[i]['id'] == id) {
             return i;
@@ -43,30 +8,165 @@ function index_from_id(data, id) {
 }
 
 
+var Action = function(element, contentList) {
+    var self = this;
+    this.event = 'click';
+    this.element = $(element);
+    this.contentList = contentList;
+    this.enabled = true;
+    this.element.bind(this.event, function(event){
+        event.preventDefault();
+        self.run.apply(self, [event]);
+    });
+};
+
+Action.prototype.run = function(event){ event.preventDefault(); };
+Action.prototype.update = function(){};
+
+Action.prototype.disable = function() {
+    this.element.parent('div').addClass('content-list-action-disabled');
+    this.element.enable = false;
+};
+
+Action.prototype.enable = function() {
+    this.element.parent('div').removeClass('content-list-action-disabled');
+    this.enabled = true;
+};
+
+var Refresh = function(element, contentList) {
+    Action.call(this, element, contentList);
+    this.run = function() {
+        if (this.enabled && this.contentList) {
+            contentList.populate(this.contentList.url);
+        }
+    };
+};
+
+Refresh.prototype = new Action;
+
+
+var Add = function(element, contentList) {
+    Action.call(this, element, contentList);
+    this.select = $('select', this.element.parent('div'));
+
+    this.run = function() {
+        if (this.enabled && this.contentList && this.contentList.current) {
+            var url = this.contentList.current.url + '/edit/+/' +
+                this.select.val();
+            window.open(url);
+        }
+    };
+
+    this.enable = function(){
+        this.select.disabled = true;
+        Action.prototype.enable.call(this);
+    };
+
+    this.disable = function() {
+        this.select.disabled = false;
+        Action.prototype.disable.call(this);
+    };
+
+    this.update = function() {
+        if (this.contentList && this.contentList.current) {
+            var url = this.contentList.current.url + '/++rest++addables';
+            var self = this;
+            this.disable();
+            $.getJSON(url, {}, function(data){
+                self._updateAddables(data);
+            });
+        }
+    };
+
+    this._updateAddables = function(meta_types) {
+        var option = $('option', this.select).first();
+        this.select.empty();
+        this.select.append(option);
+        var self = this;
+        $.each(meta_types, function(index, item){
+            var option = $('<option />');
+            option.text(item);
+            option.attr('value', item);
+            option.appendTo(self.select);
+        });
+        this.enable();
+    };
+
+    this.update();
+};
+
+Add.prototype = new Action;
+
+
+var ContentList = function(element, widgetId, options) {
+    this.id = widgetId;
+    this.element = $(element);
+    this.referenceInterface = $('#' + this.id + '-interface');
+    this.parent = null;
+    this.current = null;
+    this.selection = [];
+    this.selectionIndex = {};
+    this.actions = [];
+
+    this.pathListElement = $('div.path-list', this.element);
+    this.actionListElement = $('div.content-list-actions', this.element);
+    this.listElement = $('table.source-list', this.element);
+    this.selectionElement = $('table.selection-list', this.element);
+
+    this.url = null;
+    this.options = $.extend({'multiple' : true}, options);
+
+    this.pathList = new PathList(this.pathListElement);
+
+    var self = this;
+
+    this.bindActions();
+
+    this.pathListElement.bind('path-modified', function(event, data){
+        self.populate.apply(self, [data['url']]);
+    });
+
+    if (this.options['multiple']) {
+        var selectionView = new ContentListSelectionView(
+            this.selectionElement, this);
+        selectionView.render();
+        this.element.append($('<h3>Selection</h3>'));
+        this.element.append(this.selectionElement);
+    }
+};
+
+ContentList.prototype.updateActions = function() {
+    $.each(this.actions, function(index, action){
+        action.update();
+    });
+};
+
 ContentList.prototype.populate = function(url) {
     var self = this;
     var options = {};
 
-    if (this.reference_interface.val()) {
-        options['interface'] = this.reference_interface.val();
+    if (this.referenceInterface.val()) {
+        options['interface'] = this.referenceInterface.val();
     };
     this.url = url;
+
     $.getJSON(url + '/++rest++items', options, function(data) {
         self.listElement.empty();
         // get rid of '.' and '..'
-        self.current = data[index_from_id(data, '.')];
-        parent_id = index_from_id(data, '..');
+        self.current = data[indexFromId(data, '.')];
+        parent_id = indexFromId(data, '..');
 
         if (parent_id != null)
             self.parent = data.splice(parent_id, 1)[0];
         else
             self.parent = null;
+        self.updateActions();
         view = new ContentListView(self.listElement, self);
         view.render(data);
     });
 };
 
-ContentList.prototype.build_path = function() {
+ContentList.prototype.buildPath = function() {
     this.pathList.fetch(this.current);
 };
 
@@ -121,70 +221,36 @@ ContentList.prototype.isSelected = function(item) {
     return false;
 };
 
+ContentList.prototype.bindActions = function() {
+    var refresh = new Refresh(
+        $('a[name="refresh"]', this.actionListElement), this);
+    var add = new Add(
+        $('a[name="add"]', this.actionListElement), this);
+    this.actions.push(refresh);
+    this.actions.push(add);
+};
+
 var ContentListView = function(element, contentList) {
-    this.content_list = contentList;
+    this.contentList = contentList;
     this.element = $(element);
 };
 
 ContentListView.prototype.render = function(data) {
     var self = this;
-    this.content_list.build_path();
-    this.buildActions();
+    this.contentList.buildPath();
     $.each(data, function(index, entry) {
-            var child = new ContentListItem(
-                self.content_list,
-                self.content_list.url + '/' + entry['id'], entry);
-            var childElement = $('<tr />');
-            childElement.attr('id', self.content_list.itemDomId(child));
-            childElement.addClass(index % 2 ? "even" : "odd");
-            var childView = new ContentListItemView(childElement, child);
-            childView.render();
-            if (self.content_list.isSelected(child))
-                childView.disableSelectButton()
-            self.element.append(childElement);
-        });
-};
-
-var Action = function(element, contentListView) {
-    var self = this;
-    this.element = $(element);
-    this.contentListView = contentListView;
-    this.run = function(){ }
-    this.element.click(function(event){
-        event.preventDefault();
-        self.run.apply(self, [event]);
+        var child = new ContentListItem(
+            self.contentList,
+            self.contentList.url + '/' + entry['id'], entry);
+        var childElement = $('<tr />');
+        childElement.attr('id', self.contentList.itemDomId(child));
+        childElement.addClass(index % 2 ? "even" : "odd");
+        var childView = new ContentListItemView(childElement, child);
+        childView.render();
+        if (self.contentList.isSelected(child))
+            childView.disableSelectButton();
+        self.element.append(childElement);
     });
-};
-
-var Refresh = function(element, contentListView) {
-    Action.apply(this, [element, contentListView]);
-    this.run = function() {
-        contentList = this.contentListView.content_list;
-        if (contentList) {
-            contentList.populate(contentList.url);
-        }
-    };
-};
-
-var Add = function(element, contentListView) {
-    Action.apply(this, [element, contentListView]);
-    this.run = function() {
-        var contentList = this.contentListView.content_list;
-        if (contentList.current) {
-            var url = contentList.current.url + '/edit/+'
-            window.open(url);
-        }
-    };
-}
-
-ContentListView.prototype.buildActions = function() {
-  var refreshLink = $('<a href="#">refresh</a>');
-  var refresh = new Refresh(refreshLink, this);
-  var addLink = $('<a href="#">add in current folder</a>');
-  var add = new Add(addLink, this);
-
-  this.content_list.actionListElement.empty();
-  this.content_list.actionListElement.append(refreshLink, addLink);
 };
 
 var ContentListSelectionView = function(element, contentList) {
@@ -217,8 +283,8 @@ ContentListSelectionView.prototype.itemDomId = function(item) {
 };
 
 var ContentListItem = function(
-        content_list, url, info) {
-    this.content_list = content_list;
+        contentList, url, info) {
+    this.contentList = contentList;
     this.url = url;
     this.info = info;
 };
@@ -243,21 +309,21 @@ ContentListItemView.prototype.getSelectButton = function() {
 ContentListItemView.prototype.render = function() {
     var self = this;
     this.element.empty();
-    var current = (this.item.info['id'] == '.')
+    var current = (this.item.info['id'] == '.');
     var icon_cell = $('<td class="cell_icon" />');
     var actions_cell = $('<td class="cell_actions" />');
     var id_cell = $('<td class="cell_id" />');
     var icon = $('<img />');
     var title_cell = $('<td class="cell_title" />');
-    var link = null
+    var link = null;
 
     if (this.item.info['folderish'] && !current) {
         this.element.addClass("folderish");
-        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"))
+        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"));
         link = $('<a href="#" />');
         this.element.click(function(event){
-            self.item.content_list.populate.apply(
-                self.item.content_list, [self.item.url]);
+            self.item.contentList.populate.apply(
+                self.item.contentList, [self.item.url]);
             return false;
         });
         this.element.hover(function(event){
@@ -281,7 +347,7 @@ ContentListItemView.prototype.render = function() {
         var img = $('<img class="button reference_add"' +
             'src="../++resource++silva.core.references.widgets/add.png" />');
         img.click(function(event){
-            self.item.content_list._itemClicked.apply(self.item.content_list,
+            self.item.contentList._itemClicked.apply(self.item.contentList,
                 [event, self.item]);
             event.stopPropagation();
         });
@@ -309,18 +375,18 @@ var SelectionContentListItemView = function(element, item) {
 
 SelectionContentListItemView.prototype.render = function() {
     var self = this;
-    var icon_cell = $('<td class="cell_icon" />');
-    var actions_cell = $('<td class="cell_actions" />');
-    var id_cell = $('<td class="cell_id" />');
+    var icon_cell = $('<td class="cell-icon" />');
+    var actions_cell = $('<td class="cell-actions" />');
+    var id_cell = $('<td class="cell-id" />');
     var icon = $('<img />');
-    var title_cell = $('<td class="cell_title" />');
+    var title_cell = $('<td class="cell-title" />');
     var link = $('<span />');;
 
     var removeButton = $('<img class="button reference_remove"' +
         'src="../++resource++silva.core.references.widgets/delete.png" />');
     removeButton.click(function(event){
-        self.item.content_list._itemRemovedFromSelection.apply(
-            self.item.content_list, [event, self.item]);
+        self.item.contentList._itemRemovedFromSelection.apply(
+            self.item.contentList, [event, self.item]);
     });
     actions_cell.append(removeButton);
 
@@ -350,7 +416,7 @@ var ReferencedRemoteObject = function(widget_id) {
     this.link = $('#' + this.id + '-link');
     this.edit_link = $('#' + this.id + '-edit-link');
     this.reference_input = $('#' + this.id + '-value');
-    this.reference_interface = $('#' + this.id + '-interface');
+    this.referenceInterface = $('#' + this.id + '-interface');
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
@@ -411,8 +477,8 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     if (this.reference_input) {
         this.reference_input.val(intid);
     };
-    if (this.reference_interface.val()) {
-        options['interface'] = this.reference_interface.val();
+    if (this.referenceInterface.val()) {
+        options['interface'] = this.referenceInterface.val();
     };
     $.getJSON(url + '/++rest++items', options,
               function(data) {
@@ -514,10 +580,10 @@ PathList.prototype.render = function(data) {
 };
 
 PathList.prototype._build_fake = function() {
-    var outer = $('<span class="path_outer" />');
-    var inner = $('<span class="path_inner" />');
+    var outer = $('<span class="path-outer" />');
+    var inner = $('<span class="path-inner" />');
     // var img = $('<img />')
-    var link = $('<span class="path_fake" />');
+    var link = $('<span class="path-fake" />');
     link.text('...');
     link.appendTo(inner);
     inner.appendTo(outer);
@@ -526,10 +592,10 @@ PathList.prototype._build_fake = function() {
 
 PathList.prototype._build_entry = function(info) {
     var self = this;
-    var outer = $('<span class="path_outer" />');
-    var inner = $('<span class="path_inner" />');
+    var outer = $('<span class="path-outer" />');
+    var inner = $('<span class="path-inner" />');
     var link = $('<a href="#" />');
-    link.attr('title', info[this.options['title_field']])
+    link.attr('title', info[this.options['title_field']]);
     link.text(info[this.options['display_field']]);
     link.data('++rest++', info);
 
@@ -576,16 +642,16 @@ $(document).ready(function() {
         });
 
         var url = $('#' + widget_id + '-base').val();
-        var content_list = new ContentList(
+        var contentList = new ContentList(
             popup, widget_id, {'multiple': false});
-        content_list.element.bind('content-list-item-selected',
+        contentList.element.bind('content-list-item-selected',
             function(event, item) {
                 var reference = new ReferencedRemoteObject(widget_id);
                 reference.render(item.info);
                 var popup = $('#' + widget_id + '-dialog');
                 popup.dialog('close');
             });
-        content_list.populate(url);
+        contentList.populate(url);
         popup.dialog('open');
         return false;
     });

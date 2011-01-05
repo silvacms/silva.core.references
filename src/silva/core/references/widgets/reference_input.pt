@@ -3,6 +3,17 @@
   <div id="#" title="#" class="ui-widget reference-dialog"
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
+    <div class="content-list-actions">
+      <div class="content-list-action content-list-action-refresh">
+        <a href="#" name="refresh" i18n:translate="">refresh</a>
+      </div>
+      <div class="content-list-action content-list-action-add">
+        <select>
+          <option value="" i18n:translate="">select:</option>
+        </select>
+        <a href="#" name="add" i18n:translate="">add</a>
+      </div>
+    </div>
   </div>
   <button class="reference-dialog-trigger">
   </button>
