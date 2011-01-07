@@ -17,7 +17,7 @@ button.reference-dialog-trigger:hover {
   border:1px solid #6BB591;
 }
 
-div.path-list {
+div.reference-dialog div.path-list {
   background-color:#1F626D;
   background-image: url('reflection.png');
   background-repeat: repeat-x;
@@ -27,14 +27,14 @@ div.path-list {
   clear: both;
 }
 
-span.path-outer {
+div.reference-dialog span.path-outer {
   display: block;
   line-height: 10px;
   font-size: 10px;
   float: left;
 }
 
-span.path-inner {
+div.reference-dialog span.path-inner {
   background-image: url('drillup-r.png');
   background-position: top right;
   background-repeat: no-repeat;
@@ -42,129 +42,129 @@ span.path-inner {
   padding: 3px 10px 3px 3px;
 }
 
-span.path-outer a {
+div.reference-dialog span.path-outer a {
   padding: 3px 3px 3px 3px;
 }
 
-span.path-outer a,
-span.path-outer a:visited,
-span.path-outer a:hover {
+div.reference-dialog span.path-outer a,
+div.reference-dialog span.path-outer a:visited,
+div.reference-dialog span.path-outer a:hover {
   color:#B3FFFB;
   text-decoration: none;
 }
 
-span.path-outer a:hover {
+div.reference-dialog span.path-outer a:hover {
   color: #C5D4CA;
   text-decoration: underline;
 }
 
-span.path-outer a img {
+div.reference-dialog span.path-outer a img {
   float: left;
   margin-right: 3px;
   margin-top: 4px;
 }
 
-img.reference_add {
+div.reference-dialog img.reference_add {
     cursor: pointer;
 }
 
-table.content-list {
+div.reference-dialog table.content-list {
   clear: both;
   width: 100%;
   margin-bottom: 20px;
 }
 
-table.content-list td {
+div.reference-dialog table.content-list td {
   font-size: 0.8em;
   padding: 3px 10px 3px 3px;
 /*  border-bottom: 1px dotted #000;*/
   background-color: white;
 }
 
-table.content-list td {
+div.reference-dialog table.content-list td {
   vertical-align: middle;
 }
 
-table.content-list tr.even td {
+div.reference-dialog table.content-list tr.even td {
   background-color: #eee;
 }
 
-table.content-list td.cell-icon {
+div.reference-dialog table.content-list td.cell-icon {
   width: 16px;
 }
 
-table.content-list td.cell-id {
+div.reference-dialog table.content-list td.cell-id {
   width: 20%;
 }
 
-table.selection-list td.cell-id {
+div.reference-dialog table.selection-list td.cell-id {
   width: 50%;
 }
 
-table.content-list td.cell-actions {
+div.reference-dialog table.content-list td.cell-actions {
   text-align: right;
 }
 
-table.content-list tr.folderish td {
+div.reference-dialog table.content-list tr.folderish td {
   cursor: pointer;
   font-weight: bold;
 }
 
-table.content-list td a, table.content-list td a:visited{
+div.reference-dialog table.content-list td a, table.content-list td a:visited{
   color: black;
 }
 
-table.content-list tr.folderish-hover td {
+div.reference-dialog table.content-list tr.folderish-hover td {
   background-color: #ccc;
 }
 
-table.content-list tr td {
+div.reference-dialog table.content-list tr td {
   line-height: 16px;
 }
 
-table.content-list tr.current td {
+div.reference-dialog table.content-list tr.current td {
   border-bottom: 1px solid black;
   line-height: 32px;
 }
 
-table.content-list tr.folderish-hover td.cell-title {
+div.reference-dialog table.content-list tr.folderish-hover td.cell-title {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
 }
 
-.reference-dialog h3 {
+div.reference-dialog h3 {
   padding-left: 10px;
   color: black;
   background-color: #ccc;
 }
 
-table.content-list img.button {
+div.reference-dialog table.content-list img.button {
   cursor: pointer;
 }
 
-div.content-list-actions {
+div.reference-dialog div.content-list-actions {
   line-height: 25px;
   height: 25px;
   min-height: 25px;
   margin-bottom: 3px;
 }
 
-div.content-list-action {
+div.reference-dialog div.content-list-action {
   float: left;
 }
 
-div.content-list-action-add {
+div.reference-dialog div.content-list-action-add {
   padding-left: 10px;
 }
 
-div.content-list-action a:hover {
+div.reference-dialog div.content-list-action a:hover {
   text-decoration: none;
   background-color: #ddd;
   cursor: pointer;
 }
 
-div.content-list-action a {
+div.reference-dialog div.content-list-action a {
   height: 15px;
   min-height: 15px;
   padding: 1px 4px;
