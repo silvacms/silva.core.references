@@ -114,7 +114,7 @@ var ContentList = function(element, widgetId, options) {
     this.selectionElement = $('table.selection-list', this.element);
 
     this.url = null;
-    this.options = $.extend({'multiple' : true}, options);
+    this.options = $.extend({'multiple' : false}, options);
 
     this.pathList = new PathList(this.pathListElement);
 
@@ -187,16 +187,17 @@ ContentList.prototype._itemRemovedFromSelection = function(event, item) {
 };
 
 ContentList.prototype.selectItem = function(item) {
-    var intid = item.info['intid'];
-    this.selection.push(item);
-    this.selectionIndex[item.info['intid']] = this.selection.length - 1;
-
     this.element.trigger('content-list-item-selected', [item]);
-    var view = new ContentListSelectionView(this.selectionElement, this);
-    view.appendSelectionItem(item);
-    var listitemview = new ContentListItemView(
-        $('#' + this.itemDomId(item)), item);
-    listitemview.disableSelectButton();
+    if (this.options.multiple) {
+        var intid = item.info['intid'];
+        this.selection.push(item);
+        this.selectionIndex[item.info['intid']] = this.selection.length - 1;
+        var view = new ContentListSelectionView(this.selectionElement, this);
+        view.appendSelectionItem(item);
+        var listitemview = new ContentListItemView(
+            $('#' + this.itemDomId(item)), item);
+        listitemview.disableSelectButton();
+    }
 };
 
 ContentList.prototype.deselectItem = function(item) {
