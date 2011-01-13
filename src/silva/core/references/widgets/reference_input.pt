@@ -8,7 +8,7 @@
         <a href="#" name="refresh" i18n:translate="">refresh</a>
       </div>
       <div class="content-list-action content-list-action-add">
-        <select>
+        <select disabled="disabled">
           <option value="" i18n:translate="">select:</option>
         </select>
         <a href="#" name="add" i18n:translate="">add</a>

@@ -7,29 +7,39 @@ function indexFromId(data, id) {
     return null;
 }
 
+// defined a bind function if not exists
+if (Function.prototype.scope === undefined) {
+    Function.prototype.scope = function(scopearg) {
+      var _function = this;
+
+      return function() {
+        return _function.apply(scopearg, arguments);
+      };
+    };
+}
 
 var Action = function(element, contentList) {
-    var self = this;
     this.event = 'click';
     this.element = $(element);
+    this.link = $('a', this.element);
     this.contentList = contentList;
     this.enabled = true;
-    this.element.bind(this.event, function(event){
+    this.link.bind(this.event, function(event){
         event.preventDefault();
-        self.run.apply(self, [event]);
-    });
+        this.run(event);
+    }.scope(this));
 };
 
 Action.prototype.run = function(event){ event.preventDefault(); };
 Action.prototype.update = function(){};
 
 Action.prototype.disable = function() {
-    this.element.parent('div').addClass('content-list-action-disabled');
-    this.element.enable = false;
+    this.element.addClass('content-list-action-disabled');
+    this.enabled = false;
 };
 
 Action.prototype.enable = function() {
-    this.element.parent('div').removeClass('content-list-action-disabled');
+    this.element.removeClass('content-list-action-disabled');
     this.enabled = true;
 };
 
@@ -47,7 +57,8 @@ Refresh.prototype = new Action;
 
 var Add = function(element, contentList) {
     Action.call(this, element, contentList);
-    this.select = $('select', this.element.parent('div'));
+    this.select = $('select', this.element);
+    this.select.removeAttr('disabled');
 
     this.run = function() {
         if (this.enabled && this.contentList && this.contentList.current) {
@@ -58,23 +69,23 @@ var Add = function(element, contentList) {
     };
 
     this.enable = function(){
-        this.select.disabled = true;
+        this.select.removeAttr('disabled');
         Action.prototype.enable.call(this);
     };
 
     this.disable = function() {
-        this.select.disabled = false;
+        this.select.attr('disabled', 'disabled');
+        this.select.disabled = true;
         Action.prototype.disable.call(this);
     };
 
     this.update = function() {
         if (this.contentList && this.contentList.current) {
             var url = this.contentList.current.url + '/++rest++addables';
-            var self = this;
             this.disable();
             $.getJSON(url, {}, function(data){
-                self._updateAddables(data);
-            });
+                this._updateAddables(data);
+            }.scope(this));
         }
     };
 
@@ -82,13 +93,12 @@ var Add = function(element, contentList) {
         var option = $('option', this.select).first();
         this.select.empty();
         this.select.append(option);
-        var self = this;
         $.each(meta_types, function(index, item){
             var option = $('<option />');
             option.text(item);
             option.attr('value', item);
-            option.appendTo(self.select);
-        });
+            option.appendTo(this.select);
+        }.scope(this));
         this.enable();
     };
 
@@ -118,13 +128,11 @@ var ContentList = function(element, widgetId, options) {
 
     this.pathList = new PathList(this.pathListElement);
 
-    var self = this;
-
     this.bindActions();
 
     this.pathListElement.bind('path-modified', function(event, data){
-        self.populate.apply(self, [data['url']]);
-    });
+        this.populate(data['url']);
+    }.scope(this));
 
     if (this.options['multiple']) {
         var selectionView = new ContentListSelectionView(
@@ -142,7 +150,6 @@ ContentList.prototype.updateActions = function() {
 };
 
 ContentList.prototype.populate = function(url) {
-    var self = this;
     var options = {};
 
     if (this.referenceInterface.val()) {
@@ -151,19 +158,19 @@ ContentList.prototype.populate = function(url) {
     this.url = url;
 
     $.getJSON(url + '/++rest++items', options, function(data) {
-        self.listElement.empty();
+        this.listElement.empty();
         // get rid of '.' and '..'
-        self.current = data[indexFromId(data, '.')];
+        this.current = data[indexFromId(data, '.')];
         parent_id = indexFromId(data, '..');
 
         if (parent_id != null)
-            self.parent = data.splice(parent_id, 1)[0];
+            this.parent = data.splice(parent_id, 1)[0];
         else
-            self.parent = null;
-        self.updateActions();
-        view = new ContentListView(self.listElement, self);
+            this.parent = null;
+        this.updateActions();
+        view = new ContentListView(this.listElement, this);
         view.render(data);
-    });
+    }.scope(this));
 };
 
 ContentList.prototype.buildPath = function() {
@@ -223,12 +230,21 @@ ContentList.prototype.isSelected = function(item) {
 };
 
 ContentList.prototype.bindActions = function() {
-    var refresh = new Refresh(
-        $('a[name="refresh"]', this.actionListElement), this);
-    var add = new Add(
-        $('a[name="add"]', this.actionListElement), this);
-    this.actions.push(refresh);
-    this.actions.push(add);
+    var mapping = {
+        'refresh': Refresh,
+        'add': Add
+    };
+
+    $.each($('div.content-list-action', this.actionListElement),
+                function(index, element) {
+                    var wrapped = $(element);
+                    var actionElement = $('a', wrapped);
+                    var builder = mapping[actionElement.attr('name')];
+                    if (builder) {
+                        var action = new builder(wrapped, this);
+                        this.actions.push(action);
+                    }
+                }.scope(this));
 };
 
 var ContentListView = function(element, contentList) {
@@ -237,21 +253,20 @@ var ContentListView = function(element, contentList) {
 };
 
 ContentListView.prototype.render = function(data) {
-    var self = this;
     this.contentList.buildPath();
     $.each(data, function(index, entry) {
         var child = new ContentListItem(
-            self.contentList,
-            self.contentList.url + '/' + entry['id'], entry);
+            this.contentList,
+            this.contentList.url + '/' + entry['id'], entry);
         var childElement = $('<tr />');
-        childElement.attr('id', self.contentList.itemDomId(child));
+        childElement.attr('id', this.contentList.itemDomId(child));
         childElement.addClass(index % 2 ? "even" : "odd");
         var childView = new ContentListItemView(childElement, child);
         childView.render();
-        if (self.contentList.isSelected(child))
+        if (this.contentList.isSelected(child))
             childView.disableSelectButton();
-        self.element.append(childElement);
-    });
+        this.element.append(childElement);
+    }.scope(this));
 };
 
 var ContentListSelectionView = function(element, contentList) {
@@ -260,7 +275,6 @@ var ContentListSelectionView = function(element, contentList) {
 };
 
 ContentListSelectionView.prototype.appendSelectionItem = function(item) {
-    var self = this;
     var element = $('<tr />');
     view = new SelectionContentListItemView(element, item);
     view.render();
@@ -308,7 +322,6 @@ ContentListItemView.prototype.getSelectButton = function() {
 };
 
 ContentListItemView.prototype.render = function() {
-    var self = this;
     this.element.empty();
     var current = (this.item.info['id'] == '.');
     var icon_cell = $('<td class="cell_icon" />');
@@ -320,13 +333,12 @@ ContentListItemView.prototype.render = function() {
 
     if (this.item.info['folderish'] && !current) {
         this.element.addClass("folderish");
-        id_cell.append($('<a href="#">' + self.item.info['id'] + "</a>"));
+        id_cell.append($('<a href="#">' + this.item.info['id'] + "</a>"));
         link = $('<a href="#" />');
         this.element.click(function(event){
-            self.item.contentList.populate.apply(
-                self.item.contentList, [self.item.url]);
+            this.item.contentList.populate(this.item.url);
             return false;
-        });
+        }.scope(this));
         this.element.hover(function(event){
             // in
             $(this).addClass('folderish-hover');
@@ -348,10 +360,9 @@ ContentListItemView.prototype.render = function() {
         var img = $('<img class="button reference_add"' +
             'src="../++resource++silva.core.references.widgets/add.png" />');
         img.click(function(event){
-            self.item.contentList._itemClicked.apply(self.item.contentList,
-                [event, self.item]);
+            this.item.contentList._itemClicked(event, this.item);
             event.stopPropagation();
-        });
+        }.scope(this));
         actions_cell.append(img);
     }
 
@@ -375,7 +386,6 @@ var SelectionContentListItemView = function(element, item) {
 };
 
 SelectionContentListItemView.prototype.render = function() {
-    var self = this;
     var icon_cell = $('<td class="cell-icon" />');
     var actions_cell = $('<td class="cell-actions" />');
     var id_cell = $('<td class="cell-id" />');
@@ -386,9 +396,8 @@ SelectionContentListItemView.prototype.render = function() {
     var removeButton = $('<img class="button reference_remove"' +
         'src="../++resource++silva.core.references.widgets/delete.png" />');
     removeButton.click(function(event){
-        self.item.contentList._itemRemovedFromSelection.apply(
-            self.item.contentList, [event, self.item]);
-    });
+        this.item.contentList._itemRemovedFromSelection(event, this.item);
+    }.scope(this));
     actions_cell.append(removeButton);
 
     id_cell.text(this.item.info['path']);
@@ -471,7 +480,6 @@ ReferencedRemoteObject.prototype.clear = function(reason) {
 ReferencedRemoteObject.prototype.fetch = function(intid) {
     // Fetch and render a object from its intid
     var url = $('#' + this.id + '-base').val();
-    var self = this;
     var options = {'intid': intid};
 
     this.link.text('loading ...');
@@ -483,22 +491,21 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     };
     $.getJSON(url + '/++rest++items', options,
               function(data) {
-                  self.render.apply(self, [data]);
-              });
+                  this.render(data);
+              }.scope(this));
 };
 
 ReferencedRemoteObject.prototype.render = function(info) {
     // Render a link to a remote object from fetched information.
-    var self = this;
     var icon = $('<img />');
     var set_or_remove_attr = function(name, value) {
         if (value) {
-            self.link.attr(name, value);
+            this.link.attr(name, value);
         }
         else {
-            self.link.removeAttr(name);
+            this.link.removeAttr(name);
         };
-    };
+    }.scope(this);
 
     this.link.empty();
     this.link.text(info['title']);
@@ -554,12 +561,11 @@ var PathList = function(element, options) {
 };
 
 PathList.prototype.fetch = function(info) {
-    var self = this;
     var url = info['url'];
     $.getJSON(url + '/++rest++parents',
                 function(data) {
-                    self.render.apply(self, [data]);
-                });
+                    this.render(data);
+                }.scope(this));
 };
 
 PathList.prototype.render = function(data) {
@@ -592,7 +598,6 @@ PathList.prototype._build_fake = function() {
 };
 
 PathList.prototype._build_entry = function(info) {
-    var self = this;
     var outer = $('<span class="path-outer" />');
     var inner = $('<span class="path-inner" />');
     var link = $('<a href="#" />');
@@ -601,10 +606,10 @@ PathList.prototype._build_entry = function(info) {
     link.data('++rest++', info);
 
     link.click(function(event){
-        var data = $(this).data('++rest++');
-        self._notify.apply(self, [event, data]);
+        var data = $(event.target).data('++rest++');
+        this._notify(event, data);
         return false;
-    });
+    }.scope(this));
 
     link.appendTo(inner);
     inner.appendTo(outer);
