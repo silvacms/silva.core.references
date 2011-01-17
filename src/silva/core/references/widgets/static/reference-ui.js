@@ -550,7 +550,7 @@ var PathList = function(element, options) {
     this.element = $(element);
     default_options = {
     // link text
-    'display_field': 'title',
+    'display_field': 'short_title',
     // link title attribute
     'title_field': 'id',
     // max items to display besides root
