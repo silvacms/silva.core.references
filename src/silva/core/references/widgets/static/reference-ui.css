@@ -157,20 +157,3 @@ div.reference-dialog div.content-list-action {
 div.reference-dialog div.content-list-action-add {
   padding-left: 10px;
 }
-
-div.reference-dialog div.content-list-action a:hover {
-  text-decoration: none;
-  background-color: #ddd;
-  cursor: pointer;
-}
-
-div.reference-dialog div.content-list-action a {
-  height: 15px;
-  min-height: 15px;
-  padding: 1px 4px;
-  margin-right: 3px;
-  background-color: #ccc;
-  border: 1px solid #333;
-  border-radius: 3px;
-  -moz-border-radius: 3px;
-}
