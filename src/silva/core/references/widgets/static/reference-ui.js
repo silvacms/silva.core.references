@@ -21,7 +21,7 @@ if (Function.prototype.scope === undefined) {
 var Action = function(element, contentList) {
     this.event = 'click';
     this.element = $(element);
-    this.link = $('a', this.element);
+    this.link = $('button', this.element);
     this.contentList = contentList;
     this.enabled = true;
     this.link.bind(this.event, function(event){
@@ -59,6 +59,11 @@ var Add = function(element, contentList) {
     Action.call(this, element, contentList);
     this.select = $('select', this.element);
     this.select.removeAttr('disabled');
+
+    this.select.bind('change', function(event){
+        event.preventDefault();
+        this.run();
+    }.scope(this));
 
     this.run = function() {
         if (this.enabled && this.contentList && this.contentList.current) {
@@ -156,6 +161,7 @@ ContentList.prototype.populate = function(url) {
         options['interface'] = this.referenceInterface.val();
     };
     this.url = url;
+    this.listElement.empty();
 
     $.getJSON(url + '/++rest++items', options, function(data) {
         this.listElement.empty();
@@ -238,7 +244,7 @@ ContentList.prototype.bindActions = function() {
     $.each($('div.content-list-action', this.actionListElement),
                 function(index, element) {
                     var wrapped = $(element);
-                    var actionElement = $('a', wrapped);
+                    var actionElement = $('button', wrapped);
                     var builder = mapping[actionElement.attr('name')];
                     if (builder) {
                         var action = new builder(wrapped, this);
