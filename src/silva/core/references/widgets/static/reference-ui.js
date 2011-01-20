@@ -87,8 +87,12 @@ var Add = function(element, contentList) {
     this.update = function() {
         if (this.contentList && this.contentList.current) {
             var url = this.contentList.current.url + '/++rest++addables';
+            var params = {};
+            if (this.contentList.referenceInterface) {
+                params['interface'] = this.contentList.referenceInterface;
+            }
             this.disable();
-            $.getJSON(url, {}, function(data){
+            $.getJSON(url, params, function(data){
                 this._updateAddables(data);
             }.scope(this));
         }
@@ -116,7 +120,7 @@ Add.prototype = new Action;
 var ContentList = function(element, widgetId, options) {
     this.id = widgetId;
     this.element = $(element);
-    this.referenceInterface = $('#' + this.id + '-interface');
+    this.referenceInterface = $('#' + this.id + '-interface').val();
     this.parent = null;
     this.current = null;
     this.selection = [];
@@ -157,8 +161,8 @@ ContentList.prototype.updateActions = function() {
 ContentList.prototype.populate = function(url) {
     var options = {};
 
-    if (this.referenceInterface.val()) {
-        options['interface'] = this.referenceInterface.val();
+    if (this.referenceInterface) {
+        options['interface'] = this.referenceInterface;
     };
     this.url = url;
     this.listElement.empty();
@@ -432,7 +436,7 @@ var ReferencedRemoteObject = function(widget_id) {
     this.link = $('#' + this.id + '-link');
     this.edit_link = $('#' + this.id + '-edit-link');
     this.reference_input = $('#' + this.id + '-value');
-    this.referenceInterface = $('#' + this.id + '-interface');
+    this.referenceInterface = $('#' + this.id + '-interface').val();
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
@@ -492,8 +496,8 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     if (this.reference_input) {
         this.reference_input.val(intid);
     };
-    if (this.referenceInterface.val()) {
-        options['interface'] = this.referenceInterface.val();
+    if (this.referenceInterface) {
+        options['interface'] = this.referenceInterface;
     };
     $.getJSON(url + '/++rest++items', options,
               function(data) {
