@@ -18,43 +18,34 @@ button.reference-dialog-trigger:hover {
 }
 
 div.reference-dialog div.path-list {
-  background-color:#1F626D;
-  background-image: url('reflection.png');
-  background-repeat: repeat-x;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid: #666;
   height: 16px;
+  min-height: 16px;
+  line-height: 16px;
+  padding: 4px 0px 4px 2px;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
   clear: both;
 }
 
-div.reference-dialog span.path-outer {
-  display: block;
-  line-height: 10px;
-  font-size: 10px;
-  float: left;
+div.reference-dialog span.separator {
+  padding: 0px 3px 0px 3px;
 }
 
-div.reference-dialog span.path-inner {
-  background-image: url('drillup-r.png');
-  background-position: top right;
-  background-repeat: no-repeat;
-  display:block;
-  padding: 3px 10px 3px 3px;
+div.reference-dialog span.last {
+  font-weight: bold;
 }
 
 div.reference-dialog span.path-outer a {
-  padding: 3px 3px 3px 3px;
+  text-decoration: underline;
 }
 
 div.reference-dialog span.path-outer a,
 div.reference-dialog span.path-outer a:visited,
 div.reference-dialog span.path-outer a:hover {
-  color:#B3FFFB;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
-div.reference-dialog span.path-outer a:hover {
-  color: #C5D4CA;
+div.reference-dialog span.path-outer a:hover {;
   text-decoration: underline;
 }
 

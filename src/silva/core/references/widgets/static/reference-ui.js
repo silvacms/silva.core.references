@@ -584,7 +584,7 @@ PathList.prototype.render = function(data) {
     var stop = data.length;
     var start = 1;
     this.element.empty();
-    this.element.append(this._build_entry(data[0]));
+    this.element.append(this._build_entry(data[0], 1 == len));
 
     if (max_items != 0 && len > (max_items + 1)) {
         start = len - max_items;
@@ -592,37 +592,47 @@ PathList.prototype.render = function(data) {
     }
 
     for(var i = start; i < stop; i++) {
-        this.element.append(this._build_entry(data[i]));
+        this.element.append(this._build_entry(data[i], i + 1 == len));
     }
 };
 
 PathList.prototype._build_fake = function() {
     var outer = $('<span class="path-outer" />');
     var inner = $('<span class="path-inner" />');
+    var sep = $('<span class="separator">&rsaquo;</span>');
     // var img = $('<img />')
     var link = $('<span class="path-fake" />');
     link.text('...');
     link.appendTo(inner);
     inner.appendTo(outer);
+    sep.appendTo(outer);
     return outer;
 };
 
-PathList.prototype._build_entry = function(info) {
+PathList.prototype._build_entry = function(info, last) {
     var outer = $('<span class="path-outer" />');
     var inner = $('<span class="path-inner" />');
+    var sep = $('<span class="separator">&rsaquo;</span>');
     var link = $('<a href="#" />');
+    if (last) {
+        link = $('<span class="last" />');
+    }
     link.attr('title', info[this.options['title_field']]);
     link.text(info[this.options['display_field']]);
     link.data('++rest++', info);
-
-    link.click(function(event){
-        var data = $(event.target).data('++rest++');
-        this._notify(event, data);
-        return false;
-    }.scope(this));
+    if (!last) {
+        link.click(function(event){
+            var data = $(event.target).data('++rest++');
+            this._notify(event, data);
+            return false;
+        }.scope(this));
+    }
 
     link.appendTo(inner);
     inner.appendTo(outer);
+    if (!last) {
+        sep.appendTo(outer);
+    }
     return outer;
 };
 
