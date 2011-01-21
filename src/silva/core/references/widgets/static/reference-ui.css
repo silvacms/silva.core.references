@@ -17,23 +17,24 @@ button.reference-dialog-trigger:hover {
   border:1px solid #6BB591;
 }
 
-div.path_list {
+div.reference-dialog div.path-list {
   background-color:#1F626D;
   background-image: url('reflection.png');
   background-repeat: repeat-x;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid: #666;
   height: 16px;
+  clear: both;
 }
 
-span.path_outer {
+div.reference-dialog span.path-outer {
   display: block;
   line-height: 10px;
   font-size: 10px;
   float: left;
 }
 
-span.path_inner {
+div.reference-dialog span.path-inner {
   background-image: url('drillup-r.png');
   background-position: top right;
   background-repeat: no-repeat;
@@ -41,103 +42,135 @@ span.path_inner {
   padding: 3px 10px 3px 3px;
 }
 
-span.path_outer a {
+div.reference-dialog span.path-outer a {
   padding: 3px 3px 3px 3px;
 }
 
-span.path_outer a,
-span.path_outer a:visited,
-span.path_outer a:hover {
+div.reference-dialog span.path-outer a,
+div.reference-dialog span.path-outer a:visited,
+div.reference-dialog span.path-outer a:hover {
   color:#B3FFFB;
   text-decoration: none;
 }
 
-span.path_outer a:hover {
+div.reference-dialog span.path-outer a:hover {
   color: #C5D4CA;
   text-decoration: underline;
 }
 
-span.path_outer a img {
+div.reference-dialog span.path-outer a img {
   float: left;
   margin-right: 3px;
   margin-top: 4px;
 }
 
-img.reference_add {
+div.reference-dialog img.reference_add {
     cursor: pointer;
 }
 
-table.content_list {
+div.reference-dialog table.content-list {
   clear: both;
   width: 100%;
   margin-bottom: 20px;
 }
 
-table.content_list td {
+div.reference-dialog table.content-list td {
   font-size: 0.8em;
   padding: 3px 10px 3px 3px;
 /*  border-bottom: 1px dotted #000;*/
   background-color: white;
 }
 
-table.content_list td {
+div.reference-dialog table.content-list td {
   vertical-align: middle;
 }
 
-table.content_list tr.even td {
+div.reference-dialog table.content-list tr.even td {
   background-color: #eee;
 }
 
-table.content_list td.cell_icon {
+div.reference-dialog table.content-list td.cell-icon {
   width: 16px;
 }
 
-table.content_list td.cell_id {
+div.reference-dialog table.content-list td.cell-id {
   width: 20%;
 }
 
-table.selection_list td.cell_id {
+div.reference-dialog table.selection-list td.cell-id {
   width: 50%;
 }
 
-table.content_list td.cell_actions {
+div.reference-dialog table.content-list td.cell-actions {
   text-align: right;
 }
 
-table.content_list tr.folderish td {
+div.reference-dialog table.content-list tr.folderish td {
   cursor: pointer;
   font-weight: bold;
 }
 
-table.content_list td a, table.content_list td a:visited{
+div.reference-dialog table.content-list td a, table.content-list td a:visited{
   color: black;
 }
 
-table.content_list tr.folderish-hover td {
+div.reference-dialog table.content-list tr.folderish-hover td {
   background-color: #ccc;
 }
 
-table.content_list tr td {
+div.reference-dialog table.content-list tr td {
   line-height: 16px;
 }
 
-table.content_list tr.current td {
+div.reference-dialog table.content-list tr.current td {
   border-bottom: 1px solid black;
   line-height: 32px;
 }
 
-table.content_list tr.folderish-hover td.cell_title {
+div.reference-dialog table.content-list tr.folderish-hover td.cell-title {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
 }
 
-.reference-dialog h3 {
+div.reference-dialog h3 {
   padding-left: 10px;
   color: black;
   background-color: #ccc;
 }
 
-table.content_list img.button {
+div.reference-dialog table.content-list img.button {
   cursor: pointer;
+}
+
+div.reference-dialog div.content-list-actions {
+  line-height: 25px;
+  height: 25px;
+  min-height: 25px;
+  margin-bottom: 3px;
+}
+
+div.reference-dialog div.content-list-action {
+  float: left;
+}
+
+div.reference-dialog div.content-list-action-add {
+  padding-left: 10px;
+}
+
+div.reference-dialog div.content-list-action a:hover {
+  text-decoration: none;
+  background-color: #ddd;
+  cursor: pointer;
+}
+
+div.reference-dialog div.content-list-action a {
+  height: 15px;
+  min-height: 15px;
+  padding: 1px 4px;
+  margin-right: 3px;
+  background-color: #ccc;
+  border: 1px solid #333;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
 }

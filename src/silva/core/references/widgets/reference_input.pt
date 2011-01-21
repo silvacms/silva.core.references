@@ -1,8 +1,24 @@
 <div class="reference-widget" id="#"
      tal:attributes="id view/id">
-  <div id="#" title="#" class="ui-widget reference-dialog"
+  <div style="display:none" id="#" title="#" class="ui-widget reference-dialog"
        tal:attributes="id string:${view/id}-dialog;
                        title view/title">
+    <div class="content-list-actions">
+      <div class="content-list-action content-list-action-refresh">
+        <a href="#" name="refresh" i18n:translate="">refresh</a>
+      </div>
+      <div class="content-list-action content-list-action-add">
+        <select disabled="disabled">
+          <option value="" i18n:translate="">select:</option>
+        </select>
+        <a href="#" name="add" i18n:translate="">add</a>
+      </div>
+    </div>
+    <div class="path-list"></div>
+    <table class="content-list source-list">
+    </table>
+    <table class="content-list selection-list">
+    </table>
   </div>
   <button class="reference-dialog-trigger">
   </button>
