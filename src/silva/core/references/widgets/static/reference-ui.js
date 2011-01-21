@@ -21,7 +21,7 @@ if (Function.prototype.scope === undefined) {
 var Action = function(element, contentList) {
     this.event = 'click';
     this.element = $(element);
-    this.link = $('a', this.element);
+    this.link = $('button', this.element);
     this.contentList = contentList;
     this.enabled = true;
     this.link.bind(this.event, function(event){
@@ -60,6 +60,11 @@ var Add = function(element, contentList) {
     this.select = $('select', this.element);
     this.select.removeAttr('disabled');
 
+    this.select.bind('change', function(event){
+        event.preventDefault();
+        this.run();
+    }.scope(this));
+
     this.run = function() {
         if (this.enabled && this.contentList && this.contentList.current) {
             var url = this.contentList.current.url + '/edit/+/' +
@@ -82,8 +87,12 @@ var Add = function(element, contentList) {
     this.update = function() {
         if (this.contentList && this.contentList.current) {
             var url = this.contentList.current.url + '/++rest++addables';
+            var params = {};
+            if (this.contentList.referenceInterface) {
+                params['interface'] = this.contentList.referenceInterface;
+            }
             this.disable();
-            $.getJSON(url, {}, function(data){
+            $.getJSON(url, params, function(data){
                 this._updateAddables(data);
             }.scope(this));
         }
@@ -111,7 +120,7 @@ Add.prototype = new Action;
 var ContentList = function(element, widgetId, options) {
     this.id = widgetId;
     this.element = $(element);
-    this.referenceInterface = $('#' + this.id + '-interface');
+    this.referenceInterface = $('#' + this.id + '-interface').val();
     this.parent = null;
     this.current = null;
     this.selection = [];
@@ -152,10 +161,11 @@ ContentList.prototype.updateActions = function() {
 ContentList.prototype.populate = function(url) {
     var options = {};
 
-    if (this.referenceInterface.val()) {
-        options['interface'] = this.referenceInterface.val();
+    if (this.referenceInterface) {
+        options['interface'] = this.referenceInterface;
     };
     this.url = url;
+    this.listElement.empty();
 
     $.getJSON(url + '/++rest++items', options, function(data) {
         this.listElement.empty();
@@ -238,7 +248,7 @@ ContentList.prototype.bindActions = function() {
     $.each($('div.content-list-action', this.actionListElement),
                 function(index, element) {
                     var wrapped = $(element);
-                    var actionElement = $('a', wrapped);
+                    var actionElement = $('button', wrapped);
                     var builder = mapping[actionElement.attr('name')];
                     if (builder) {
                         var action = new builder(wrapped, this);
@@ -442,6 +452,13 @@ ReferencedRemoteObject.prototype.get_reference_input = function() {
 
 ReferencedRemoteObject.prototype.get_reference_interface = function() {
     return $('#' + this.id + '-interface').val();
+=======
+    this.widget = $('#' + this.id);
+    this.link = $('#' + this.id + '-link');
+    this.edit_link = $('#' + this.id + '-edit-link');
+    this.reference_input = $('#' + this.id + '-value');
+    this.referenceInterface = $('#' + this.id + '-interface').val();
+>>>>>>> other
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
@@ -507,7 +524,6 @@ ReferencedRemoteObject.prototype.fetch = function(intid) {
     if (ref_input) {
         ref_input.val(intid);
     };
-
     if (ref_interface) {
         options['interface'] = ref_interface;
     };
@@ -601,7 +617,7 @@ PathList.prototype.render = function(data) {
     var stop = data.length;
     var start = 1;
     this.element.empty();
-    this.element.append(this._build_entry(data[0]));
+    this.element.append(this._build_entry(data[0], 1 == len));
 
     if (max_items != 0 && len > (max_items + 1)) {
         start = len - max_items;
@@ -609,37 +625,47 @@ PathList.prototype.render = function(data) {
     }
 
     for(var i = start; i < stop; i++) {
-        this.element.append(this._build_entry(data[i]));
+        this.element.append(this._build_entry(data[i], i + 1 == len));
     }
 };
 
 PathList.prototype._build_fake = function() {
     var outer = $('<span class="path-outer" />');
     var inner = $('<span class="path-inner" />');
+    var sep = $('<span class="separator">&rsaquo;</span>');
     // var img = $('<img />')
     var link = $('<span class="path-fake" />');
     link.text('...');
     link.appendTo(inner);
     inner.appendTo(outer);
+    sep.appendTo(outer);
     return outer;
 };
 
-PathList.prototype._build_entry = function(info) {
+PathList.prototype._build_entry = function(info, last) {
     var outer = $('<span class="path-outer" />');
     var inner = $('<span class="path-inner" />');
+    var sep = $('<span class="separator">&rsaquo;</span>');
     var link = $('<a href="#" />');
+    if (last) {
+        link = $('<span class="last" />');
+    }
     link.attr('title', info[this.options['title_field']]);
     link.text(info[this.options['display_field']]);
     link.data('++rest++', info);
-
-    link.click(function(event){
-        var data = $(event.target).data('++rest++');
-        this._notify(event, data);
-        return false;
-    }.scope(this));
+    if (!last) {
+        link.click(function(event){
+            var data = $(event.target).data('++rest++');
+            this._notify(event, data);
+            return false;
+        }.scope(this));
+    }
 
     link.appendTo(inner);
     inner.appendTo(outer);
+    if (!last) {
+        sep.appendTo(outer);
+    }
     return outer;
 };
 
