@@ -452,13 +452,6 @@ ReferencedRemoteObject.prototype.get_reference_input = function() {
 
 ReferencedRemoteObject.prototype.get_reference_interface = function() {
     return $('#' + this.id + '-interface').val();
-=======
-    this.widget = $('#' + this.id);
-    this.link = $('#' + this.id + '-link');
-    this.edit_link = $('#' + this.id + '-edit-link');
-    this.reference_input = $('#' + this.id + '-value');
-    this.referenceInterface = $('#' + this.id + '-interface').val();
->>>>>>> other
 };
 
 ReferencedRemoteObject.prototype.reference = function() {
