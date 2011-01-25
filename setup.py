@@ -49,8 +49,7 @@ setup(name='silva.core.references',
         'zeam.form.silva',
         ],
       tests_require = tests_require,
-      extras_require = {'test': tests_require,
-                        'z3c.form': ['z3c.form']},
+      extras_require = {'test': tests_require},
       entry_points="""
       # -*- Entry points: -*-
       [zeam.form.components]

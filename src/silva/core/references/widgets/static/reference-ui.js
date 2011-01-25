@@ -171,14 +171,14 @@ ContentList.prototype.populate = function(url) {
         this.listElement.empty();
         // get rid of '.' and '..'
         this.current = data[indexFromId(data, '.')];
-        parent_id = indexFromId(data, '..');
+        var parent_id = indexFromId(data, '..');
 
         if (parent_id != null)
             this.parent = data.splice(parent_id, 1)[0];
         else
             this.parent = null;
         this.updateActions();
-        view = new ContentListView(this.listElement, this);
+        var view = new ContentListView(this.listElement, this);
         view.render(data);
     }.scope(this));
 };
@@ -700,8 +700,8 @@ $(document).ready(function() {
         contentList.element.bind('content-list-item-selected',
             function(event, item) {
                 var reference = new ReferencedRemoteObject(widget_id);
+
                 reference.render(item.info);
-                var popup = $('#' + widget_id + '-dialog');
                 popup.dialog('close');
             });
         contentList.populate(url);

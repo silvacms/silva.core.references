@@ -6,6 +6,8 @@ import uuid
 
 from Acquisition import aq_parent
 import AccessControl
+from Products.Formulator.adapters import FieldValueWriter
+from Products.Formulator.adapters import FieldValueReader, _marker
 from Products.Formulator.Field import ZMIField
 from Products.Formulator.FieldRegistry import FieldRegistry
 from Products.Formulator.Validator import Validator
@@ -13,10 +15,13 @@ from Products.Formulator.Widget import Widget, render_element
 from Products.Formulator.DummyField import fields
 
 from five import grok
-from zope.component import queryUtility
+from zope.component import getUtility, queryUtility
+from zope.interface import Interface
 from zope.interface.interfaces import IInterface
 
 from silva.core.interfaces import ISilvaObject
+from silva.core.references.reference import get_content_from_id
+from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.widgets import ReferenceWidgetInfo
 
@@ -24,8 +29,8 @@ from silva.core.references.widgets import ReferenceWidgetInfo
 class InterfaceValidator(Validator):
     """Formulator validator for an interface.
     """
-
-    property_names = Validator.property_names + ['required']
+    property_names = Validator.property_names + [
+        'required']
     message_names = Validator.message_names + [
         'required_not_found', 'invalid_interface']
 
@@ -92,29 +97,34 @@ def get_request():
 class ReferenceValidator(Validator):
     """Extract and validate a reference.
     """
+    property_names = Validator.property_names + [
+        'required']
+    message_names = Validator.message_names + [
+        'required_not_found']
+
+    required = fields.CheckBoxField(
+        'required',
+        title='Required',
+        description=(
+            u"Checked if the field is required; the user has to fill in some "
+            u"data."),
+        default=1)
+
+    required_not_found = u"Input is required but no input given."
 
     def validate(self, field, key, REQUEST):
-        context = REQUEST.get('model', None)
-        if context is not None and ISilvaObject.providedBy(context):
-            value = REQUEST.form.get(key, None)
-            reference_id = REQUEST.form.get(key + '_reference', None)
-            service = queryUtility(IReferenceService)
-            if reference_id is not None:
-                reference = service.get_reference(context, name=reference_id)
-            else:
-                reference_id = unicode(uuid.uuid4())
-                reference = service.new_reference(
-                    context, name=unicode(field.title()))
-                reference.add_tag(reference_id)
-            reference.set_target_id(int(value))
-            return reference_id
-        return ''
+        value = REQUEST.form.get(key, None)
+        if value:
+            return get_content_from_id(value)
+        if field.get_value('required'):
+            self.raise_error('required_not_found', field)
+        return None
 
 
 class BindedReferenceWidget(ReferenceWidgetInfo):
     """Render a widget.
     """
-    template = grok.PageTemplateFile('reference_input.pt')
+    template = grok.PageTemplateFile('formulator_templates/reference_input.pt')
 
     def __init__(self, context, request, field, value):
         self.context = context
@@ -127,19 +137,21 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
         self.name = field.generate_field_key()
         self.title = field.title()
 
-        self.value = ''
-        self.reference = ''
-        if ISilvaObject.providedBy(self.context):
-            # If you have a SilvaObject as context, when the field is
-            # used for real.
-            if value:
+        self.value = None
+        self.reference = None
+
+        if ISilvaObject.providedBy(value):
+            self.value = get_content_id(value)
+        else:
+            if value and isinstance(value, basestring):
                 # We have a value. It is a tag of the reference. We
                 # want here to lookup the value of the reference.
-                service = queryUtility(IReferenceService)
+                service = getUtility(IReferenceService)
                 reference = service.get_reference(self.context, name=value)
-                self.value = reference.target_id
-                self.reference = value
-        self.updateReferenceWidget(self.context, self.value)
+                self.reference = reference.target_id if reference is not None else 'new'
+                self.value = value
+            value = None
+        self.updateReferenceWidget(self.context, self.value, value=value)
         self.interface = field.get_interface()
 
     def default_namespace(self):
@@ -162,7 +174,7 @@ class ReferenceWidget(Widget):
     default = fields.ReferenceField(
         'default',
         title='Default',
-        description='default value',
+        description='Default value (not supported, required by Formulator)',
         default="",
         required=0)
 
@@ -222,3 +234,51 @@ class ReferenceField(ZMIField):
 
 # This get initialized by Grok and register the formulator widget
 FieldRegistry.registerField(ReferenceField, 'www/BasicField.gif')
+
+
+class ReferenceValueWriter(FieldValueWriter):
+    grok.adapts(ReferenceField, Interface)
+
+    def __init__(self, field, form):
+        self._field = field
+        self._content = form.get_content()
+        self._context = form.context
+
+    def erase(self):
+        if self._field.id in self._content.__dict__:
+            service = getUtility(IReferenceService)
+            identifier = self._content.__dict__[self._field.id]
+            service.delete_reference(self._context, name=identifier)
+            del self._content.__dict__[self._field.id]
+
+    def __call__(self, value):
+        assert ISilvaObject.providedBy(value)
+        service = getUtility(IReferenceService)
+        if self._field.id in self._content.__dict__:
+            identifier = self._content.__dict__[self._field.id]
+            reference = service.get_reference(self._context, name=identifier)
+            assert reference is not None
+        else:
+            identifier = unicode(uuid.uuid1())
+            self._content.__dict__[self._field.id] = identifier
+            reference = service.new_reference(self._context, u'code_source')
+            reference.add_tag(unicode(self._field.id))
+            reference.add_tag(identifier)
+        reference.set_target(value)
+
+
+class ReferenceValueReader(FieldValueReader):
+    grok.adapts(ReferenceField, Interface)
+
+    def __init__(self, field, form):
+        self._field = field
+        self._content = form.get_content()
+        self._context = form.context
+
+    def __call__(self):
+        if self._field.id in self._content.__dict__:
+            service = getUtility(IReferenceService)
+            identifier = self._content.__dict__[self._field.id]
+            reference = service.get_reference(self._context, name=identifier)
+            return reference.target
+        return _marker
