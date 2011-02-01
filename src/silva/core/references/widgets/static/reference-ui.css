@@ -48,16 +48,19 @@ div.reference-dialog span.last {
 }
 
 div.reference-dialog span.path-outer a {
+  color: #000;
   text-decoration: underline;
 }
 
 div.reference-dialog span.path-outer a,
 div.reference-dialog span.path-outer a:visited,
 div.reference-dialog span.path-outer a:hover {
+  color: #000;
   text-decoration: underline;
 }
 
 div.reference-dialog span.path-outer a:hover {;
+  color: #000;
   text-decoration: underline;
 }
 
