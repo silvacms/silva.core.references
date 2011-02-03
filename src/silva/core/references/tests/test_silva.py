@@ -113,6 +113,14 @@ class SilvaReferenceTestCase(unittest.TestCase):
             aq_chain(cloned_reference.target),
             aq_chain(self.root.copy_of_folder))
 
+        # Each container is the target of one reference.
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.folder))),
+            1)
+        self.assertEqual(
+            len(list(self.service.get_references_to(self.root.copy_of_folder))),
+            1)
+
     def test_copy_paste_source(self):
         """Try to copy and paste a Silva object which have references.
         """
