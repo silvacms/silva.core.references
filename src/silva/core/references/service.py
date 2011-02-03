@@ -138,8 +138,13 @@ class ReferenceService(SilvaService):
                     # set target to the corresponding one in
                     # copy_target.
                     assert copy_target is not None
-                    clone_target = copy_target.unrestrictedTraverse(
-                        relative_path(copy_source_path, target_path))
+                    relative_target_path = relative_path(
+                        copy_source_path, target_path)
+                    if relative_target_path != ['.']:
+                        clone_target = copy_target.unrestrictedTraverse(
+                            relative_target_path)
+                    else:
+                        clone_target = copy_target
                     clone_target_id =  get_content_id(clone_target)
             self.__create_reference(
                 clone_id,
@@ -175,7 +180,7 @@ class ReferenceGraph(silvaviews.ZMIView):
 
 
 @grok.subscribe(IReferenceService, IObjectCreatedEvent)
-def configureReferenceService(service, event):
+def configure_reference_service(service, event):
     """Configure the reference after it have been created. Register
     the relation catalog to the root local site.
     """
@@ -185,7 +190,7 @@ def configureReferenceService(service, event):
 
 
 @grok.subscribe(IItem, IObjectCopiedEvent)
-def cloneReference(content, event):
+def clone_reference(content, event):
     """Clone object references when the object is cloned.
     """
     service = component.queryUtility(IReferenceService)
