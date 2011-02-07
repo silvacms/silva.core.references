@@ -482,7 +482,7 @@ ReferencedRemoteObject.prototype.clear = function(reason) {
     this.link.removeAttr('href');
     this.link.removeAttr('title');
     if (this.reference_input) {
-        this.reference_input.val('');
+        this.reference_input.val('0');
     };
     this.link.trigger('reference-modified', {});
 };

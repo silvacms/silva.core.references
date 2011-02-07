@@ -31,11 +31,16 @@ class ReferenceWidgetInfo(object):
         self.value_url = None
         self.value_title = None
         self.value_icon = None
+
+        try:
+            value_id = int(value_id)
+        except ValueError:
+            value_id = 0
+
         if value_id:
             value = get_content_from_id(value_id)
             self.value_title = value.get_title_or_id()
             self.value_url = absoluteURL(value, self.request)
             self.value_icon = get_icon_url(value, self.request)
-
 
 
