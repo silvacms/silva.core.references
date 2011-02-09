@@ -501,7 +501,7 @@ ReferencedRemoteObject.prototype.clear = function(reason) {
     link.removeAttr('href');
     link.removeAttr('title');
     if (ref_input) {
-        ref_input.val('');
+        ref_input.val('0');
     };
     link.trigger('reference-modified', {});
 };

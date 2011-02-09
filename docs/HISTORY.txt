@@ -1,12 +1,24 @@
 Changes
 =======
 
-2.3.3 (unreleased)
+2.3.4 (unreleased)
 ------------------
 
 - ...
 
-2.3.2 (2010/12/20)
+2.3.3 (2010-02-07)
+------------------
+
+- Add a refresh functionality to the JS reference selection popup.
+
+- Add the possibility to add new content from the JS reference selection
+  popup.
+
+- Fix some bugs on content suppression (and add test for this case).
+
+- Fix various small issues.
+
+2.3.2 (2010-12-20)
 ------------------
 
 - Add a clear fonctionality to the JS reference selection popup.
@@ -14,7 +26,7 @@ Changes
 - If nothing is selected in the JS reference popup, no link is generated
   in the field. An edit link in the field have been added as well.
 
-2.3.1 (2010/10/18)
+2.3.1 (2010-10-18)
 ------------------
 
 - Improve references graphs representation.
@@ -24,7 +36,7 @@ Changes
 - Fix some bugs in case of duplication of broken references.
 
 
-2.3 (2010/07/16)
+2.3 (2010-07-16)
 ----------------
 
 - First official release.

@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Infrae. All rights reserved.
+# Copyright (c) 2010-2011 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
 
@@ -33,6 +33,12 @@ class ReferenceWidgetInfo(object):
         self.value_url = None
         self.value_title = None
         self.value_icon = None
+
+        try:
+            value_id = int(value_id)
+        except ValueError:
+            value_id = 0
+
         if value_id:
             value = get_content_from_id(value_id)
         if value is not None:
@@ -41,3 +47,5 @@ class ReferenceWidgetInfo(object):
             self.value_icon = get_icon_url(value, self.request)
         else:
             self.value_title = _('no reference selected')
+
+

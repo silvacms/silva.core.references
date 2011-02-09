@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Infrae. All rights reserved.
+# Copyright (c) 2010-2011 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
 
@@ -229,7 +229,7 @@ class SilvaReferenceTestCase(unittest.TestCase):
         # The original one is not touched
         reference = self.service.get_reference(
             self.root.folder.contained, name=u'myname')
-        self.failUnless(verifyObject(IReferenceValue, reference))
+        self.assertTrue(verifyObject(IReferenceValue, reference))
         self.assertEquals(
             reference.source,
             self.root.folder.contained)
