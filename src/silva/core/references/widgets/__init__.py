@@ -4,10 +4,18 @@
 
 from zope.traversing.browser import absoluteURL
 
+from Products.Silva.icon import get_icon_url
+
+from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
+from silva.core.layout.jquery import IJQueryUIResources
 from silva.core.references.reference import get_content_from_id
 from silva.translations import translate as _
-from Products.Silva.icon import get_icon_url
+
+
+class IReferenceUIResources(IJQueryUIResources):
+    silvaconf.resource('reference-ui.js')
+    silvaconf.resource('reference-ui.css')
 
 
 def get_lookup_content(content):
