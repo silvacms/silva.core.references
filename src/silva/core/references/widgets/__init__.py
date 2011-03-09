@@ -2,18 +2,21 @@
 # See also LICENSE.txt
 # $Id$
 
+from Products.Silva.icon import get_icon_url
+
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.traversing.browser import absoluteURL
 
-from Products.Silva.icon import get_icon_url
+from js.jqueryui import jqueryui
 
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
-from silva.core.layout.jquery import IJQueryUIResources
 from silva.core.references.reference import get_content_from_id
 from silva.translations import translate as _
 
 
-class IReferenceUIResources(IJQueryUIResources):
+class IReferenceUIResources(IDefaultBrowserLayer):
+    silvaconf.resource(jqueryui)
     silvaconf.resource('reference-ui.js')
     silvaconf.resource('reference-ui.css')
 

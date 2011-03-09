@@ -7,8 +7,8 @@
 
   <include package="silva.core.conf" />
   <include package="silva.core.views" />
-  <include package="silva.core.smi" />
   <include package="dolmen.relations" />
+  <include package="infrae.rest" />
   <include package="zeam.form.silva" />
 
   <five:registerPackage package="." />
@@ -25,16 +25,6 @@
           OFS.interfaces.IObjectClonedEvent"
      />
 
-<!--   <browser:resourceInclude -->
-<!--      layer="silva.core.smi.interfaces.ISMILayer" -->
-<!--      include="reference-ui.js" -->
-<!--      base="silva.core.references.widgets" /> -->
-
-<!--   <browser:resourceInclude -->
-<!--     layer="silva.core.smi.interfaces.ISMILayer" -->
-<!--     include="reference-ui.css" -->
-<!--     base="silva.core.references.widgets" /> -->
-
-  <grok:grok package="." exclude="z3cform" />
+  <grok:grok package="." />
 
 </configure>
