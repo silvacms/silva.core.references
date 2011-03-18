@@ -14,7 +14,7 @@ from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
 
 from Products.Silva.icon import registry as icons
-from Products.Silva.Folder import meta_types_for_interface
+from Products.Silva.ExtensionRegistry import meta_types_for_interface
 
 
 def get_icon(content):
