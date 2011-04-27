@@ -125,6 +125,13 @@ class ReferenceValue(TaggedRelationValue):
     def set_target(self, target):
         self.set_target_id(get_content_id(target))
 
+    def set_source_id(self, source_id):
+        self.source_id = source_id
+        notify(RelationModifiedEvent(self))
+
+    def set_source(self, source):
+        self.set_source_id(get_content_id(source))
+
     def is_target_inside_container(self, container):
         return is_inside_container(container, self.target)
 
