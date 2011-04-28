@@ -36,7 +36,7 @@ class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
 
         interface = self.component.get_field().schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
-        self.updateReferenceWidget(
+        self.update_reference_widget(
             self.form.context, self.inputValue(),
             interface=interface_name)
 

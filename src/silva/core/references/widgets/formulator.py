@@ -151,7 +151,7 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
                 self.reference = reference.target_id if reference is not None else 'new'
                 self.value = value
             value = None
-        self.updateReferenceWidget(self.context, self.value, value=value)
+        self.update_reference_widget(self.context, self.value, value=value)
         self.interface = field.get_interface()
 
     def default_namespace(self):

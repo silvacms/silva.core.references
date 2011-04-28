@@ -36,7 +36,7 @@ class ReferenceWidgetInfo(object):
     different form implementation.
     """
 
-    def updateReferenceWidget(self, context, value_id=None, interface=None, value=None):
+    def update_reference_widget(self, context, value_id=None, interface=None, value=None):
         self.interface = interface
         self.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
@@ -47,7 +47,7 @@ class ReferenceWidgetInfo(object):
 
         try:
             value_id = int(value_id)
-        except ValueError:
+        except (ValueError, TypeError):
             value_id = 0
 
         if value_id:
