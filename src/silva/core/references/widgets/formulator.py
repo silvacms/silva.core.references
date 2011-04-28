@@ -194,11 +194,10 @@ class ReferenceWidget(Widget):
         required=1)
 
     def render(self, field, key, value, REQUEST):
-        # REQUEST is None. So hack to find it again. By default we
-        # can the Silva model as context, if it is present, or the
-        # field in the later case.
+        # REQUEST is None. So hack to find it again.
+        # The context of the form is the acquisition context of this form.
         request = get_request()
-        context = request.get('model', field)
+        context = aq_parent(aq_parent(field))
         widget = BindedReferenceWidget(context, request, field, value)
         return widget()
 

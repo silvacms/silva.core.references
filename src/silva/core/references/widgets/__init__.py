@@ -23,7 +23,7 @@ class IReferenceUIResources(IDefaultBrowserLayer):
 
 def get_lookup_content(content):
     if IVersion.providedBy(content):
-        content = content.object()
+        content = content.get_content()
     if (ISilvaObject.providedBy(content) and
         not IContainer.providedBy(content)):
         return content.get_container()
@@ -36,7 +36,8 @@ class ReferenceWidgetInfo(object):
     different form implementation.
     """
 
-    def update_reference_widget(self, context, value_id=None, interface=None, value=None):
+    def update_reference_widget(
+        self, context, value_id=None, interface=None, value=None):
         self.interface = interface
         self.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
