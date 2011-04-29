@@ -100,7 +100,7 @@ class ReferenceValidator(Validator):
     property_names = Validator.property_names + [
         'required']
     message_names = Validator.message_names + [
-        'required_not_found']
+        'required_not_found', 'invalid_value']
 
     required = fields.CheckBoxField(
         'required',
@@ -111,11 +111,24 @@ class ReferenceValidator(Validator):
         default=1)
 
     required_not_found = u"Input is required but no input given."
+    invalid_value = u"Input is incorrect"
 
     def validate(self, field, key, REQUEST):
+        multiple = bool(field.get_value('multiple'))
         value = REQUEST.form.get(key, None)
+
+        def convert(identifier):
+            try:
+                return get_content_from_id(identifier)
+            except ValueError:
+                self.raise_error('invalid_value', field)
+
         if value:
-            return get_content_from_id(value)
+            if multiple:
+                if not isinstance(list, value):
+                    self.raise_error('invalid_value', field)
+                return map(convert, value)
+            return convert(value)
         if field.get_value('required'):
             self.raise_error('required_not_found', field)
         return None
@@ -197,8 +210,10 @@ class ReferenceWidget(Widget):
     def render(self, field, key, value, REQUEST):
         # REQUEST is None. So hack to find it again.
         # The context of the form is the acquisition context of this form.
-        request = get_request()
         context = aq_parent(aq_parent(field))
+        if context is None:
+            return u'<p>Not available.</p>'
+        request = get_request()
         widget = BindedReferenceWidget(context, request, field, value)
         return widget()
 
@@ -210,19 +225,6 @@ class ReferenceField(ZMIField):
     meta_type = "ReferenceField"
     widget = ReferenceWidget()
     validator = ReferenceValidator()
-
-    @property
-    def REQUEST(self):
-        # Hack for then the field is displayed with broken dummies
-        return get_request()
-
-    def getPhysicalRoot(self):
-        # This method is hacked in order to work when the field is
-        # displayed in ZMI, with broken dummies everything
-        parent = aq_parent(self)
-        if parent is None:
-            return self
-        return parent.getPhysicalRoot()
 
     def get_interface(self):
         try:
