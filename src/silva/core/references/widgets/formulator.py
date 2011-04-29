@@ -46,9 +46,11 @@ class InterfaceValidator(Validator):
     required_not_found = u"Input is required but no input given."
 
     def validate(self, field, key, REQUEST):
-        value = REQUEST.get(key, "")
-        if field.get_value('required') and value == "":
-            self.raise_error('required_not_found', field)
+        value = REQUEST.get(key)
+        if value is None:
+            if field.get_value('required'):
+                self.raise_error('required_not_found', field)
+            return None
         interface = queryUtility(IInterface, name=value.strip())
         if interface is None:
             self.raise_error('invalid_interface', field)
