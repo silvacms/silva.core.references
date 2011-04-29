@@ -51,7 +51,8 @@
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
                          name view/name;
-                         value view/value" />
+                         value view/value;
+                         class python:view.multiple and 'multiple' or None" />
   <input type="hidden" value="#" id="#"
          tal:condition="view/interface"
          tal:attributes="id string:${view/id}-interface;

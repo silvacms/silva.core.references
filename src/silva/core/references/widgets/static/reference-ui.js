@@ -680,18 +680,19 @@ var ReferencedRemoteObject = function(widget_id) {
 
             var widget_id = $(this).parent('.reference-widget').attr('id');
             var popup = $('#' + widget_id + '-dialog');
+            var value_input = $('#' + widget_id + '-value');
 
             var popup_buttons = {'cancel': function() {
                 $(this).dialog('close');
             }};
 
-            if (!$('#' + widget_id + '-value').hasClass('required')) {
+            if (!value_input.hasClass('required')) {
                 popup_buttons['clear'] = function(){
                     var reference = new ReferencedRemoteObject(widget_id);
                     reference.clear();
                     $(this).dialog('close');
                 };
-            }
+            };
 
             popup.dialog({
                 autoOpen: false,
@@ -704,14 +705,15 @@ var ReferencedRemoteObject = function(widget_id) {
 
             var url = $('#' + widget_id + '-base').val();
             var contentList = new ContentList(
-                popup, widget_id, {'multiple': false});
-            contentList.element.bind('content-list-item-selected',
-                                     function(event, item) {
-                                         var reference = new ReferencedRemoteObject(widget_id);
+                popup, widget_id, {'multiple': value_input.hasClass('multiple')});
+            contentList.element.bind(
+                'content-list-item-selected',
+                function(event, item) {
+                    var reference = new ReferencedRemoteObject(widget_id);
 
-                                         reference.render(item.info);
-                                         popup.dialog('close');
-                                     });
+                    reference.render(item.info);
+                    popup.dialog('close');
+                });
             contentList.populate(url);
             popup.dialog('open');
             return false;

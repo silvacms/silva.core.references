@@ -136,6 +136,7 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
         self.id = field.generate_field_html_id()
         self.name = field.generate_field_key()
         self.title = field.title()
+        self.multiple = bool(field.get_value('multiple'))
 
         self.value = None
         self.reference = None
