@@ -9,7 +9,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     // widget_id-value.
     this.widget_id = widget_id;
     this.suffix = (suffix === undefined) ? "" : suffix;
-    this.id = this.widget_id + suffix;
+    this.id = this.widget_id + this.suffix;
 };
 
 ReferencedRemoteObject.prototype.get_content_link = function () {
