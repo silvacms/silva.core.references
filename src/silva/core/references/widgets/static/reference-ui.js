@@ -3,11 +3,175 @@
 /**
  * A referenced remote object.
  */
-var ReferencedRemoteObject = function(widget_id) {
+var ReferencedRemoteObject = function(widget_id, suffix) {
     // Refer a link that can represent a remote object on the
     // server. Its referenece (intid) can be store in a input called
     // widget_id-value.
-    this.id = widget_id;
+    this.widget_id = widget_id;
+    this.suffix = (suffix === undefined) ? "" : suffix;
+    this.id = this.widget_id + suffix;
+};
+
+ReferencedRemoteObject.prototype.get_content_link = function () {
+    return $('#' + this.id + '-link');
+};
+
+ReferencedRemoteObject.prototype.get_content_edit_link = function() {
+    return $('#' + this.id + '-edit-link');
+};
+
+ReferencedRemoteObject.prototype.create_links = function() {
+    container = $('#' + this.widget_id + ' ul.reference-links');
+    item = $('<li />');
+    item.append($('<a id="' + this.id + '-link" />'));
+    item.append($('<a id="' + this.id + '-edit-link" />'));
+    container.append(item);
+};
+
+ReferencedRemoteObject.prototype.get_widget = function() {
+    return $('#' + this.widget_id);
+};
+
+ReferencedRemoteObject.prototype.get_reference_input = function() {
+    return $('#' + this.id + '-value');
+};
+
+ReferencedRemoteObject.prototype.get_reference_interface = function() {
+    return $('#' + this.widget_id + '-interface').val();
+};
+
+ReferencedRemoteObject.prototype.reference = function() {
+    // Return reference (intid) to the remote object
+    return this.get_reference_input().val();
+};
+
+ReferencedRemoteObject.prototype.data = function() {
+    // Return information to the remote object
+    return this.get_content_link().data('content');
+};
+
+ReferencedRemoteObject.prototype.title = function() {
+    // Return title of the remote object
+    var data = this.data();
+
+    if (data) {
+        return data['title'];
+    }
+    return 'no reference selected';
+};
+
+ReferencedRemoteObject.prototype.url = function() {
+    // Return url of the remote object
+    var data = this.data();
+
+    if (data) {
+        return data['url'];
+    }
+    return '';
+};
+
+ReferencedRemoteObject.prototype.clear = function(reason) {
+    // Clear all value related to the remote object
+    var link = this.get_content_link();
+    var edit_link = this.get_content_edit_link();
+    var ref_input = this.get_reference_input();
+
+    if (!reason) {
+        reason = 'no reference selected';
+    }
+    edit_link.hide();
+    edit_link.attr('href', '#');
+    link.text(reason);
+    link.bind('click', function () { return false; });
+    link.attr('href', '#');
+    link.removeAttr('title');
+    if (ref_input) {
+        ref_input.val('0');
+    };
+    link.trigger('reference-modified', {});
+};
+
+ReferencedRemoteObject.prototype.fetch = function(intid) {
+    // Fetch and render a object from its intid
+    var url = $('#' + this.widget_id + '-base').val();
+    var options = {'intid': intid};
+    var ref_interface = this.get_reference_interface();
+    var ref_input = this.get_reference_input();
+
+    this.get_content_link().text('loading ...');
+    if (ref_input) {
+        ref_input.val(intid);
+    };
+    if (ref_interface) {
+        options['interface'] = ref_interface;
+    };
+
+    $.getJSON(url + '/++rest++silva.core.references.items', options,
+              function(data) {
+                  this.render(data);
+              }.scope(this));
+};
+
+ReferencedRemoteObject.prototype.render = function(info) {
+    // Render a link to a remote object from fetched information.
+    var icon = $('<img />');
+    var link = this.get_content_link();
+    var edit_link = this.get_content_edit_link();
+
+    if (link.length < 1) {
+        this.create_links();
+        link = this.get_content_link();
+        edit_link = this.get_content_edit_link();
+    }
+
+    var ref_input = this.get_reference_input();
+
+    var set_or_remove_attr = function(name, value) {
+        if (value) {
+            link.attr(name, value);
+        }
+        else {
+            link.removeAttr(name);
+        };
+    };
+
+    link.empty();
+    link.text(info['title']);
+    set_or_remove_attr('href', info['url']);
+    set_or_remove_attr('title', info['path']);
+    link.unbind('click');
+    if (info['url']) {
+        edit_link.show();
+        // XXX edit URL should come from data.
+        edit_link.attr('href', info['url'] + '/edit');
+    };
+    link.data('content', info);
+    icon.attr('src', info['icon']);
+    icon.prependTo(link);
+    if (ref_input) {
+        ref_input.val(info['intid']);
+    };
+    link.trigger('reference-modified', info);
+};
+
+ReferencedRemoteObject.prototype.change = function(callback) {
+    // Bind to a modification of the reference
+    this.get_content_link().live('reference-modified', callback);
+};
+
+ReferencedRemoteObject.prototype.show = function() {
+    // Show widget
+    this.get_widget().show();
+};
+
+ReferencedRemoteObject.prototype.hide = function() {
+    // Hide widget
+    this.get_widget().hide();
+};
+
+ReferencedRemoteObject.prototype.toggle = function() {
+    // Hide/display widget
+    this.get_widget().toggle();
 };
 
 (function($) {
@@ -22,7 +186,6 @@ var ReferencedRemoteObject = function(widget_id) {
             };
         };
     }
-
 
     function indexFromId(data, id) {
         for(var i=0; i < data.length; i++) {
@@ -68,7 +231,6 @@ var ReferencedRemoteObject = function(widget_id) {
     };
 
     Refresh.prototype = new Action;
-
 
     var Add = function(element, contentList) {
         Action.call(this, element, contentList);
@@ -142,13 +304,15 @@ var ReferencedRemoteObject = function(widget_id) {
         this.selectionIndex = {};
         this.actions = [];
 
+        var defaults = {'multiple' : true, 'selected': []};
+
         this.pathListElement = $('div.path-list', this.element);
         this.actionListElement = $('div.content-list-actions', this.element);
         this.listElement = $('table.source-list', this.element);
         this.selectionElement = $('table.selection-list', this.element);
 
         this.url = null;
-        this.options = $.extend({'multiple' : false}, options);
+        this.options = $.extend(defaults, options);
 
         this.pathList = new PathList(this.pathListElement);
 
@@ -162,8 +326,22 @@ var ReferencedRemoteObject = function(widget_id) {
             var selectionView = new ContentListSelectionView(
                 this.selectionElement, this);
             selectionView.render();
-            this.element.append($('<h3>Selection</h3>'));
-            this.element.append(this.selectionElement);
+        }
+
+        if (this.options['multiple'] && this.options['selected'].length > 0) {
+            $.each(this.options['selected'], function(index, selected) {
+                var url = '++rest++silva.core.references.items';
+                $.getJSON(url, {'intid': selected}, function(entry) {
+                    var item = new ContentListItem(this,
+                        this.url + '/' + entry['id'], entry);
+                    this.selectItem(item);
+                }.scope(this));
+            }.scope(this));
+        }
+        if (this.options['multiple']) {
+            this.selectionElement.show();
+        } else {
+            this.selectionElement.hide();
         }
     };
 
@@ -222,14 +400,18 @@ var ReferencedRemoteObject = function(widget_id) {
         this.element.trigger('content-list-item-selected', [item]);
         if (this.options.multiple) {
             var intid = item.info['intid'];
-            this.selection.push(item);
-            this.selectionIndex[item.info['intid']] = this.selection.length - 1;
+            this.select(item);
             var view = new ContentListSelectionView(this.selectionElement, this);
             view.appendSelectionItem(item);
             var listitemview = new ContentListItemView(
                 $('#' + this.itemDomId(item)), item);
             listitemview.disableSelectButton();
         }
+    };
+
+    ContentList.prototype.select = function(item) {
+        this.selection.push(item);
+        this.selectionIndex[item.info['intid']] = this.selection.length - 1;
     };
 
     ContentList.prototype.deselectItem = function(item) {
@@ -383,7 +565,7 @@ var ReferencedRemoteObject = function(widget_id) {
 
         if (this.item.info['implements']) {
             var img = $('<img class="button reference_add"' +
-                        'src="../++static++/silva.core.references.widgets/add.png" />');
+                        'src="++static++/silva.core.references.widgets/add.png" />');
             img.click(function(event){
                 this.item.contentList._itemClicked(event, this.item);
                 event.stopPropagation();
@@ -419,7 +601,7 @@ var ReferencedRemoteObject = function(widget_id) {
         var link = $('<span />');;
 
         var removeButton = $('<img class="button reference_remove"' +
-                             'src="../++resource++silva.core.references.widgets/delete.png" />');
+                             'src="++static++/silva.core.references.widgets/delete.png" />');
         removeButton.click(function(event){
             this.item.contentList._itemRemovedFromSelection(event, this.item);
         }.scope(this));
@@ -439,155 +621,6 @@ var ReferencedRemoteObject = function(widget_id) {
         title_cell.appendTo(this.element);
         id_cell.appendTo(this.element);
         actions_cell.appendTo(this.element);
-    };
-
-
-    ReferencedRemoteObject.prototype.get_content_link = function () {
-        return $('#' + this.id + '-link');
-    };
-
-    ReferencedRemoteObject.prototype.get_content_edit_link = function() {
-        return $('#' + this.id + '-edit-link');
-    };
-
-    ReferencedRemoteObject.prototype.get_widget = function() {
-        return $('#' + this.id);
-    };
-
-    ReferencedRemoteObject.prototype.get_reference_input = function() {
-        return $('#' + this.id + '-value');
-    };
-
-    ReferencedRemoteObject.prototype.get_reference_interface = function() {
-        return $('#' + this.id + '-interface').val();
-    };
-
-    ReferencedRemoteObject.prototype.reference = function() {
-        // Return reference (intid) to the remote object
-        return this.get_reference_input().val();
-    };
-
-    ReferencedRemoteObject.prototype.data = function() {
-        // Return information to the remote object
-        return this.get_content_link().data('content');
-    };
-
-    ReferencedRemoteObject.prototype.title = function() {
-        // Return title of the remote object
-        var data = this.data();
-
-        if (data) {
-            return data['title'];
-        }
-        return 'no reference selected';
-    };
-
-
-    ReferencedRemoteObject.prototype.url = function() {
-        // Return url of the remote object
-        var data = this.data();
-
-        if (data) {
-            return data['url'];
-        }
-        return '';
-    };
-
-    ReferencedRemoteObject.prototype.clear = function(reason) {
-        // Clear all value related to the remote object
-        var link = this.get_content_link();
-        var edit_link = this.get_content_edit_link();
-        var ref_input = this.get_reference_input();
-
-        if (!reason) {
-            reason = 'no reference selected';
-        }
-        edit_link.hide();
-        edit_link.removeAttr('href');
-        link.text(reason);
-        link.bind('click', function () { return false; });
-        link.removeAttr('href');
-        link.removeAttr('title');
-        if (ref_input) {
-            ref_input.val('0');
-        };
-        link.trigger('reference-modified', {});
-    };
-
-    ReferencedRemoteObject.prototype.fetch = function(intid) {
-        // Fetch and render a object from its intid
-        var url = $('#' + this.id + '-base').val();
-        var options = {'intid': intid};
-        var ref_interface = this.get_reference_interface();
-        var ref_input = this.get_reference_input();
-
-        this.get_content_link().text('loading ...');
-        if (ref_input) {
-            ref_input.val(intid);
-        };
-        if (ref_interface) {
-            options['interface'] = ref_interface;
-        };
-
-        $.getJSON(url + '/++rest++silva.core.references.items', options,
-                  function(data) {
-                      this.render(data);
-                  }.scope(this));
-    };
-
-    ReferencedRemoteObject.prototype.render = function(info) {
-        // Render a link to a remote object from fetched information.
-        var icon = $('<img />');
-        var link = this.get_content_link();
-        var edit_link = this.get_content_edit_link();
-        var ref_input = this.get_reference_input();
-
-        var set_or_remove_attr = function(name, value) {
-            if (value) {
-                link.attr(name, value);
-            }
-            else {
-                link.removeAttr(name);
-            };
-        };
-
-        link.empty();
-        link.text(info['title']);
-        set_or_remove_attr('href', info['url']);
-        set_or_remove_attr('title', info['path']);
-        link.unbind('click');
-        if (info['url']) {
-            edit_link.show();
-            // XXX edit URL should come from data.
-            edit_link.attr('href', info['url'] + '/edit');
-        };
-        link.data('content', info);
-        icon.attr('src', info['icon']);
-        icon.prependTo(link);
-        if (ref_input) {
-            ref_input.val(info['intid']);
-        };
-        link.trigger('reference-modified', info);
-    };
-
-    ReferencedRemoteObject.prototype.change = function(callback) {
-        // Bind to a modification of the reference
-        this.get_content_link().live('reference-modified', callback);
-    };
-
-    ReferencedRemoteObject.prototype.show = function() {
-        // Show widget
-        this.get_widget().show();
-    };
-
-    ReferencedRemoteObject.prototype.hide = function() {
-        // Hide widget
-        this.get_widget().hide();
-    };
-
-    ReferencedRemoteObject.prototype.toggle = function() {
-        // Hide/display widget
-        this.get_widget().toggle();
     };
 
     var PathList = function(element, options) {
@@ -679,10 +712,20 @@ var ReferencedRemoteObject = function(widget_id) {
         $('.reference-dialog-trigger').live('click', function() {
 
             var widget_id = $(this).parent('.reference-widget').attr('id');
+            var widget = $('#' + widget_id);
             var popup = $('#' + widget_id + '-dialog');
             var value_input = $('#' + widget_id + '-value');
+            var value_inputs = $('input[name="' + value_input.attr('name') + '"]', widget);
+            var selected_ids = [];
 
-            var popup_buttons = {'cancel': function() {
+            $.each(value_inputs, function(index, input) {
+                var value = $(input).val();
+                if (value && value != '') {
+                    selected_ids.push(value);
+                }
+            });
+
+            var popup_buttons = {cancel: function() {
                 $(this).dialog('close');
             }};
 
@@ -694,6 +737,53 @@ var ReferencedRemoteObject = function(widget_id) {
                 };
             };
 
+            var url = $('#' + widget_id + '-base').val();
+            var contentList = new ContentList(
+                popup, widget_id, 
+                {'multiple': value_input.hasClass('multiple'),
+                 'selected': selected_ids});
+
+            if (contentList.options.multiple) {
+                popup_buttons['ok'] = function(event){
+                    // XXX Do something with selection
+                    value_inputs = 
+                        $('input[name="' + value_input.attr('name') + '"]',
+                            widget);
+                    $.each(value_inputs, function(index, input){
+                        $(input).val('');
+                    });
+                    $('ul.reference-links',  widget).empty();
+                    $.each(contentList.selection, function(index, item){
+                        var suffix = index == 0 ? "" : String(index);
+                        var input = value_inputs[index];
+                        if (input === undefined) {
+                            input = value_input.clone();
+                            input.attr('id', widget_id + suffix + "-value");
+                            input.appendTo(value_input.parent());
+                        }
+                        var reference = new ReferencedRemoteObject(
+                            widget_id, suffix, item.info);
+                        reference.render(item.info);
+                    });
+                    if (value_inputs.length > 1) {
+                        $.each(value_inputs, function(index, input){
+                            var $input = input;
+                            if ($input.val() == '') {
+                                $input.remove();
+                            }
+                        });
+                    }
+                    popup.dialog('close');
+                };
+            } else {
+                contentList.element.bind('content-list-item-selected',
+                    function(event, item) {
+                        var reference = new ReferencedRemoteObject(widget_id);
+                        reference.render(item.info);
+                        popup.dialog('close');
+                    });
+            }
+
             popup.dialog({
                 autoOpen: false,
                 modal: true,
@@ -703,17 +793,6 @@ var ReferencedRemoteObject = function(widget_id) {
                 buttons: popup_buttons
             });
 
-            var url = $('#' + widget_id + '-base').val();
-            var contentList = new ContentList(
-                popup, widget_id, {'multiple': value_input.hasClass('multiple')});
-            contentList.element.bind(
-                'content-list-item-selected',
-                function(event, item) {
-                    var reference = new ReferencedRemoteObject(widget_id);
-
-                    reference.render(item.info);
-                    popup.dialog('close');
-                });
             contentList.populate(url);
             popup.dialog('open');
             return false;

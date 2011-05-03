@@ -124,10 +124,9 @@ class ReferenceValidator(Validator):
                 return get_content_from_id(identifier)
             except ValueError:
                 self.raise_error('invalid_value', field)
-
         if value:
             if multiple:
-                if not isinstance(list, value):
+                if not isinstance(value, list):
                     self.raise_error('invalid_value', field)
                 return map(convert, value)
             return convert(value)
@@ -155,20 +154,39 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
 
         self.value = None
         self.reference = None
-
-        if ISilvaObject.providedBy(value):
-            self.value = get_content_id(value)
-        else:
-            if value and isinstance(value, basestring):
-                # We have a value. It is a tag of the reference. We
-                # want here to lookup the value of the reference.
-                service = getUtility(IReferenceService)
-                reference = service.get_reference(self.context, name=value)
-                self.reference = reference.target_id if reference is not None else 'new'
-                self.value = value
-            value = None
-        self.update_reference_widget(self.context, self.value, value=value)
         self.interface = field.get_interface()
+
+        def update_info(info, value, index=0):
+            if index == 0:
+                info.suffix = ""
+            else:
+                info.suffix = str(index)
+
+            if ISilvaObject.providedBy(value):
+                info.value = get_content_id(value)
+            else:
+                if value and isinstance(value, basestring):
+                    # We have a value. It is a tag of the reference. We
+                    # want here to lookup the value of the reference.
+                    service = getUtility(IReferenceService)
+                    reference = service.get_reference(info.context, name=value)
+                    info.reference = reference.target_id if reference is not None else 'new'
+                    info.value = value
+                value = None
+
+        if self.multiple:
+            self.values_info = []
+            for index, item in enumerate(value or []):
+                ref_info = ReferenceWidgetInfo()
+                ref_info.request = self.request
+                update_info(ref_info, item, index=index)
+                ref_info.update_reference_widget(
+                    self.context, ref_info.value, value=item)
+                self.values_info.append(ref_info)
+            self.update_reference_widget(self.context)
+        else:
+            update_info(self, value)
+            self.update_reference_widget(self.context, self.value, value=value)
 
     def default_namespace(self):
         return {'context': self.context,

@@ -28,26 +28,43 @@
     <div class="path-list"></div>
     <table class="content-list source-list">
     </table>
-    <table class="content-list selection-list">
+    <table class="content-list selection-list" style="display:none">
     </table>
   </div>
   <button class="reference-dialog-trigger"
           title="Lookup a content in Silva"
           i18n:attributes="title">
   </button>
-  <a class="reference-dialog-edit-link" target="_blank" id="#"
-     title="Edit content"
-     tal:attributes="id string:${view/id}-edit-link;
-                     style python:view.value_url or 'display: none'"
-     i18n:attributes="title">
-  </a>
-  <a href="#" id="#" target="_blank"
-     tal:attributes="id string:${view/id}-link;
-                     href view/value_url">
-    <img tal:condition="view/value_icon"
-         tal:attributes="src view/value_icon" />
-    <span tal:replace="view/value_title" />
-  </a>
+  <tal:if condition="not:view/multiple">
+    <a href="#" id="#" target="_blank"
+       tal:attributes="id string:${view/id}-link;
+                       href view/value_url">
+      <img tal:condition="view/value_icon"
+           tal:attributes="src view/value_icon" />
+      <span tal:replace="view/value_title" />
+    </a>
+    <a class="reference-dialog-edit-link" target="_blank" id="#"
+       title="Edit content"
+       tal:attributes="id string:${view/id}${item/suffix}-edit-link;
+                       style python:item.value_url or 'display: none'"
+       i18n:attributes="title">
+    </a>
+  </tal:if>
+  <tal:if condition="view/multiple">
+    <ul class="reference-links">
+      <tal:repeat repeat="item view/values_info">
+      <li>
+        <a href="#" id="#" target="_blank"
+           tal:attributes="id string:${view/id}${item/suffix}-link;
+                           href item/value_url">
+          <img tal:condition="item/value_icon"
+               tal:attributes="src item/value_icon" />
+          <span tal:replace="item/value_title" />
+        </a>
+      </li>
+      </tal:repeat>
+    </ul>
+  </tal:if>
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
                          name view/name;
@@ -57,11 +74,22 @@
          tal:condition="view/interface"
          tal:attributes="id string:${view/id}-interface;
                          value view/interface" />
-  <input type="hidden" value="#" id="#" name="#"
-         tal:condition="view/reference"
-         tal:attributes="id string:${view/id}-reference;
-                         name string:${view/name}_reference;
-                         value view/reference" />
+  <tal:if condition="not:view/multiple">
+    <input type="hidden" value="#" id="#" name="#"
+           tal:condition="view/reference"
+           tal:attributes="id string:${view/id}-reference;
+                           name string:${view/name}_reference;
+                           value view/reference" />
+  </tal:if>
+  <tal:if condition="view/multiple">
+    <tal:repeat repeat="item view/values_info">
+      <input type="hidden" value="#" id="#" name="#"
+             tal:condition="item/reference"
+             tal:attributes="id string:${view/id}${item/suffix}-reference;
+                             name string:${view/name}_reference;
+                             value item/reference" />
+    </tal:repeat>
+  </tal:if>
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />
