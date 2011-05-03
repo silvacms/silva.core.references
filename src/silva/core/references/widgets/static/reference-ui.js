@@ -767,7 +767,7 @@ ReferencedRemoteObject.prototype.toggle = function() {
                     });
                     if (value_inputs.length > 1) {
                         $.each(value_inputs, function(index, input){
-                            var $input = input;
+                            var $input = $(input);
                             if ($input.val() == '') {
                                 $input.remove();
                             }
