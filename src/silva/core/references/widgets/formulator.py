@@ -20,6 +20,7 @@ from zope.interface import Interface
 from zope.interface.interfaces import IInterface
 
 from silva.core.interfaces import ISilvaObject
+from silva.core.references.reference import ReferenceSet
 from silva.core.references.reference import get_content_from_id
 from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
@@ -135,7 +136,7 @@ class ReferenceValidator(Validator):
         return None
 
 
-class BindedReferenceWidget(ReferenceWidgetInfo):
+class BoundReferenceWidget(ReferenceWidgetInfo):
     """Render a widget.
     """
     template = grok.PageTemplateFile('formulator_templates/reference_input.pt')
@@ -164,6 +165,7 @@ class BindedReferenceWidget(ReferenceWidgetInfo):
 
             if ISilvaObject.providedBy(value):
                 info.value = get_content_id(value)
+                info.reference = None
             else:
                 if value and isinstance(value, basestring):
                     # We have a value. It is a tag of the reference. We
@@ -234,7 +236,7 @@ class ReferenceWidget(Widget):
         if context is None:
             return u'<p>Not available.</p>'
         request = get_request()
-        widget = BindedReferenceWidget(context, request, field, value)
+        widget = BoundReferenceWidget(context, request, field, value)
         return widget()
 
 
@@ -268,25 +270,25 @@ class ReferenceValueWriter(FieldValueWriter):
 
     def erase(self):
         if self._field.id in self._content.__dict__:
-            service = getUtility(IReferenceService)
             identifier = self._content.__dict__[self._field.id]
-            service.delete_reference(self._context, name=identifier)
+            references = ReferenceSet(self._context, identifier)
+            references.set([])
             del self._content.__dict__[self._field.id]
 
     def __call__(self, value):
-        assert ISilvaObject.providedBy(value)
-        service = getUtility(IReferenceService)
+        if self._field.get_value('multiple'):
+            assert isinstance(value, list)
+        else:
+            assert ISilvaObject.providedBy(value)
+            value = [value]
+
         if self._field.id in self._content.__dict__:
             identifier = self._content.__dict__[self._field.id]
-            reference = service.get_reference(self._context, name=identifier)
-            assert reference is not None
         else:
             identifier = unicode(uuid.uuid1())
             self._content.__dict__[self._field.id] = identifier
-            reference = service.new_reference(self._context, u'code_source')
-            reference.add_tag(unicode(self._field.id))
-            reference.add_tag(identifier)
-        reference.set_target(value)
+        references = ReferenceSet(self._context, identifier)
+        references.set(value)
 
 
 class ReferenceValueReader(FieldValueReader):
@@ -299,8 +301,10 @@ class ReferenceValueReader(FieldValueReader):
 
     def __call__(self):
         if self._field.id in self._content.__dict__:
-            service = getUtility(IReferenceService)
             identifier = self._content.__dict__[self._field.id]
-            reference = service.get_reference(self._context, name=identifier)
-            return reference.target
+            references = list(ReferenceSet(self._context, identifier))
+            if len(references):
+                if self._field.get_value('multiple'):
+                    return references
+                return references[0]
         return _marker
