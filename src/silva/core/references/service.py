@@ -9,8 +9,7 @@ from five import grok
 from zc.relation.interfaces import ICatalog
 from zc.relation.queryfactory import TransposingTransitive
 from zope import component
-from zope.lifecycleevent.interfaces import (
-    IObjectCreatedEvent, IObjectCopiedEvent)
+from zope.lifecycleevent.interfaces import IObjectCopiedEvent
 import uuid
 
 from silva.core import conf as silvaconf
@@ -22,19 +21,30 @@ from silva.core.services.base import SilvaService
 from silva.core.views import views as silvaviews
 
 
+def configure_service(service):
+    """Configure the reference after it have been created. Register
+    the relation catalog to the root local site.
+    """
+    root = service.get_root()
+    sm = root.getSiteManager()
+    sm.registerUtility(service.catalog, ICatalog)
+
+
 class ReferenceService(SilvaService):
     """This service track existing references between content
     """
     meta_type = 'Silva Reference Service'
+    grok.name('service_reference')
     grok.implements(IReferenceService)
+    silvaconf.default_service(setup=configure_service)
     silvaconf.icon('service.png')
 
     manage_options = (
         {'label':'Broken references', 'action':'manage_brokenreferences'},
         ) + SilvaService.manage_options
 
-    def __init__(self, id):
-        super(ReferenceService, self).__init__(id)
+    def __init__(self, *args, **kwargs):
+        super(ReferenceService, self).__init__(*args, **kwargs)
         self.catalog = RelationCatalog()
         self.references = RelationsContainer()
 
@@ -177,16 +187,6 @@ class ReferenceGraph(silvaviews.ZMIView):
             (root, self.request), IReferenceGrapher)
         grapher.dot(self.response)
         return ''
-
-
-@grok.subscribe(IReferenceService, IObjectCreatedEvent)
-def configure_reference_service(service, event):
-    """Configure the reference after it have been created. Register
-    the relation catalog to the root local site.
-    """
-    root = service.get_root()
-    sm = root.getSiteManager()
-    sm.registerUtility(service.catalog, ICatalog)
 
 
 @grok.subscribe(IItem, IObjectCopiedEvent)
