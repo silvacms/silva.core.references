@@ -53,7 +53,7 @@ class ReferenceWidgetInfo(object):
 
         if value_id:
             value = get_content_from_id(value_id)
-        if value is not None:
+        if value:
             self.value_title = value.get_title_or_id()
             self.value_url = absoluteURL(value, self.request)
             self.value_icon = get_icon_url(value, self.request)

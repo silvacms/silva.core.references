@@ -45,8 +45,8 @@
     </a>
     <a class="reference-dialog-edit-link" target="_blank" id="#"
        title="Edit content"
-       tal:attributes="id string:${view/id}${item/suffix}-edit-link;
-                       style python:item.value_url or 'display: none'"
+       tal:attributes="id string:${view/id}-edit-link;
+                       style python:view.value_url and '' or 'display: none'"
        i18n:attributes="title">
     </a>
   </tal:if>
