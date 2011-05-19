@@ -2,12 +2,15 @@
 # See also LICENSE.txt
 # $Id$
 
+import operator
+
 from Acquisition import aq_parent
 
 from five import grok
 from infrae import rest
 from silva.core import interfaces
 from silva.core.views.interfaces import IVirtualSite
+from silva.core.interfaces import IAddableContents
 from zope.interface.interfaces import IInterface
 from zope import component
 from zope.intid.interfaces import IIntIds
@@ -131,8 +134,7 @@ class Addables(rest.REST):
     always_allow = [interfaces.IContainer]
 
     def GET(self, interface=None):
-        allowed_meta_types = \
-            self.context.get_silva_addables_allowed_in_container()
+        allowed_meta_types = IAddableContents(self.context).get_authorized_addables()
 
         if interface is not None:
             required = component.getUtility(IInterface, name=interface)
@@ -145,12 +147,7 @@ class Addables(rest.REST):
             else:
                 ifaces.insert(0, required)
 
-            meta_types = []
-            for iface in ifaces:
-                for meta_type in meta_types_for_interface(iface):
-                    if meta_type in allowed_meta_types and \
-                            not meta_type in meta_types:
-                        meta_types.append(meta_type)
-            return self.json_response(meta_types)
+            meta_types = set(reduce(operator.add, map(meta_types_for_interface, ifaces)))
+            return self.json_response(list(meta_types.intersection(set(allowed_meta_types))))
         return self.json_response(allowed_meta_types)
 
