@@ -155,7 +155,6 @@ class BoundReferenceWidget(ReferenceWidgetInfo):
 
         self.value = None
         self.reference = None
-        import pdb; pdb.set_trace()
         self.interface = field.get_interface()
 
         def update_info(info, value, index=0):
