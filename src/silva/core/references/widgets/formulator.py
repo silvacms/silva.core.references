@@ -128,7 +128,7 @@ class ReferenceValidator(Validator):
         if value:
             if multiple:
                 if not isinstance(value, list):
-                    self.raise_error('invalid_value', field)
+                    value = [value]
                 return map(convert, value)
             return convert(value)
         if field.get_value('required'):
@@ -155,6 +155,7 @@ class BoundReferenceWidget(ReferenceWidgetInfo):
 
         self.value = None
         self.reference = None
+        import pdb; pdb.set_trace()
         self.interface = field.get_interface()
 
         def update_info(info, value, index=0):
@@ -183,12 +184,15 @@ class BoundReferenceWidget(ReferenceWidgetInfo):
                 ref_info.request = self.request
                 update_info(ref_info, item, index=index)
                 ref_info.update_reference_widget(
-                    self.context, ref_info.value, value=item)
+                    self.context, ref_info.value, value=item,
+                    interface=self.interface)
                 self.values_info.append(ref_info)
-            self.update_reference_widget(self.context)
+            self.update_reference_widget(self.context,
+                interface=self.interface)
         else:
             update_info(self, value)
-            self.update_reference_widget(self.context, self.value, value=value)
+            self.update_reference_widget(self.context, self.value,
+                value=value, interface=self.interface)
 
     def default_namespace(self):
         return {'context': self.context,
