@@ -7,171 +7,121 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     // Refer a link that can represent a remote object on the
     // server. Its referenece (intid) can be store in a input called
     // widget_id-value.
-    this.widget_id = widget_id;
-    this.suffix = (suffix === undefined) ? "" : suffix;
-    this.id = this.widget_id + this.suffix;
-};
 
-ReferencedRemoteObject.prototype.get_content_link = function () {
-    return $('#' + this.id + '-link');
-};
+    var identifier = widget_id;
+    var url =  $('#' + widget_id + '-base').val();
+    var required_interface = $('#' + widget_id + '-interface').val();
+    var $widget = $('#' + widget_id);
 
-ReferencedRemoteObject.prototype.get_content_edit_link = function() {
-    return $('#' + this.id + '-edit-link');
-};
+    if (suffix)
+        identifier += suffix;
 
-ReferencedRemoteObject.prototype.create_links = function() {
-    container = $('#' + this.widget_id + ' ul.reference-links');
-    item = $('<li />');
-    item.append($('<a id="' + this.id + '-link" />'));
-    item.append($('<a id="' + this.id + '-edit-link" />'));
-    container.append(item);
-};
+    var $input = $('#' + identifier + '-value');
+    var $link = $('#' + identifier + '-link');
+    var $edit_link = $('#' + identifier + '-edit-link');
 
-ReferencedRemoteObject.prototype.get_widget = function() {
-    return $('#' + this.widget_id);
-};
-
-ReferencedRemoteObject.prototype.get_reference_input = function() {
-    return $('#' + this.id + '-value');
-};
-
-ReferencedRemoteObject.prototype.get_reference_interface = function() {
-    return $('#' + this.widget_id + '-interface').val();
-};
-
-ReferencedRemoteObject.prototype.reference = function() {
-    // Return reference (intid) to the remote object
-    return this.get_reference_input().val();
-};
-
-ReferencedRemoteObject.prototype.data = function() {
-    // Return information to the remote object
-    return this.get_content_link().data('content');
-};
-
-ReferencedRemoteObject.prototype.title = function() {
-    // Return title of the remote object
-    var data = this.data();
-
-    if (data) {
-        return data['title'];
-    }
-    return 'no reference selected';
-};
-
-ReferencedRemoteObject.prototype.url = function() {
-    // Return url of the remote object
-    var data = this.data();
-
-    if (data) {
-        return data['url'];
-    }
-    return '';
-};
-
-ReferencedRemoteObject.prototype.clear = function(reason) {
-    // Clear all value related to the remote object
-    var link = this.get_content_link();
-    var edit_link = this.get_content_edit_link();
-    var ref_input = this.get_reference_input();
-
-    if (!reason) {
-        reason = 'no reference selected';
-    }
-    edit_link.hide();
-    edit_link.attr('href', '#');
-    link.text(reason);
-    link.bind('click', function () { return false; });
-    link.attr('href', '#');
-    link.removeAttr('title');
-    if (ref_input) {
-        ref_input.val('0');
-    };
-    link.trigger('reference-modified', {});
-};
-
-ReferencedRemoteObject.prototype.fetch = function(intid) {
-    // Fetch and render a object from its intid
-    var url = $('#' + this.widget_id + '-base').val();
-    var options = {'intid': intid};
-    var ref_interface = this.get_reference_interface();
-    var ref_input = this.get_reference_input();
-
-    this.get_content_link().text('loading ...');
-    if (ref_input) {
-        ref_input.val(intid);
-    };
-    if (ref_interface) {
-        options['interface'] = ref_interface;
+    if (!$link.length) {
+        var $container = $('#' + widget_id + ' ul.reference-links');
+        var $item = $('<li />');
+        $link = $('<a id="' + identifier + '-link" />');
+        $edit_link = $('<a id="' + identifier + '-edit-link" />');
+        $item.append($link);
+        $item.append($edit_link);
+        $container.append($item);
     };
 
-    $.getJSON(url + '/++rest++silva.core.references.items', options,
-              function(data) {
-                  this.render(data);
-              }.scope(this));
-};
+    var remote = {
+        identifier: identifier + '-value',
+        data: function() {
+            // Return information to the remote object
+            return $input.data('referenced-remote-content');
+        },
+        reference: function() {
+            // Return reference (intid) to the remote object
+            return $input.val();
+        },
+        title: function() {
+            // Return title of the remote object
+            var data = remote.data();
 
-ReferencedRemoteObject.prototype.render = function(info) {
-    // Render a link to a remote object from fetched information.
-    var icon = $('<img />');
-    var link = this.get_content_link();
-    var edit_link = this.get_content_edit_link();
+            if (data)
+                return data['title'];
+            return 'no reference selected';
+        },
+        url: function() {
+            // Return url of the remote object
+            var data = remote.data();
 
-    if (link.length < 1) {
-        this.create_links();
-        link = this.get_content_link();
-        edit_link = this.get_content_edit_link();
-    }
+            if (data)
+                return data['url'];
+            return '';
+        },
+        clear: function(reason) {
+            // Clear all value related to the remote object
+            if (!reason)
+                reason = 'no reference selected';
 
-    var ref_input = this.get_reference_input();
+            $edit_link.hide();
+            $edit_link.attr('href', '#');
+            $link.text(reason);
+            $link.bind('click', function () { return false; });
+            $link.attr('href', '#');
+            $link.removeAttr('title');
+            if ($input.length) {
+                $input.val('0');
+                $input.trigger('remote-reference-modified', {});
+            };
+        },
+        fetch: function(intid) {
+            // Fetch and render a object from its intid
+            var options = {'intid': intid};
 
-    var set_or_remove_attr = function(name, value) {
-        if (value) {
-            link.attr(name, value);
-        }
-        else {
-            link.removeAttr(name);
-        };
+            $link.text('loading ...');
+            if ($input.length)
+                $input.val(intid);
+
+            if (required_interface)
+                options['interface'] = required_interface;
+            $.getJSON(url + '/++rest++silva.core.references.items', options, remote.render);
+        },
+        render: function(info) {
+            // Render a link to a remote object from fetched information.
+            var $icon = $('<img />');
+
+            var set_or_remove_attr = function(name, value) {
+                if (value)
+                    $link.attr(name, value);
+                else
+                    $link.removeAttr(name);
+            };
+
+            $link.empty();
+            $link.text(info['title']);
+            set_or_remove_attr('href', info['url']);
+            set_or_remove_attr('title', info['path']);
+            $link.unbind('click');
+            if (info['url']) {
+                $edit_link.show();
+                // XXX edit URL should come from data.
+                $edit_link.attr('href', info['url'] + '/edit');
+            };
+            $link.data('content', info);
+            $icon.attr('src', info['icon']);
+            $icon.prependTo($link);
+            if ($input.length) {
+                $input.val(info['intid']);
+                $input.trigger('reference-modified', info);
+            };
+        },
+        change: function(callback) {
+            // Bind to a modification of the reference
+            $input.bind('reference-modified', callback);
+        },
+        show: $widget.show,
+        hide: $widget.hide,
+        toggle: $widget.toggle
     };
-
-    link.empty();
-    link.text(info['title']);
-    set_or_remove_attr('href', info['url']);
-    set_or_remove_attr('title', info['path']);
-    link.unbind('click');
-    if (info['url']) {
-        edit_link.show();
-        // XXX edit URL should come from data.
-        edit_link.attr('href', info['url'] + '/edit');
-    };
-    link.data('content', info);
-    icon.attr('src', info['icon']);
-    icon.prependTo(link);
-    if (ref_input) {
-        ref_input.val(info['intid']);
-    };
-    link.trigger('reference-modified', info);
-};
-
-ReferencedRemoteObject.prototype.change = function(callback) {
-    // Bind to a modification of the reference
-    this.get_content_link().live('reference-modified', callback);
-};
-
-ReferencedRemoteObject.prototype.show = function() {
-    // Show widget
-    this.get_widget().show();
-};
-
-ReferencedRemoteObject.prototype.hide = function() {
-    // Hide widget
-    this.get_widget().hide();
-};
-
-ReferencedRemoteObject.prototype.toggle = function() {
-    // Hide/display widget
-    this.get_widget().toggle();
+    return remote;
 };
 
 (function($) {
@@ -731,7 +681,7 @@ ReferencedRemoteObject.prototype.toggle = function() {
 
             if (!value_input.hasClass('required')) {
                 popup_buttons['clear'] = function(){
-                    var reference = new ReferencedRemoteObject(widget_id);
+                    var reference = ReferencedRemoteObject(widget_id);
                     reference.clear();
                     $(this).dialog('close');
                 };
@@ -739,14 +689,14 @@ ReferencedRemoteObject.prototype.toggle = function() {
 
             var url = $('#' + widget_id + '-base').val();
             var contentList = new ContentList(
-                popup, widget_id, 
+                popup, widget_id,
                 {'multiple': value_input.hasClass('multiple'),
                  'selected': selected_ids});
 
             if (contentList.options.multiple) {
                 popup_buttons['ok'] = function(event){
                     // XXX Do something with selection
-                    value_inputs = 
+                    value_inputs =
                         $('input[name="' + value_input.attr('name') + '"]',
                             widget);
                     $.each(value_inputs, function(index, input){
@@ -761,8 +711,7 @@ ReferencedRemoteObject.prototype.toggle = function() {
                             input.attr('id', widget_id + suffix + "-value");
                             input.appendTo(value_input.parent());
                         }
-                        var reference = new ReferencedRemoteObject(
-                            widget_id, suffix, item.info);
+                        var reference = ReferencedRemoteObject(widget_id, suffix);
                         reference.render(item.info);
                     });
                     if (value_inputs.length > 1) {
@@ -778,7 +727,7 @@ ReferencedRemoteObject.prototype.toggle = function() {
             } else {
                 contentList.element.bind('content-list-item-selected',
                     function(event, item) {
-                        var reference = new ReferencedRemoteObject(widget_id);
+                        var reference = ReferencedRemoteObject(widget_id);
                         reference.render(item.info);
                         popup.dialog('close');
                     });
