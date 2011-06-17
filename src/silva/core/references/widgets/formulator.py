@@ -20,9 +20,13 @@ from zope.interface import Interface
 from zope.interface.interfaces import IInterface
 
 from silva.core.interfaces import ISilvaObject
+from silva.core.interfaces.errors import ExternalReferenceError
 from silva.core.references.reference import ReferenceSet
 from silva.core.references.reference import get_content_from_id
 from silva.core.references.reference import get_content_id
+from silva.core.references.reference import relative_path
+from silva.core.references.reference import is_inside_container
+from silva.core.references.reference import canonical_path
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.widgets import ReferenceWidgetInfo
 
@@ -90,11 +94,46 @@ class InterfaceField(ZMIField):
 # This get initialized by Grok and register the formulator widget
 FieldRegistry.registerField(InterfaceField, 'www/BasicField.gif')
 
+NS_REFERENCES = "http://infrae.com/namespace/silva-references"
+
 def get_request():
     """Return the request when you are lost.
     """
     manager = AccessControl.getSecurityManager()
     return manager.getUser().REQUEST
+
+
+class ReferencesSolver(object):
+    """Object used to delay the references construction on
+    deserializeValue.
+    """
+
+    def __init__(self, producer):
+        self.__info = producer.getInfo()
+        self.__contents = []
+        self.__expected = 0
+        self.__deferreds = []
+
+    def defer(self, callback):
+        self.__deferreds.append(callback)
+
+    def add(self, path):
+        self.__info.addAction(self.resolve, [path])
+        self.__expected += 1
+
+    def resolve(self, path):
+        if path:
+            root = self.__info.importRoot()
+            imported_path = self.__info.getImportedPath(canonical_path(path))
+            if imported_path is not None:
+                path = map(str, imported_path.split('/'))
+                target = root.unrestrictedTraverse(path)
+                self.__contents.append(target)
+            # else: XXX : report this failure
+        self.__expected -= 1
+        if not self.__expected:
+            for callback in self.__deferreds:
+                callback(self.__contents)
 
 
 class ReferenceValidator(Validator):
@@ -134,6 +173,38 @@ class ReferenceValidator(Validator):
         if field.get_value('required'):
             self.raise_error('required_not_found', field)
         return None
+
+    def serializeValue(self, field, value, producer):
+        if not value:
+            return
+        settings = producer.getHandler().getSettings()
+        if settings.externalRendering():
+            return
+        root = settings.getExportRoot()
+        if not len(value):
+            return
+        producer.startPrefixMapping(None, NS_REFERENCES)
+        for target in value:
+            if value is not None:
+                if is_inside_container(root, target):
+                    target_path = [root.getId()] + relative_path(
+                        root.getPhysicalPath(), target.getPhysicalPath())
+                    producer.startElement('path')
+                    producer.characters(canonical_path('/'.join(target_path)))
+                    producer.endElement('path')
+                else:
+                    raise ExternalReferenceError(producer.context, target, root)
+        producer.endPrefixMapping(None)
+
+    def deserializeValue(self, field, value, context):
+        # value should be an lxml node
+        solver = ReferencesSolver(context)
+        for entry in value.xpath('ref:path', namespaces={'ref': NS_REFERENCES}):
+            path = entry.text
+            if path is None:
+                raise ValueError
+            solver.add(path)
+        return solver
 
 
 class BoundReferenceWidget(ReferenceWidgetInfo):
@@ -279,6 +350,9 @@ class ReferenceValueWriter(FieldValueWriter):
             del self._content.__dict__[self._field.id]
 
     def __call__(self, value):
+        if isinstance(value, ReferencesSolver):
+            value.defer(self.__call__)
+            return
         if self._field.get_value('multiple'):
             assert isinstance(value, list)
         else:
@@ -290,6 +364,7 @@ class ReferenceValueWriter(FieldValueWriter):
         else:
             identifier = unicode(uuid.uuid1())
             self._content.__dict__[self._field.id] = identifier
+            self._content._p_changed = True
         references = ReferenceSet(self._context, identifier)
         references.set(value)
 
