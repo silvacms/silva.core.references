@@ -663,21 +663,23 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
             var widget_id = $(this).parent('.reference-widget').attr('id');
             var widget = $('#' + widget_id);
-            var popup = $('#' + widget_id + '-dialog');
+            var $popup = $('#' + widget_id + '-dialog').clone();
             var value_input = $('#' + widget_id + '-value');
             var value_inputs = $('input[name="' + value_input.attr('name') + '"]', widget);
             var selected_ids = [];
 
-            $.each(value_inputs, function(index, input) {
-                var value = $(input).val();
+            $.each(value_inputs, function() {
+                var value = $(this).val();
                 if (value && value != '') {
                     selected_ids.push(value);
                 }
             });
 
-            var popup_buttons = {cancel: function() {
-                $(this).dialog('close');
-            }};
+            var popup_buttons = {
+                cancel: function() {
+                    $popup.dialog('close');
+                }
+            };
 
             if (!value_input.hasClass('required')) {
                 popup_buttons['clear'] = function(){
@@ -689,7 +691,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
             var url = $('#' + widget_id + '-base').val();
             var contentList = new ContentList(
-                popup, widget_id,
+                $popup, widget_id,
                 {'multiple': value_input.hasClass('multiple'),
                  'selected': selected_ids});
 
@@ -722,18 +724,18 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                             }
                         });
                     }
-                    popup.dialog('close');
+                    $popup.dialog('close');
                 };
             } else {
                 contentList.element.bind('content-list-item-selected',
                     function(event, item) {
                         var reference = ReferencedRemoteObject(widget_id);
                         reference.render(item.info);
-                        popup.dialog('close');
+                        $popup.dialog('close');
                     });
             }
 
-            popup.dialog({
+            $popup.dialog({
                 autoOpen: false,
                 modal: true,
                 height: 500,
@@ -741,9 +743,12 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 zIndex: 12000,
                 buttons: popup_buttons
             });
+            $popup.bind('dialogclose', function() {
+                $popup.remove();
+            });
 
             contentList.populate(url);
-            popup.dialog('open');
+            $popup.dialog('open');
             return false;
         });
     });
