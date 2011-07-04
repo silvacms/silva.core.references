@@ -675,13 +675,13 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
             });
 
             var popup_buttons = {
-                cancel: function() {
+                Cancel: function() {
                     $popup.dialog('close');
                 }
             };
 
             if (!value_input.hasClass('required')) {
-                popup_buttons['clear'] = function(){
+                popup_buttons['Clear'] = function(){
                     var reference = ReferencedRemoteObject(widget_id);
                     reference.clear();
                     $(this).dialog('close');
