@@ -31,12 +31,8 @@
     <table class="content-list selection-list" style="display:none">
     </table>
   </div>
-  <button class="reference-dialog-trigger"
-          title="Lookup a content in Silva"
-          i18n:attributes="title">
-  </button>
   <tal:if condition="not:view/multiple">
-    <a href="#" id="#" target="_blank"
+    <a href="#" id="#" target="_blank" class="reference-dialog-content"
        tal:attributes="id string:${view/id}-link;
                        href view/value_url">
       <img tal:condition="view/value_icon"
@@ -65,6 +61,16 @@
       </tal:repeat>
     </ul>
   </tal:if>
+  <br clear="both" />
+  <a class="form-button reference-dialog-trigger ui-state-default"
+     title="Lookup a content in Silva"
+     i18n:attributes="title"
+     i18n:translate="">
+    <ins class="ui-icon ui-icon-search"
+         i18n:name="icon"></ins>
+    Lookup
+  </a>
+  <br clear="both" />
   <input type="hidden" value="#" id="#" name=""
          tal:attributes="id string:${view/id}-value;
                          name view/name;

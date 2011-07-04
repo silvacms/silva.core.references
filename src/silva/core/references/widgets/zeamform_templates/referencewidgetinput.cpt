@@ -32,23 +32,29 @@
     <table class="content-list selection-list">
     </table>
   </div>
-  <button class="reference-dialog-trigger"
-          title="Lookup a content in Silva"
-          i18n:attributes="title">
-  </button>
   <a class="reference-dialog-edit-link" target="_blank" id="#"
      title="Edit content"
      tal:attributes="id string:${id}-edit-link;
                      style widget.value_url or 'display: none;'"
      i18n:attributes="title">
   </a>
-  <a href="#" id="#" target="_blank"
+  <a class="reference-dialog-content" target="_blank" href="#" id="#"
      tal:attributes="id string:${id}-link;
                      href widget.value_url">
     <img tal:condition="widget.value_icon"
          tal:replace="structure widget.value_icon" />
     <span tal:replace="widget.value_title" />
   </a>
+  <br clear="both" />
+  <a class="form-button reference-dialog-trigger ui-state-default"
+     title="Lookup a content in Silva"
+     i18n:attributes="title"
+     i18n:translate="">
+    <ins class="ui-icon ui-icon-search"
+         i18n:name="icon"></ins>
+    Lookup
+  </a>
+  <br clear="both" />
   <input type="hidden" value="#" id="#" name="" class=""
          tal:attributes="id string:${id}-value;
                          name widget.identifier;

@@ -9,9 +9,9 @@ from Acquisition import aq_parent
 from five import grok
 from silva.ui.rest import UIREST
 from silva.core import interfaces
-from silva.core.views.interfaces import IVirtualSite
 from silva.core.interfaces import IAddableContents
 from silva.core.interfaces.adapters import IIconResolver
+from silva.translations import translate as _
 from zope.interface.interfaces import IInterface
 from zope import component
 from zope.intid.interfaces import IIntIds
@@ -30,9 +30,6 @@ class Items(UIREST):
     def __init__(self, context, request):
         super(Items, self).__init__(context, request)
         self.intid = component.getUtility(IIntIds)
-        site = IVirtualSite(request)
-        self.root = site.get_root()
-        self.root_url = absoluteURL(self.root, self.request)
         self.get_icon = IIconResolver(self.request).get_content_url
 
     def get_item_details(self, content, content_id=None, require=None):
@@ -69,13 +66,11 @@ class Items(UIREST):
                         'type': 'Broken',
                         'intid': '0',
                         'url': '', 'path': '',
-                        'icon': '/'.join(
-                            (self.root_url,
-                             '++static++/silva.core.references.widget/exclamation.png')),
+                        'icon': self.get_icon(None),
                         'implements': False,
                         'folderish': False,
-                        'title': 'Broken',
-                        'short_title': 'Broken'})
+                        'title': self.translate(_(u'Missing content')),
+                        'short_title': self.translate(_(u'Missing content'))})
             return self.json_response(self.get_item_details(content))
         require = interfaces.ISilvaObject
         if interface is not None:
@@ -139,7 +134,9 @@ class Addables(UIREST):
             else:
                 ifaces.insert(0, required)
 
-            meta_types = set(reduce(operator.add, map(meta_types_for_interface, ifaces)))
-            return self.json_response(list(meta_types.intersection(set(allowed_meta_types))))
+            meta_types = set(reduce(operator.add,
+                                    map(meta_types_for_interface, ifaces)))
+            return self.json_response(list(meta_types.intersection(
+                        set(allowed_meta_types))))
         return self.json_response(allowed_meta_types)
 

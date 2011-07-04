@@ -52,11 +52,12 @@ class ReferenceWidgetInfo(object):
 
         if value_id:
             value = get_content_from_id(value_id)
-        if value:
+        # None as a icon, it is missing
+        self.value_icon = IIconResolver(self.request).get_tag(value)
+        if value is not None:
             self.value_title = value.get_title_or_id()
             self.value_url = absoluteURL(value, self.request)
-            self.value_icon = IIconResolver(self.request).get_tag(value)
         else:
-            self.value_title = _('no reference selected')
+            self.value_title = _(u'no reference selected')
 
 
