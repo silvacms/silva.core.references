@@ -46,7 +46,7 @@
      tal:attributes="id string:${id}-link;
                      href widget.value_url">
     <img tal:condition="widget.value_icon"
-         tal:attributes="src widget.value_icon" />
+         tal:replace="structure widget.value_icon" />
     <span tal:replace="widget.value_title" />
   </a>
   <input type="hidden" value="#" id="#" name="" class=""

@@ -86,7 +86,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         },
         render: function(info) {
             // Render a link to a remote object from fetched information.
-            var $icon = $('<img />');
+            var $icon = $('<ins class="icon" />');
 
             var set_or_remove_attr = function(name, value) {
                 if (value)
@@ -106,7 +106,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 $edit_link.attr('href', info['url'] + '/edit');
             };
             $link.data('content', info);
-            $icon.attr('src', info['icon']);
+            infrae.ui.icon($icon, info['icon']);
             $icon.prependTo($link);
             if ($input.length) {
                 $input.val(info['intid']);
@@ -484,7 +484,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         var icon_cell = $('<td class="cell_icon" />');
         var actions_cell = $('<td class="cell_actions" />');
         var id_cell = $('<td class="cell_id" />');
-        var icon = $('<img />');
+        var $icon = $('<ins class="icon" />');
         var title_cell = $('<td class="cell_title" />');
         var link = null;
 
@@ -527,9 +527,8 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         link.text(this.item.info['title']);
         link.appendTo(title_cell);
 
-        icon.attr('src', this.item.info['icon']);
-        icon.attr('title', this.item.info['type']);
-        icon.appendTo(icon_cell);
+        infrae.ui.icon($icon, this.item.info['icon']);
+        $icon.appendTo(icon_cell);
 
         icon_cell.appendTo(this.element);
         title_cell.appendTo(this.element);

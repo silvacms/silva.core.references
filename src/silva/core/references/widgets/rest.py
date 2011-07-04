@@ -7,27 +7,20 @@ import operator
 from Acquisition import aq_parent
 
 from five import grok
-from infrae import rest
+from silva.ui.rest import UIREST
 from silva.core import interfaces
 from silva.core.views.interfaces import IVirtualSite
 from silva.core.interfaces import IAddableContents
+from silva.core.interfaces.adapters import IIconResolver
 from zope.interface.interfaces import IInterface
 from zope import component
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
 
-from Products.Silva.icon import registry as icons
 from Products.Silva.ExtensionRegistry import meta_types_for_interface
 
 
-def get_icon(content):
-    try:
-        return icons.getIcon(content)
-    except ValueError:
-        return 'globals/silvageneric.gif'
-
-
-class Items(rest.REST):
+class Items(UIREST):
     """Return information about an item.
     """
     grok.context(interfaces.ISilvaObject)
@@ -39,9 +32,8 @@ class Items(rest.REST):
         self.intid = component.getUtility(IIntIds)
         site = IVirtualSite(request)
         self.root = site.get_root()
-        self.root_path = '/'.join(self.root.getPhysicalPath())
-        self.root_path_len = len(self.root_path)
         self.root_url = absoluteURL(self.root, self.request)
+        self.get_icon = IIconResolver(self.request).get_content_url
 
     def get_item_details(self, content, content_id=None, require=None):
         if content_id is None:
@@ -51,8 +43,8 @@ class Items(rest.REST):
             'type': content.meta_type,
             'intid': self.intid.register(content),
             'url': absoluteURL(content, self.request),
-            'path': '/'.join(content.getPhysicalPath())[self.root_path_len:],
-            'icon': '/'.join((self.root_url, get_icon(content))),
+            'path': self.get_content_path(content),
+            'icon': self.get_icon(content),
             'implements': require and require.providedBy(content) or False,
             'folderish': interfaces.IContainer.providedBy(content),
             'title': content.get_title_or_id(),
@@ -125,7 +117,7 @@ class ParentItems(Items):
         return self.json_response(details)
 
 
-class Addables(rest.REST):
+class Addables(UIREST):
     """ Return addables in folder
     """
     grok.context(interfaces.IContainer)

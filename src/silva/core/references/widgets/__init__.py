@@ -2,8 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from Products.Silva.icon import get_icon_url
-
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.traversing.browser import absoluteURL
 
@@ -11,6 +9,7 @@ from js.jqueryui import jqueryui
 
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
+from silva.core.interfaces.adapters import IIconResolver
 from silva.core.references.reference import get_content_from_id
 from silva.translations import translate as _
 
@@ -56,7 +55,7 @@ class ReferenceWidgetInfo(object):
         if value:
             self.value_title = value.get_title_or_id()
             self.value_url = absoluteURL(value, self.request)
-            self.value_icon = get_icon_url(value, self.request)
+            self.value_icon = IIconResolver(self.request).get_tag(value)
         else:
             self.value_title = _('no reference selected')
 
