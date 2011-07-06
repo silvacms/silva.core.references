@@ -135,7 +135,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         var url = null;
 
         var open = function() {
-            alert(url + $select.val());
+            $popup.trigger('add-smireferences', {url: url, addable: $select.val()});
             return false;
         };
 
@@ -161,10 +161,11 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     });
 
     // Top level path breadcrumb
+    var breadcrumb_template = new jsontemplate.Template('<span class="path-outer"><span class="path-inner">{.section link}<a href="{url|html-attr-value}" title="{id|html-attr-value}">{short_title|html}</a>{.end}{.section last}<span class="last">{short_title|html}</span>{.end}</span>{.section separator}<span class="separator">&rsaquo;</span>{.end}</span>');
+
     $('.reference-dialog').live('load-smireferences', function () {
         var $popup = $(this);
         var $breadcrumb = $popup.find('.path-list');
-        var template = new jsontemplate.Template('<span class="path-outer"><span class="path-inner">{.section link}<a href="{url|html-attr-value}" title="{id|html-attr-value}">{short_title|html}</a>{.end}{.section last}<span class="last">{short_title|html}</span>{.end}</span>{.section separator}<span class="separator">&rsaquo;</span>{.end}</span>');
 
         // Open a container if you click on it
         $breadcrumb.delegate('a', 'click', function(event) {
@@ -184,7 +185,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 var parts = [];
 
                 var build = function(info, last) {
-                    return template.expand({
+                    return breadcrumb_template.expand({
                         separator: !last,
                         last: last && info,
                         link: (!last) && info
@@ -215,6 +216,110 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
 (function($) {
 
+    var Manager = function($popup, smi, id, options) {
+        // Load extensions
+        $popup.trigger('load-smireferences');
+
+        // Load system
+        var stack = [new ContentList($popup, smi, id, options)];
+        var actions = [];
+        var urls = [];
+        var $current = $popup.find('.content-list');
+
+        // Open a url in a view
+        var open_url = function(view, url) {
+            return view.open(url).pipe(function (data) {
+                urls[urls.length - 1] = url;
+                $popup.trigger('change-smireferences', {url: url});
+                return data;
+            });
+        };
+
+        // Add a new view to the stack
+        var new_view = function(view, url) {
+            stack.push(view);
+            return open_url(view, url).done(function (data) {
+                var $new = data.$content;
+
+                $new.hide();
+                $new.insertAfter($current);
+                $current.slideUp();
+                $new.slideDown();
+                $current = $new;
+
+                // Actions
+                actions.push($popup.dialog('option', 'buttons'));
+                $popup.dialog('option', 'buttons', data.actions);
+
+                // Url safety
+                urls.push(url);
+            });
+        };
+
+        var manager = {
+            add: function(url, addable) {
+                var adder = Adder($popup, smi, addable);
+                return new_view(adder, url);
+            },
+            open: function(url) {
+                return open_url(stack[stack.length - 1], url);
+            },
+            back: function() {
+                if (stack.length > 1) {
+                    var $old  = $current.prev();
+
+                    $current.slideUp().promise(function () {$(this).remove();});
+                    $old.slideDown();
+
+                    $current = $old;
+                    $popup.dialog('option', 'buttons', actions.pop());
+                    stack.pop();
+
+                    // Always refresh (for added content)
+                    manager.open(urls.pop());
+                }
+            }
+        };
+
+        // Bind events for extensions
+        $popup.bind('open-smireferences', function(event, data) {
+            manager.open(data.url);
+        });
+        $popup.bind('add-smireferences', function(event, data) {
+            manager.add(data.url, data.addable);
+        });
+        $popup.bind('back-smireferences', function(event, data) {
+            manager.back();
+        });
+        return manager;
+    };
+
+    var Adder = function($popup, smi, addable) {
+        var $content = $('<div />');
+        return {
+            open: function(url) {
+                var form_url = url + '/++rest++silva.core.references.adding/' + addable;
+                return smi.ajax.query(form_url).pipe(function (data) {
+                    $content.html(data.screen.forms);
+                    var $form = $content.children('form');
+                    $form.attr('data-form-url', form_url);
+                    $form.trigger('load-smiform');
+                    return {
+                        $content: $content,
+                        actions: {
+                            Back: function() {
+                                $popup.trigger('back-smireferences');
+                            },
+                            Add: function() {
+                                $popup.trigger('back-smireferences');
+                            }
+                        }
+                    };
+                });
+            }
+        };
+    };
+
     // defined a bind function if not exists
     if (Function.prototype.scope === undefined) {
         Function.prototype.scope = function(scopearg) {
@@ -235,7 +340,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         return null;
     };
 
-    var ContentList = function(element, widgetId, options) {
+    var ContentList = function(element, smi, widgetId, options) {
         this.id = widgetId;
         this.element = $(element);
         this.referenceInterface = $('#' + this.id + '-interface').val();
@@ -273,25 +378,18 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         } else {
             this.selectionElement.hide();
         }
-
-        // Open the given URL
-        this.element.bind('open-smireferences', function(event, data) {
-            this.populate(data['url']);
-        }.scope(this));
-
-        this.element.trigger('load-smireferences', {content: this, $popup: this.element});
     };
 
-    ContentList.prototype.populate = function(url) {
-        var options = {};
+    ContentList.prototype.open = function(url) {
+        var options = {url: url + '/++rest++silva.core.references.items'};
 
         if (this.referenceInterface) {
-            options['interface'] = this.referenceInterface;
+            options['data'] = {'interface': this.referenceInterface};
         };
         this.url = url;
         this.listElement.empty();
 
-        $.getJSON(url + '/++rest++silva.core.references.items', options, function(data) {
+        return $.ajax(options).pipe(function(data) {
             this.listElement.empty();
             // get rid of '.' and '..'
             this.current = data[indexFromId(data, '.')];
@@ -301,9 +399,9 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 this.parent = data.splice(parent_id, 1)[0];
             else
                 this.parent = null;
-            this.element.trigger('change-smireferences', this.current);
             var view = new ContentListView(this.listElement, this);
             view.render(data);
+            return {};
         }.scope(this));
     };
 
@@ -324,7 +422,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     };
 
     ContentList.prototype.selectItem = function(item) {
-        this.element.trigger('content-list-item-selected', [item]);
+        this.element.trigger('selected-smireferences', [item]);
         if (this.options.multiple) {
             var intid = item.info['intid'];
             this.select(item);
@@ -347,7 +445,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         this.selection.splice(index, 1);
         delete this.selectionIndex[intid];
 
-        this.element.trigger('content-list-item-deselected', [item]);
+        this.element.trigger('deselected-smireferences', [item]);
         var selview = new ContentListSelectionView(this.selectionElement, this);
         selview.removeSelectionItem(item);
         var listitemview = new ContentListItemView(
@@ -451,7 +549,8 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
             id_cell.append($('<a href="#">' + this.item.info['id'] + "</a>"));
             link = $('<a href="#" />');
             this.element.click(function(event){
-                this.item.contentList.populate(this.item.url);
+                this.item.contentList.element.trigger(
+                    'open-smireferences', {url: this.item.url});
                 return false;
             }.scope(this));
             this.element.hover(function(event){
@@ -541,20 +640,20 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         });
     };
 
-    $(document).ready(function() {
+    $(document).bind('load-smiplugins', function(event, smi) {
 
         $('.reference-dialog-trigger').live('click', function() {
-
             var widget_id = $(this).parent('.reference-widget').attr('id');
             var widget = $('#' + widget_id);
             var value_input = $('#' + widget_id + '-value');
             var value_inputs = $('input[name="' + value_input.attr('name') + '"]', widget);
-            var selected_ids = [];
+            var selected = [];
+            var multiple = value_input.hasClass('multiple');
 
             $.each(value_inputs, function() {
                 var value = $(this).val();
                 if (value && value != '') {
-                    selected_ids.push(value);
+                    selected.push(value);
                 }
             });
 
@@ -564,7 +663,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 }
             };
 
-            if (!value_input.hasClass('required')) {
+            if (!value_input.hasClass('field-required')) {
                 popup_buttons['Clear'] = function(){
                     var reference = ReferencedRemoteObject(widget_id);
                     reference.clear();
@@ -582,7 +681,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                     autoOpen: false,
                     modal: true,
                     height: 500,
-                    width: 600,
+                    width: 800,
                     zIndex: 12000,
                     buttons: popup_buttons
                 });
@@ -590,12 +689,11 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                     $popup.remove();
                 });
 
-                var contentList = new ContentList(
-                    $popup, widget_id,
-                    {'multiple': value_input.hasClass('multiple'),
-                     'selected': selected_ids});
+                var manager = new Manager(
+                    $popup, smi, widget_id,
+                    {'multiple': multiple, 'selected': selected});
 
-                if (contentList.options.multiple) {
+                if (multiple) {
                     popup_buttons['Done'] = function(event){
                         // XXX Do something with selection
                         value_inputs =
@@ -627,15 +725,14 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                         $popup.dialog('close');
                     };
                 } else {
-                    contentList.element.bind('content-list-item-selected',
-                                             function(event, item) {
-                                                 var reference = ReferencedRemoteObject(widget_id);
-                                                 reference.render(item.info);
-                                                 $popup.dialog('close');
-                                             });
-                }
+                    $popup.bind('selected-smireferences', function(event, item) {
+                        var reference = ReferencedRemoteObject(widget_id);
+                        reference.render(item.info);
+                        $popup.dialog('close');
+                    });
+                };
 
-                contentList.populate(url);
+                manager.open(url);
                 $popup.dialog('open');
             });
             return false;

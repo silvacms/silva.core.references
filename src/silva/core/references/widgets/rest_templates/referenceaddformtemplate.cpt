@@ -1,0 +1,52 @@
+<form class="form-simple" name="#"
+      tal:attributes="name view.prefix"
+      i18n:domain="silva">
+  <div class="form-content">
+    <div class="form-head">
+      <h3 tal:condition="view.label"
+          tal:content="structure view.label">
+        Label
+      </h3>
+      <p tal:condition="view.description"
+         tal:content="structure view.description">
+        Description
+      </p>
+    </div>
+    <div class="form-body">
+      <tal:repeat tal:repeat="widget view.fieldWidgets">
+        <div class="form-section ${widget.error and 'form-error' or ''}"
+             data-field-prefix="#"
+             tal:condition="widget.isVisible()"
+             tal:attributes="data-field-prefix widget.identifier">
+          <div class="form-label">
+            <label tal:attributes="for widget.htmlId()"
+                   tal:content="widget.title">
+              Field Name
+            </label>
+            <span class="form-required"
+                  tal:condition="widget.required and not widget.readonly"
+                  i18n:translate="">
+              required
+            </span>
+            <p tal:condition="widget.description"
+               tal:content="widget.description">
+              Description
+            </p>
+          </div>
+          <div class="form-field">
+            <div class="form-error-detail"
+                 tal:condition="widget.error">
+              <p tal:content="structure widget.error.title">
+                Validation error.
+              </p>
+            </div>
+            <tal:widget tal:content="structure widget.render()" />
+          </div>
+        </div>
+        <tal:hidden
+           tal:condition="not widget.isVisible()"
+           tal:content="structure widget.render()" />
+      </tal:repeat>
+    </div>
+  </div>
+</form>
