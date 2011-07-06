@@ -2,36 +2,6 @@
      tal:define="id widget.htmlId()"
      tal:attributes="id id"
      i18n:domain="silva">
-  <div style="display: none" id="#" title="#" class="ui-widget reference-dialog"
-       tal:attributes="id string:${id}-dialog;
-                       title widget.title">
-    <div class="content-list-actions">
-      <div class="content-list-action content-list-action-refresh">
-        <button name="refresh"
-                title="Refresh content listing"
-                i18n:attributes="title"
-                i18n:translate="">
-          refresh
-        </button>
-      </div>
-      <div class="content-list-action content-list-action-add">
-        <select disabled="disabled">
-          <option value="" i18n:translate="">select:</option>
-        </select>
-        <button name="add"
-                title="Add a new content in Silva to refer it"
-                i18n:attributes="title"
-                i18n:translate="">
-          add
-        </button>
-      </div>
-    </div>
-    <div class="path-list"></div>
-    <table class="content-list source-list">
-    </table>
-    <table class="content-list selection-list">
-    </table>
-  </div>
   <a class="reference-dialog-edit-link" target="_blank" id="#"
      title="Edit content"
      tal:attributes="id string:${id}-edit-link;
@@ -59,7 +29,7 @@
          tal:attributes="id string:${id}-value;
                          name widget.identifier;
                          value widget.inputValue();
-                         class widget.required and 'required' or ''" />
+                         class widget.htmlClass()" />
   <input type="hidden" value="#" id="#"
          tal:condition="widget.interface"
          tal:attributes="id string:${id}-interface;

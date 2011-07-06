@@ -74,32 +74,32 @@ div.reference-dialog img.reference_add {
     cursor: pointer;
 }
 
-div.reference-dialog table.content-list {
+div.reference-dialog .content-list table {
   clear: both;
   width: 100%;
   margin-bottom: 20px;
 }
 
-div.reference-dialog table.content-list td {
+div.reference-dialog .content-list td {
   font-size: 0.8em;
   padding: 3px 10px 3px 3px;
 /*  border-bottom: 1px dotted #000;*/
   background-color: white;
 }
 
-div.reference-dialog table.content-list td {
+div.reference-dialog .content-list td {
   vertical-align: middle;
 }
 
-div.reference-dialog table.content-list tr.even td {
+div.reference-dialog .content-list tr.even td {
   background-color: #eee;
 }
 
-div.reference-dialog table.content-list td.cell-icon {
+div.reference-dialog .content-list td.cell-icon {
   width: 16px;
 }
 
-div.reference-dialog table.content-list td.cell-id {
+div.reference-dialog .content-list td.cell-id {
   width: 20%;
 }
 
@@ -107,33 +107,33 @@ div.reference-dialog table.selection-list td.cell-id {
   width: 50%;
 }
 
-div.reference-dialog table.content-list td.cell-actions {
+div.reference-dialog .content-list td.cell-actions {
   text-align: right;
 }
 
-div.reference-dialog table.content-list tr.folderish td {
+div.reference-dialog .content-list tr.folderish td {
   cursor: pointer;
   font-weight: bold;
 }
 
-div.reference-dialog table.content-list td a, table.content-list td a:visited{
+div.reference-dialog .content-list td a, .content-list td a:visited{
   color: black;
 }
 
-div.reference-dialog table.content-list tr.folderish-hover td {
+div.reference-dialog .content-list tr.folderish-hover td {
   background-color: #ccc;
 }
 
-div.reference-dialog table.content-list tr td {
+div.reference-dialog .content-list tr td {
   line-height: 16px;
 }
 
-div.reference-dialog table.content-list tr.current td {
+div.reference-dialog .content-list tr.current td {
   border-bottom: 1px solid black;
   line-height: 32px;
 }
 
-div.reference-dialog table.content-list tr.folderish-hover td.cell-title {
+div.reference-dialog .content-list tr.folderish-hover td.cell-title {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
@@ -145,7 +145,7 @@ div.reference-dialog h3 {
   background-color: #ccc;
 }
 
-div.reference-dialog table.content-list img.button {
+div.reference-dialog .content-list img.button {
   cursor: pointer;
 }
 
@@ -156,10 +156,6 @@ div.reference-dialog div.content-list-actions {
   margin-bottom: 3px;
 }
 
-div.reference-dialog div.content-list-action {
+div.reference-dialog select {
   float: left;
-}
-
-div.reference-dialog div.content-list-action-add {
-  padding-left: 10px;
 }

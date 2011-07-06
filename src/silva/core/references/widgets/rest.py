@@ -7,13 +7,20 @@ import operator
 from Acquisition import aq_parent
 
 from five import grok
+from infrae.rest import RESTWithTemplate
 from silva.ui.rest import UIREST
 from silva.core import interfaces
 from silva.core.interfaces import IAddableContents
 from silva.core.interfaces.adapters import IIconResolver
 from silva.translations import translate as _
+from megrok import pagetemplate as pt
+from silva.ui.interfaces import ISilvaUI
+from zeam.form import silva as silvaforms
+
+from zope.component import queryUtility, getUtility
+from zope.component.interfaces import IFactory
 from zope.interface.interfaces import IInterface
-from zope import component
+from zope.interface import alsoProvides
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
 
@@ -29,7 +36,7 @@ class Items(UIREST):
 
     def __init__(self, context, request):
         super(Items, self).__init__(context, request)
-        self.intid = component.getUtility(IIntIds)
+        self.intid = getUtility(IIntIds)
         self.get_icon = IIconResolver(self.request).get_content_url
 
     def get_item_details(self, content, content_id=None, require=None):
@@ -74,7 +81,7 @@ class Items(UIREST):
             return self.json_response(self.get_item_details(content))
         require = interfaces.ISilvaObject
         if interface is not None:
-            require = component.getUtility(IInterface, name=interface)
+            require = getUtility(IInterface, name=interface)
         return self.json_response(self.get_context_details(require=require))
 
 
@@ -124,7 +131,7 @@ class Addables(UIREST):
         allowed_meta_types = IAddableContents(self.context).get_authorized_addables()
 
         if interface is not None:
-            required = component.getUtility(IInterface, name=interface)
+            required = getUtility(IInterface, name=interface)
             ifaces = self.always_allow[:]
             # dont append required if it more specific
             # than one in always_allowed
@@ -140,3 +147,44 @@ class Addables(UIREST):
                         set(allowed_meta_types))))
         return self.json_response(allowed_meta_types)
 
+
+class ReferenceLookup(RESTWithTemplate):
+    """Return the lookup template.
+    """
+    grok.context(interfaces.IContainer)
+    grok.name('silva.core.references.lookup')
+    grok.require('zope2.View')
+
+    def GET(self):
+        return self.template.render(self)
+
+
+class IReferenceAddingUI(ISilvaUI):
+    """UI to add content in a reference lookup.
+    """
+
+
+class Adding(UIREST):
+    """Add content in context of a reference lookup.
+    """
+    grok.context(interfaces.IContainer)
+    grok.name('silva.core.references.adding')
+    grok.require('silva.ChangeSilvaContent')
+
+    def publishTraverse(self, request, name):
+        addables = IAddableContents(self.context).get_container_addables()
+        if name in addables:
+            factory = queryUtility(IFactory, name=name)
+            if factory is not None:
+                alsoProvides(request, IReferenceAddingUI)
+                factory = factory(self.context, request)
+                # Set parent for security check.
+                factory.__name__ = '/'.join((self.__name__, name))
+                factory.__parent__ = self
+                return factory
+        return super(Adding, self).publishTraverse(request, name)
+
+
+class ReferenceAddFormTemplate(pt.PageTemplate):
+    pt.view(silvaforms.SMIAddForm)
+    pt.layer(IReferenceAddingUI)
