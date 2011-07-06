@@ -296,12 +296,15 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
     var Adder = function($popup, smi, addable) {
         var $content = $('<div />');
+        var $form = null;
+
         return {
             open: function(url) {
                 var form_url = url + '/++rest++silva.core.references.adding/' + addable;
-                return smi.ajax.query(form_url).pipe(function (data) {
+
+                var render_form = function(data) {
                     $content.html(data.screen.forms);
-                    var $form = $content.children('form');
+                    $form = $content.children('form');
                     $form.attr('data-form-url', form_url);
                     $form.trigger('load-smiform');
                     return {
@@ -311,11 +314,24 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                                 $popup.trigger('back-smireferences');
                             },
                             Add: function() {
-                                $popup.trigger('back-smireferences');
+                                var values = $form.serializeArray();
+                                values.push({
+                                    name: $form.attr('name') + '.action.save',
+                                    value: 'Save'});
+                                smi.ajax.query(form_url, values).pipe(function (data) {
+                                    // The add form redirect on success.
+                                    if (infrae.interfaces.isImplementedBy('redirect', data)) {
+                                        $popup.trigger('back-smireferences');
+                                    } else {
+                                        render_form(data);
+                                    };
+                                });
                             }
                         }
                     };
-                });
+                };
+
+                return smi.ajax.query(form_url).pipe(render_form);
             }
         };
     };
