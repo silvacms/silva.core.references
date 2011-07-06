@@ -156,6 +156,6 @@ div.reference-dialog div.content-list-actions {
   margin-bottom: 3px;
 }
 
-div.reference-dialog select {
+div.reference-dialog div.content-list-actions select {
   float: left;
 }

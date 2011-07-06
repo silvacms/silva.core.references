@@ -126,7 +126,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
 (function($) {
     // Top level add support
-    $('.reference-dialog').live('load-smireferences', function () {
+    $('.reference-dialog').live('load-smireferences', function (event, configuration) {
         var $popup = $(this);
         var $action = $popup.find('.content-list-action-add');
         var $trigger = $action.find('a');
@@ -145,11 +145,15 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         $popup.bind('change-smireferences', function (event, data) {
             // The selected container changed, update the add menu
             url = data['url'];
-
-            $.ajax({
+            var options = {
                 url: url + '/++rest++silva.core.references.addables',
                 dataType: 'json'
-            }).done(function(addables) {
+            };
+            if (configuration.iface !== undefined) {
+               options['data'] = {'interface': configuration.iface};
+            };
+
+            $.ajax(options).done(function(addables) {
                 var options = [empty];
 
                 for (var i=0, len=addables.length; i < len; i++) {
@@ -216,12 +220,13 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
 (function($) {
 
-    var Manager = function($popup, smi, id, options) {
+    // Manager manages ContentList and Adder (named view in it).
+    var Manager = function($popup, smi, id, configuration) {
         // Load extensions
-        $popup.trigger('load-smireferences');
+        $popup.trigger('load-smireferences', configuration);
 
         // Load system
-        var stack = [new ContentList($popup, smi, id, options)];
+        var stack = [new ContentList($popup, smi, id, configuration)];
         var actions = [];
         var urls = [];
         var $current = $popup.find('.content-list');
@@ -294,6 +299,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
         return manager;
     };
 
+    // Manage adding content
     var Adder = function($popup, smi, addable) {
         var $content = $('<div />');
         var $form = null;
@@ -359,7 +365,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     var ContentList = function(element, smi, widgetId, options) {
         this.id = widgetId;
         this.element = $(element);
-        this.referenceInterface = $('#' + this.id + '-interface').val();
+        this.referenceInterface = options.iface;
         this.parent = null;
         this.current = null;
         this.selection = [];
@@ -707,7 +713,9 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
 
                 var manager = new Manager(
                     $popup, smi, widget_id,
-                    {'multiple': multiple, 'selected': selected});
+                    {multiple: multiple,
+                     selected: selected,
+                     iface: $('#' + widget_id + '-interface').val()});
 
                 if (multiple) {
                     popup_buttons['Done'] = function(event){
