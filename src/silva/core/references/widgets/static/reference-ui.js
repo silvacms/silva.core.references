@@ -3,25 +3,25 @@
 /**
  * A referenced remote object.
  */
-var ReferencedRemoteObject = function(widget_id, suffix) {
+var ReferencedRemoteObject = function($widget, suffix) {
     // Refer a link that can represent a remote object on the
     // server. Its referenece (intid) can be store in a input called
     // widget_id-value.
 
-    var identifier = widget_id;
-    var url =  $('#' + widget_id + '-base').val();
-    var required_interface = $('#' + widget_id + '-interface').val();
-    var $widget = $('#' + widget_id);
+    var identifier = $widget.attr('id');
+    var url =  $widget.find('#' + identifier + '-base').val();
+    var required_interface = $widget.find('#' + identifier + '-interface').val();
+    var $container = $widget.find('#' + identifier + ' ul.reference-links');
 
-    if (suffix)
+    if (suffix) {
         identifier += suffix;
+    };
 
-    var $input = $('#' + identifier + '-value');
-    var $link = $('#' + identifier + '-link');
-    var $edit_link = $('#' + identifier + '-edit-link');
+    var $input = $widget.find('#' + identifier + '-value');
+    var $link = $widget.find('#' + identifier + '-link');
+    var $edit_link = $widget.find('#' + identifier + '-edit-link');
 
     if (!$link.length) {
-        var $container = $('#' + widget_id + ' ul.reference-links');
         var $item = $('<li />');
         $link = $('<a id="' + identifier + '-link" />');
         $edit_link = $('<a id="' + identifier + '-edit-link" />');
@@ -682,14 +682,15 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     $(document).bind('load-smiplugins', function(event, smi) {
 
         $('.reference-dialog-trigger').live('click', function() {
-            var widget_id = $(this).parent('.reference-widget').attr('id');
-            var widget = $('#' + widget_id);
-            var value_input = $('#' + widget_id + '-value');
-            var value_inputs = $('input[name="' + value_input.attr('name') + '"]', widget);
+            var $widget = $(this).parent('.reference-widget');
+            var id = $widget.attr('id');
+            var $value_input = $widget.find('#' + id + '-value');
+            var $value_inputs = $widget.find('input[name="' + $value_input.attr('name') + '"]');
             var selected = [];
-            var multiple = value_input.hasClass('multiple');
+            var multiple = $value_input.hasClass('multiple');
 
-            $.each(value_inputs, function() {
+            // Collect selected values
+            $.each($value_inputs, function() {
                 var value = $(this).val();
                 if (value && value != '') {
                     selected.push(value);
@@ -702,15 +703,15 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 }
             };
 
-            if (!value_input.hasClass('field-required')) {
+            if (!$value_input.hasClass('field-required')) {
                 popup_buttons['Clear'] = function(){
-                    var reference = ReferencedRemoteObject(widget_id);
+                    var reference = ReferencedRemoteObject($widget);
                     reference.clear();
                     $(this).dialog('close');
                 };
             };
 
-            var url = $('#' + widget_id + '-base').val();
+            var url = $widget.find('#' + id + '-base').val();
 
             get_popup_template(url).done(function(popup) {
                 var $popup = $(popup);
@@ -729,34 +730,32 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                 });
 
                 var manager = new Manager(
-                    $popup, smi, widget_id,
+                    $popup, smi, id,
                     {multiple: multiple,
                      selected: selected,
-                     iface: $('#' + widget_id + '-interface').val()});
+                     iface: $widget.find('#' + id + '-interface').val()});
 
                 if (multiple) {
                     popup_buttons['Done'] = function(event){
-                        // XXX Do something with selection
-                        value_inputs =
-                            $('input[name="' + value_input.attr('name') + '"]',
-                              widget);
-                        $.each(value_inputs, function(index, input){
-                            $(input).val('');
+                        $.each($value_inputs, function(){
+                            $(this).val('');
                         });
-                        $('ul.reference-links',  widget).empty();
+                        $widget.('ul.reference-links').empty();
+
+                        // XXX Update this
                         $.each(contentList.selection, function(index, item){
                             var suffix = index == 0 ? "" : String(index);
-                            var input = value_inputs[index];
+                            var input = $value_inputs[index];
                             if (input === undefined) {
-                                input = value_input.clone();
-                                input.attr('id', widget_id + suffix + "-value");
-                                input.appendTo(value_input.parent());
+                                input = $value_input.clone();
+                                input.attr('id', id + suffix + "-value");
+                                input.appendTo($value_input.parent());
                             }
-                            var reference = ReferencedRemoteObject(widget_id, suffix);
+                            var reference = ReferencedRemoteObject($widget, suffix);
                             reference.render(item.info);
                         });
-                        if (value_inputs.length > 1) {
-                            $.each(value_inputs, function(index, input){
+                        if ($value_inputs.length > 1) {
+                            $.each($value_inputs, function(index, input){
                                 var $input = $(input);
                                 if ($input.val() == '') {
                                     $input.remove();
@@ -767,7 +766,7 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
                     };
                 } else {
                     $popup.bind('selected-smireferences', function(event, item) {
-                        var reference = ReferencedRemoteObject(widget_id);
+                        var reference = ReferencedRemoteObject($widget);
                         reference.render(item.info);
                         $popup.dialog('close');
                     });
