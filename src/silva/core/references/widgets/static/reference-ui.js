@@ -303,36 +303,53 @@ var ReferencedRemoteObject = function(widget_id, suffix) {
     var Adder = function($popup, smi, addable) {
         var $content = $('<div />');
         var $form = null;
+        // Current add action and form_url
+        var form_url = null;
+        var add_action = null;
+
+        var go_back_action = function () {
+            $popup.trigger('back-smireferences');
+        };
 
         return {
             open: function(url) {
-                var form_url = url + '/++rest++silva.core.references.adding/' + addable;
+                form_url = url + '/++rest++silva.core.references.adding/' + addable;
 
                 var render_form = function(data) {
                     $content.html(data.screen.forms);
                     $form = $content.children('form');
                     $form.attr('data-form-url', form_url);
                     $form.trigger('load-smiform');
+
+                    if (add_action !== null) {
+                        $form.bind('submit', add_action);
+                        return {};
+                    }
+
+                    // First render, return the new content and the new actions
+                    add_action = function() {
+                        var values = $form.serializeArray();
+                        // XXX Save action is kind of hardcoded ..
+                        values.push({
+                            name: $form.attr('name') + '.action.save',
+                            value: 'Save'});
+                        smi.ajax.query(form_url, values).pipe(function (data) {
+                            // The add form redirect on success.
+                            if (infrae.interfaces.isImplementedBy('redirect', data)) {
+                                go_back_action();
+                            } else {
+                                render_form(data);
+                            };
+                        });
+                        return false;
+                    };
+                    $form.bind('submit', add_action);
+
                     return {
                         $content: $content,
                         actions: {
-                            Back: function() {
-                                $popup.trigger('back-smireferences');
-                            },
-                            Add: function() {
-                                var values = $form.serializeArray();
-                                values.push({
-                                    name: $form.attr('name') + '.action.save',
-                                    value: 'Save'});
-                                smi.ajax.query(form_url, values).pipe(function (data) {
-                                    // The add form redirect on success.
-                                    if (infrae.interfaces.isImplementedBy('redirect', data)) {
-                                        $popup.trigger('back-smireferences');
-                                    } else {
-                                        render_form(data);
-                                    };
-                                });
-                            }
+                            Back: go_back_action,
+                            Add: add_action
                         }
                     };
                 };

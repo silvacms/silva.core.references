@@ -49,4 +49,6 @@
       </tal:repeat>
     </div>
   </div>
+  <!-- This empty submit trigger the form submission with enter -->
+  <input type="submit" style="display: none" />
 </form>
