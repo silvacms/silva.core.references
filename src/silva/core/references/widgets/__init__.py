@@ -44,6 +44,7 @@ class ReferenceWidgetInfo(object):
         self.value_url = None
         self.value_title = None
         self.value_icon = None
+        self.value_path = None
 
         try:
             value_id = int(value_id)

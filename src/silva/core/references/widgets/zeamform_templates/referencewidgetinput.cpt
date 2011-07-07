@@ -2,10 +2,12 @@
      tal:define="id widget.htmlId()"
      tal:attributes="id id"
      i18n:domain="silva">
-  <a class="reference-dialog-edit-link" target="_blank" id="#"
+  <a class="open-screen reference-dialog-edit-link" rel="content"
      title="Edit content"
+     id="#" href="#"
      tal:attributes="id string:${id}-edit-link;
-                     style widget.value_url or 'display: none;'"
+                     style widget.value_path or 'display: none';
+                     href widget.value_path"
      i18n:attributes="title">
   </a>
   <a class="reference-dialog-content" target="_blank" href="#" id="#"

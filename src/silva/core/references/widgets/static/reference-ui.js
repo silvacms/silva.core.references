@@ -23,6 +23,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
 
     if (!$link.length) {
         var $item = $('<li />');
+        // XXX some class are missing here
         $link = $('<a id="' + identifier + '-link" />');
         $edit_link = $('<a id="' + identifier + '-edit-link" />');
         $item.append($link);
@@ -102,8 +103,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
             $link.unbind('click');
             if (info['url']) {
                 $edit_link.show();
-                // XXX edit URL should come from data.
-                $edit_link.attr('href', info['url'] + '/edit');
+                $edit_link.attr('href', info['path']);
             };
             $link.data('content', info);
             infrae.ui.icon($icon, info['icon']);

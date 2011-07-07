@@ -2,18 +2,20 @@
      tal:attributes="id view/id"
      i18n:domain="silva">
   <tal:if condition="not:view/multiple">
+    <a class="open-screen reference-dialog-edit-link" rel="content"
+       title="Edit content"
+       id="#" href="#"
+       tal:attributes="id string:${view/id}-edit-link;
+                       style python:view.value_path and '' or 'display: none';
+                       href python:view.value_path"
+       i18n:attributes="title">
+    </a>
     <a href="#" id="#" target="_blank" class="reference-dialog-content"
        tal:attributes="id string:${view/id}-link;
                        href view/value_url">
       <img tal:condition="view/value_icon"
            tal:replace="structure view/value_icon" />
       <span tal:replace="view/value_title" />
-    </a>
-    <a class="reference-dialog-edit-link" target="_blank" id="#"
-       title="Edit content"
-       tal:attributes="id string:${view/id}-edit-link;
-                       style python:view.value_url and '' or 'display: none'"
-       i18n:attributes="title">
     </a>
   </tal:if>
   <tal:if condition="view/multiple">
