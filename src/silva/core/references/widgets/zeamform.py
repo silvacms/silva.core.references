@@ -12,7 +12,7 @@ from zeam.form.ztk.fields import registerSchemaField
 
 from silva.core.references.interfaces import IReference
 from silva.core.references.reference import get_content_id
-from silva.core.references.widgets import ReferenceWidgetInfo
+from silva.core.references.widgets import ReferenceInfoResolver
 
 
 def register():
@@ -24,7 +24,7 @@ class ReferenceSchemaField(SchemaField):
     """
 
 
-class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
+class ReferenceWidgetInput(SchemaFieldWidget):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
     grok.name(str(INPUT))
 
@@ -36,9 +36,10 @@ class ReferenceWidgetInput(SchemaFieldWidget, ReferenceWidgetInfo):
 
         interface = self.component.get_field().schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
-        self.update_reference_widget(
-            self.form.context, self.inputValue(),
-            interface=interface_name)
+
+        ReferenceInfoResolver(self.request)(
+            self, self.form.context,
+            value_id=self.inputValue(), interface=interface_name)
 
 
 class ReferenceWidgetDisplay(ReferenceWidgetInput):

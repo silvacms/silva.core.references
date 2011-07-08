@@ -1,7 +1,7 @@
 <div class="reference-widget" id="#"
      tal:attributes="id view/id"
      i18n:domain="silva">
-  <tal:if condition="not:view/multiple">
+  <tal:simple tal:condition="not:view/multiple">
     <a class="open-screen reference-dialog-edit-link" rel="content"
        title="Edit content"
        id="#" href="#"
@@ -17,11 +17,10 @@
            tal:replace="structure view/value_icon" />
       <span tal:replace="view/value_title" />
     </a>
-  </tal:if>
-  <tal:if condition="view/multiple">
-    <ul class="reference-links">
-      <tal:repeat repeat="item view/values_info">
-      <li>
+  </tal:simple>
+  <tal:multiple tal:condition="view/multiple">
+    <ul class="multiple-references">
+      <li tal:repeat="item view/values">
         <a href="#" id="#" target="_blank"
            tal:attributes="id string:${view/id}${item/suffix}-link;
                            href item/value_url">
@@ -30,20 +29,17 @@
           <span tal:replace="item/value_title" />
         </a>
       </li>
-      </tal:repeat>
     </ul>
-  </tal:if>
+  </tal:multiple>
   <br clear="both" />
-  <a class="form-button reference-dialog-trigger ui-state-default"
+  <a class="form-button reference-dialog-trigger cke_dialog_ui_button"
      title="Lookup a content in Silva"
-     i18n:attributes="title"
-     i18n:translate="">
-    <ins class="ui-icon ui-icon-search"
-         i18n:name="icon"></ins>
-    Lookup
+     i18n:attributes="title">
+    <span class="cke_dialog_ui_button"
+          i18n:translate="">Lookup</span>
   </a>
   <br clear="both" />
-  <input type="hidden" value="#" id="#" name=""
+  <input type="hidden" value="#" id="#" name="#"
          tal:attributes="id string:${view/id}-value;
                          name view/name;
                          value view/value;
@@ -52,22 +48,13 @@
          tal:condition="view/interface"
          tal:attributes="id string:${view/id}-interface;
                          value view/interface" />
-  <tal:if condition="not:view/multiple">
-    <input type="hidden" value="#" id="#" name="#"
-           tal:condition="view/reference"
-           tal:attributes="id string:${view/id}-reference;
-                           name string:${view/name}_reference;
-                           value view/reference" />
-  </tal:if>
-  <tal:if condition="view/multiple">
-    <tal:repeat repeat="item view/values_info">
+  <tal:multiple tal:condition="view/multiple">
+    <tal:repeat tal:repeat="item view/values">
       <input type="hidden" value="#" id="#" name="#"
-             tal:condition="item/reference"
-             tal:attributes="id string:${view/id}${item/suffix}-reference;
-                             name string:${view/name}_reference;
-                             value item/reference" />
+             tal:attributes="name view/name;
+                             value item/value" />
     </tal:repeat>
-  </tal:if>
+  </tal:multiple>
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />

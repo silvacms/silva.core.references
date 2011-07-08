@@ -28,7 +28,7 @@ from silva.core.references.reference import relative_path
 from silva.core.references.reference import is_inside_container
 from silva.core.references.reference import canonical_path
 from silva.core.references.interfaces import IReferenceService
-from silva.core.references.widgets import ReferenceWidgetInfo
+from silva.core.references.widgets import ReferenceInfoResolver
 
 
 class InterfaceValidator(Validator):
@@ -207,7 +207,13 @@ class ReferenceValidator(Validator):
         return solver
 
 
-class BoundReferenceWidget(ReferenceWidgetInfo):
+class ValueInfo(object):
+
+    def __init__(self, suffix):
+        self.suffix = suffix
+
+
+class BoundReferenceWidget(object):
     """Render a widget.
     """
     template = grok.PageTemplateFile('formulator_templates/reference_input.pt')
@@ -228,41 +234,18 @@ class BoundReferenceWidget(ReferenceWidgetInfo):
         self.reference = None
         self.interface = field.get_interface()
 
-        def update_info(info, value, index=0):
-            if index == 0:
-                info.suffix = ""
-            else:
-                info.suffix = str(index)
-
-            if ISilvaObject.providedBy(value):
-                info.value = get_content_id(value)
-                info.reference = None
-            else:
-                if value and isinstance(value, basestring):
-                    # We have a value. It is a tag of the reference. We
-                    # want here to lookup the value of the reference.
-                    service = getUtility(IReferenceService)
-                    reference = service.get_reference(info.context, name=value)
-                    info.reference = reference.target_id if reference is not None else 'new'
-                    info.value = value
-                value = None
+        resolver = ReferenceInfoResolver(self.request)
 
         if self.multiple:
-            self.values_info = []
+            self.values = []
             for index, item in enumerate(value or []):
-                ref_info = ReferenceWidgetInfo()
-                ref_info.request = self.request
-                update_info(ref_info, item, index=index)
-                ref_info.update_reference_widget(
-                    self.context, ref_info.value, value=item,
-                    interface=self.interface)
-                self.values_info.append(ref_info)
-            self.update_reference_widget(self.context,
-                interface=self.interface)
+                info = ValueInfo(index)
+                resolver(info, self.context, interface=self.interface, value=item)
+                self.values.append(info)
+
+            resolver(self, self.context, interface=self.interface)
         else:
-            update_info(self, value)
-            self.update_reference_widget(self.context, self.value,
-                value=value, interface=self.interface)
+            resolver(self, self.context, value=value, interface=self.interface)
 
     def default_namespace(self):
         return {'context': self.context,

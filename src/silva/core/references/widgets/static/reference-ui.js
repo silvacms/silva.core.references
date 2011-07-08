@@ -11,7 +11,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
     var identifier = $widget.attr('id');
     var url =  $widget.find('#' + identifier + '-base').val();
     var required_interface = $widget.find('#' + identifier + '-interface').val();
-    var $container = $widget.find('#' + identifier + ' ul.reference-links');
+    var $container = $widget.find('ul.multiple-references');
 
     if (suffix) {
         identifier += suffix;
@@ -283,6 +283,9 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     // Always refresh (for added content)
                     manager.open(urls.pop());
                 }
+            },
+            get_selection: function() {
+                return stack[0].selection;
             }
         };
 
@@ -390,33 +393,33 @@ var ReferencedRemoteObject = function($widget, suffix) {
 
         var defaults = {'multiple' : true, 'selected': []};
 
-        this.listElement = $('table.source-list', this.element);
-        this.selectionElement = $('table.selection-list', this.element);
+        this.listElement = $('table.source-list tbody', this.element);
+        this.selectionElement = null;
 
         this.url = null;
         this.options = $.extend(defaults, options);
 
-        if (this.options['multiple']) {
+        if (this.options.multiple === true) {
+            // In case of multiple mode, show the selection-list
+            var $selection = $('div.selection-list', this.element);
+            this.selectionElement = $selection.find('tbody');
+
             var selectionView = new ContentListSelectionView(
                 this.selectionElement, this);
             selectionView.render();
-        }
 
-        if (this.options['multiple'] && this.options['selected'].length > 0) {
-            $.each(this.options['selected'], function(index, selected) {
-                var url = '++rest++silva.core.references.items';
-                $.getJSON(url, {'intid': selected}, function(entry) {
-                    var item = new ContentListItem(this,
-                                                   this.url + '/' + entry['id'], entry);
-                    this.selectItem(item);
+            if (this.options.selected.length > 0) {
+                $.each(this.options['selected'], function(index, selected) {
+                    var url = '++rest++silva.core.references.items';
+                    $.getJSON(url, {'intid': selected}, function(entry) {
+                        var item = new ContentListItem(
+                            this, this.url + '/' + entry['id'], entry);
+                        this.selectItem(item);
+                    }.scope(this));
                 }.scope(this));
-            }.scope(this));
-        }
-        if (this.options['multiple']) {
-            this.selectionElement.show();
-        } else {
-            this.selectionElement.hide();
-        }
+            };
+            $selection.show();
+        };
     };
 
     ContentList.prototype.open = function(url) {
@@ -615,6 +618,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
             img.click(function(event){
                 this.item.contentList._itemClicked(event, this.item);
                 event.stopPropagation();
+                return false;
             }.scope(this));
             actions_cell.append(img);
         }
@@ -641,14 +645,15 @@ var ReferencedRemoteObject = function($widget, suffix) {
         var icon_cell = $('<td class="cell-icon" />');
         var actions_cell = $('<td class="cell-actions" />');
         var id_cell = $('<td class="cell-id" />');
-        var icon = $('<img />');
+        var $icon = $('<ins class="icon" />');
         var title_cell = $('<td class="cell-title" />');
-        var link = $('<span />');;
+        var link = $('<span />');
 
         var removeButton = $('<img class="button reference_remove"' +
                              'src="++static++/silva.core.references.widgets/delete.png" />');
         removeButton.click(function(event){
             this.item.contentList._itemRemovedFromSelection(event, this.item);
+            return false;
         }.scope(this));
         actions_cell.append(removeButton);
 
@@ -658,9 +663,8 @@ var ReferencedRemoteObject = function($widget, suffix) {
         link.text(this.item.info['title']);
         link.appendTo(title_cell);
 
-        icon.attr('src', this.item.info['icon']);
-        icon.attr('title', this.item.info['type']);
-        icon.appendTo(icon_cell);
+        infrae.ui.icon($icon, this.item.info['icon']);
+        $icon.appendTo(icon_cell);
 
         icon_cell.appendTo(this.element);
         title_cell.appendTo(this.element);
@@ -709,7 +713,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     reference.clear();
                     $(this).dialog('close');
                 };
-            };
+             };
 
             var url = $widget.find('#' + id + '-base').val();
 
@@ -722,8 +726,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     modal: true,
                     height: 500,
                     width: 800,
-                    zIndex: 12000,
-                    buttons: popup_buttons
+                    zIndex: 12000
                 });
                 $popup.bind('dialogclose', function() {
                     $popup.remove();
@@ -740,28 +743,27 @@ var ReferencedRemoteObject = function($widget, suffix) {
                         $.each($value_inputs, function(){
                             $(this).val('');
                         });
-                        $widget.('ul.reference-links').empty();
+                        $widget.find('ul.multiple-references').empty();
 
-                        // XXX Update this
-                        $.each(contentList.selection, function(index, item){
+                        $.each(manager.get_selection(), function(index, item){
                             var suffix = index == 0 ? "" : String(index);
-                            var input = $value_inputs[index];
-                            if (input === undefined) {
-                                input = $value_input.clone();
-                                input.attr('id', id + suffix + "-value");
-                                input.appendTo($value_input.parent());
+                            var $input = $value_inputs[index];
+                            if ($input === undefined) {
+                                $input = $value_input.clone();
+                                $input.attr('id', id + suffix + "-value");
+                                $input.appendTo($value_input.parent());
                             }
                             var reference = ReferencedRemoteObject($widget, suffix);
                             reference.render(item.info);
                         });
                         if ($value_inputs.length > 1) {
-                            $.each($value_inputs, function(index, input){
-                                var $input = $(input);
+                            $.each($value_inputs, function(){
+                                var $input = $(this);
                                 if ($input.val() == '') {
                                     $input.remove();
                                 }
                             });
-                        }
+                        };
                         $popup.dialog('close');
                     };
                 } else {
@@ -772,6 +774,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     });
                 };
 
+                $popup.dialog('option', 'buttons', popup_buttons);
                 manager.open(url);
                 $popup.dialog('open');
             });

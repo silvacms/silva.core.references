@@ -18,8 +18,27 @@
   <div class="path-list"></div>
   <div class="content-list">
     <table class="source-list">
+      <colgroup>
+        <col width="26" />
+        <col />
+        <col />
+        <col width="26" />
+      </colgroup>
+      <tbody>
+      </tbody>
     </table>
-    <table class="selection-list">
-    </table>
+    <div class="selection-list">
+      <h3>Selected items</h3>
+      <table>
+        <tbody>
+          <colgroup>
+            <col width="26" />
+            <col />
+            <col />
+            <col width="26" />
+          </colgroup>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

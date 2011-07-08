@@ -12,6 +12,11 @@ button.reference-dialog-trigger {
   width: 20px;
 }
 
+ul.multiple-references li {
+  margin-left: 2em;
+  clear: both;
+}
+
 a.reference-dialog-edit-link {
   background-image: url('edit.png');
   background-position: center center;
@@ -83,32 +88,14 @@ div.reference-dialog .content-list table {
 div.reference-dialog .content-list td {
   font-size: 0.8em;
   padding: 3px 10px 3px 3px;
-/*  border-bottom: 1px dotted #000;*/
-  background-color: white;
 }
 
 div.reference-dialog .content-list td {
   vertical-align: middle;
 }
 
-div.reference-dialog .content-list tr.even td {
-  background-color: #eee;
-}
-
-div.reference-dialog .content-list td.cell-icon {
-  width: 16px;
-}
-
-div.reference-dialog .content-list td.cell-id {
-  width: 20%;
-}
-
-div.reference-dialog table.selection-list td.cell-id {
-  width: 50%;
-}
-
-div.reference-dialog .content-list td.cell-actions {
-  text-align: right;
+div.reference-dialog .content-list tr:nth-child(even) {
+  background-color: #f3f7fb;
 }
 
 div.reference-dialog .content-list tr.folderish td {
@@ -121,7 +108,7 @@ div.reference-dialog .content-list td a, .content-list td a:visited{
 }
 
 div.reference-dialog .content-list tr.folderish-hover td {
-  background-color: #ccc;
+  background-color: #d2e5f9;
 }
 
 div.reference-dialog .content-list tr td {
@@ -133,16 +120,25 @@ div.reference-dialog .content-list tr.current td {
   line-height: 32px;
 }
 
-div.reference-dialog .content-list tr.folderish-hover td.cell-title {
+div.reference-dialog .content-list tr.folderish-hover td.cell_title {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
 }
 
+div.reference-dialog .selection-list {
+  border-top: 1px solid black;
+  display: none;
+}
+div.reference-dialog .selection-list table {
+  border-left: 2px solid #CCCCCC;
+}
+
 div.reference-dialog h3 {
   padding-left: 10px;
   color: black;
-  background-color: #ccc;
+  line-height: 24px;
+  background-color: #efefef;
 }
 
 div.reference-dialog .content-list img.button {

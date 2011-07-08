@@ -11,6 +11,8 @@ from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
 from silva.core.interfaces.adapters import IIconResolver
 from silva.core.references.reference import get_content_from_id
+from silva.core.references.reference import get_content_id
+from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 
 
@@ -29,36 +31,52 @@ def get_lookup_content(content):
     return content
 
 
-class ReferenceWidgetInfo(object):
-    """This provides an update method to computes attributes values
-    used by the reference widget templates. This is shared between the
-    different form implementation.
+class ReferenceInfoResolver(object):
+    """This resolve information about a reference and set them on an
+    object.
     """
 
-    def update_reference_widget(
-        self, context, value_id=None, interface=None, value=None):
-        self.interface = interface
-        self.context_lookup_url = absoluteURL(
+    def __init__(self, request):
+        self.request = request
+        self.get_icon_tag = IIconResolver(self.request).get_tag
+        root = IVirtualSite(self.request).get_root()
+        self.root_path = root.absolute_url_path()
+
+    def get_content_path(self, content):
+        return content.absolute_url_path()[len(self.root_path):] or '/'
+
+    def __call__(self, widget, context, value_id=None, interface=None, value=None):
+        widget.interface = interface
+        widget.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
 
-        self.value_url = None
-        self.value_title = None
-        self.value_icon = None
-        self.value_path = None
+        widget.value_url = None
+        widget.value_title = None
+        widget.value_icon = None
+        widget.value_path = None
 
-        try:
-            value_id = int(value_id)
-        except (ValueError, TypeError):
-            value_id = 0
+        if value_id is not None:
+            try:
+                value_id = int(value_id)
+            except (ValueError, TypeError):
+                value_id = 0
 
-        if value_id:
-            value = get_content_from_id(value_id)
-        # None as a icon, it is missing
-        self.value_icon = IIconResolver(self.request).get_tag(value)
-        if value is not None:
-            self.value_title = value.get_title_or_id()
-            self.value_url = absoluteURL(value, self.request)
+            if value_id and value is None:
+                value = get_content_from_id(value_id)
+        elif value is not None:
+            widget.value = get_content_id(value)
         else:
-            self.value_title = _(u'no reference selected')
+            widget.value = None
+            return
+
+        # None as a icon, it is missing
+        widget.value_icon = self.get_icon_tag(value)
+        if value is not None:
+            widget.value_title = value.get_title_or_id()
+            widget.value_url = absoluteURL(value, self.request)
+            widget.value_path = self.get_content_path(value)
+        else:
+            widget.value_title = _(u'no reference selected')
+
 
 
