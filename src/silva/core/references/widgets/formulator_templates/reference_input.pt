@@ -42,19 +42,20 @@
   <input type="hidden" value="#" id="#" name="#"
          tal:attributes="id string:${view/id}-value;
                          name view/name;
-                         value view/value;
+                         value python:view.values and view.values[0].value or 0;
                          class python:view.multiple and 'multiple' or None" />
+  <tal:multiple tal:condition="view/multiple">
+    <tal:repeat tal:repeat="item python:view.values and view.values[1:] or []">
+      <input type="hidden" value="#" id="#" name="#"
+             tal:attributes="id string:${view/id}${item/suffix}-value;
+                             name view/name;
+                             value item/value" />
+    </tal:repeat>
+  </tal:multiple>
   <input type="hidden" value="#" id="#"
          tal:condition="view/interface"
          tal:attributes="id string:${view/id}-interface;
                          value view/interface" />
-  <tal:multiple tal:condition="view/multiple">
-    <tal:repeat tal:repeat="item view/values">
-      <input type="hidden" value="#" id="#" name="#"
-             tal:attributes="name view/name;
-                             value item/value" />
-    </tal:repeat>
-  </tal:multiple>
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />
