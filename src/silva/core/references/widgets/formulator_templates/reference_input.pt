@@ -58,5 +58,4 @@
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${view/id}-base;
                          value view/context_lookup_url" />
-  <br clear="both" />
 </div>
