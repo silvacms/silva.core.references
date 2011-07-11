@@ -2,6 +2,7 @@
 # See also LICENSE.txt
 # $Id$
 
+from operator import attrgetter
 import uuid
 
 from Acquisition import aq_parent
@@ -249,6 +250,8 @@ class BoundReferenceWidget(object):
                 resolver(info, self.context, interface=self.interface, value=item)
                 self.values.append(info)
 
+            self.value = self.values and self.values[0].value
+            self.extra_values = map(attrgetter('value'), self.values and self.values[1:] or [])
             resolver(self, self.context, interface=self.interface)
         else:
             resolver(self, self.context, value=value, interface=self.interface)
@@ -274,7 +277,7 @@ class ReferenceWidget(Widget):
         'default',
         title='Default',
         description='Default value (not supported, required by Formulator)',
-        default="",
+        default='',
         required=0)
 
     interface = fields.InterfaceField(
@@ -299,6 +302,10 @@ class ReferenceWidget(Widget):
         if context is None:
             return u'<p>Not available.</p>'
         request = get_request()
+        if isinstance(value, basestring) and not len(value):
+            # This correspond to empty. However Formulator have
+            # problems with that concept.
+            value = None
         widget = BoundReferenceWidget(context, request, field, value)
         return widget()
 

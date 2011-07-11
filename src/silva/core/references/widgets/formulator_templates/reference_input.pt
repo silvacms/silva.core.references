@@ -42,10 +42,10 @@
   <input type="hidden" value="#" id="#" name="#"
          tal:attributes="id string:${view/id}-value;
                          name view/name;
-                         value python:view.values and view.values[0].value or 0;
+                         value view/value;
                          class view/css_class" />
   <tal:multiple tal:condition="view/multiple">
-    <tal:repeat tal:repeat="item python:view.values and view.values[1:] or []">
+    <tal:repeat tal:repeat="item view/extra_values">
       <input type="hidden" value="#" id="#" name="#"
              tal:attributes="id string:${view/id}${item/suffix}-value;
                              name view/name;

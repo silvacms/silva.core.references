@@ -30,6 +30,8 @@ def get_lookup_content(content):
         return content.get_container()
     return content
 
+_marker = object()
+
 
 class ReferenceInfoResolver(object):
     """This resolve information about a reference and set them on an
@@ -45,7 +47,7 @@ class ReferenceInfoResolver(object):
     def get_content_path(self, content):
         return content.absolute_url_path()[len(self.root_path):] or '/'
 
-    def __call__(self, widget, context, value_id=None, interface=None, value=None):
+    def __call__(self, widget, context, value_id=_marker, interface=None, value=_marker):
         widget.interface = interface
         widget.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
@@ -55,7 +57,7 @@ class ReferenceInfoResolver(object):
         widget.value_icon = None
         widget.value_path = None
 
-        if value_id is not None:
+        if value_id is not _marker:
             try:
                 value_id = int(value_id)
             except (ValueError, TypeError):
@@ -63,7 +65,7 @@ class ReferenceInfoResolver(object):
 
             if value_id and value is None:
                 value = get_content_from_id(value_id)
-        elif value is not None:
+        elif value is not _marker:
             widget.value = get_content_id(value)
         else:
             widget.value = None
