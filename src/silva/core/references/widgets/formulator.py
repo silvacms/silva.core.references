@@ -207,9 +207,7 @@ class ReferenceValidator(Validator):
 
 
 class ValueInfo(object):
-
-    def __init__(self, suffix):
-        self.suffix = suffix
+    pass
 
 
 class BoundReferenceWidget(object):
@@ -245,14 +243,14 @@ class BoundReferenceWidget(object):
 
         if self.multiple:
             self.values = []
-            for index, item in enumerate(value or []):
-                info = ValueInfo(index)
+            for item in value or []:
+                info = ValueInfo()
                 resolver(info, self.context, interface=self.interface, value=item)
                 self.values.append(info)
 
+            resolver(self, self.context, interface=self.interface)
             self.value = self.values and self.values[0].value
             self.extra_values = map(attrgetter('value'), self.values and self.values[1:] or [])
-            resolver(self, self.context, interface=self.interface)
         else:
             resolver(self, self.context, value=value, interface=self.interface)
 

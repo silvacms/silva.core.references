@@ -22,7 +22,9 @@
     <ul class="multiple-references">
       <li tal:repeat="item view/values">
         <a href="#" id="#" target="_blank"
-           tal:attributes="id string:${view/id}${item/suffix}-link;
+           tal:define="index repeat/item/index;
+                       suffix python:index and index or ''"
+           tal:attributes="id string:${view/id}${suffix}-link;
                            href item/value_url">
           <img tal:condition="item/value_icon"
                tal:replace="structure item/value_icon" />
@@ -45,11 +47,11 @@
                          value view/value;
                          class view/css_class" />
   <tal:multiple tal:condition="view/multiple">
-    <tal:repeat tal:repeat="item view/extra_values">
+    <tal:repeat tal:repeat="value view/extra_values">
       <input type="hidden" value="#" id="#" name="#"
-             tal:attributes="id string:${view/id}${item/suffix}-value;
+             tal:attributes="id string:${view/id}${repeat/value/number}-value;
                              name view/name;
-                             value item/value" />
+                             value value" />
     </tal:repeat>
   </tal:multiple>
   <input type="hidden" value="#" id="#"
