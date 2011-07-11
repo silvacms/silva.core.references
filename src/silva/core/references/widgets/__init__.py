@@ -63,8 +63,11 @@ class ReferenceInfoResolver(object):
             except (ValueError, TypeError):
                 value_id = 0
 
-            if value_id and value is None:
-                value = get_content_from_id(value_id)
+            if value is _marker:
+                if value_id:
+                    value = get_content_from_id(value_id)
+                else:
+                    value = None
         elif value is not _marker:
             widget.value = get_content_id(value)
         else:
