@@ -15,7 +15,7 @@ from Products.Formulator.Widget import Widget, render_element
 from Products.Formulator.DummyField import fields
 
 from five import grok
-from zope.component import getUtility, queryUtility
+from zope.component import queryUtility
 from zope.interface import Interface
 from zope.interface.interfaces import IInterface
 
@@ -23,11 +23,9 @@ from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.errors import ExternalReferenceError
 from silva.core.references.reference import ReferenceSet
 from silva.core.references.reference import get_content_from_id
-from silva.core.references.reference import get_content_id
 from silva.core.references.reference import relative_path
 from silva.core.references.reference import is_inside_container
 from silva.core.references.reference import canonical_path
-from silva.core.references.interfaces import IReferenceService
 from silva.core.references.widgets import ReferenceInfoResolver
 
 
@@ -229,6 +227,14 @@ class BoundReferenceWidget(object):
         self.name = field.generate_field_key()
         self.title = field.title()
         self.multiple = bool(field.get_value('multiple'))
+        self.required = bool(field.get_value('required'))
+
+        css_class = []
+        if self.multiple:
+            css_class.append('field-multiple')
+        if self.required:
+            css_class.append('field-required')
+        self.css_class = ' '.join(css_class) or None
 
         self.value = None
         self.reference = None

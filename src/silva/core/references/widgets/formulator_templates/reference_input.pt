@@ -43,7 +43,7 @@
          tal:attributes="id string:${view/id}-value;
                          name view/name;
                          value python:view.values and view.values[0].value or 0;
-                         class python:view.multiple and 'multiple' or None" />
+                         class view/css_class" />
   <tal:multiple tal:condition="view/multiple">
     <tal:repeat tal:repeat="item python:view.values and view.values[1:] or []">
       <input type="hidden" value="#" id="#" name="#"

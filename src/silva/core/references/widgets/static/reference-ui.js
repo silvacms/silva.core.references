@@ -691,7 +691,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
             var $value_input = $widget.find('#' + id + '-value');
             var $value_inputs = $widget.find('input[name="' + $value_input.attr('name') + '"]');
             var selected = [];
-            var multiple = $value_input.hasClass('multiple');
+            var multiple = $value_input.hasClass('field-multiple');
 
             // Collect selected values
             $.each($value_inputs, function() {
