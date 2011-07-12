@@ -1,0 +1,63 @@
+<div class="reference-widget" id="#"
+     tal:attributes="id view.id"
+     i18n:domain="silva">
+  <tal:simple tal:condition="not view.multiple">
+    <a class="open-screen reference-dialog-edit-link" rel="content"
+       title="Edit content"
+       id="#" href="#"
+       tal:attributes="id string:${view.id}-edit-link;
+                       style view.value_path and '' or 'display: none';
+                       href view.value_path"
+       i18n:attributes="title">
+    </a>
+    <a href="#" id="#" target="_blank" class="reference-dialog-content"
+       tal:attributes="id string:${view.id}-link;
+                       href view.value_url">
+      <img tal:condition="view.value_icon"
+           tal:replace="structure view.value_icon" />
+      <span tal:replace="view.value_title" />
+    </a>
+  </tal:simple>
+  <tal:multiple tal:condition="view.multiple">
+    <ul class="multiple-references">
+      <li tal:repeat="item view.values">
+        <a href="#" id="#" target="_blank"
+           tal:define="suffix repeat.item.index or ''"
+           tal:attributes="id string:${view.id}${suffix}-link;
+                           href item.value_url">
+          <img tal:condition="item.value_icon"
+               tal:replace="structure item.value_icon" />
+          <span tal:replace="item.value_title" />
+        </a>
+      </li>
+    </ul>
+  </tal:multiple>
+  <br clear="both" />
+  <a class="form-button reference-dialog-trigger cke_dialog_ui_button"
+     title="Lookup a content in Silva"
+     i18n:attributes="title">
+    <span class="cke_dialog_ui_button"
+          i18n:translate="">Lookup</span>
+  </a>
+  <br clear="both" />
+  <input type="hidden" value="#" id="#" name="#"
+         tal:attributes="id string:${view.id}-value;
+                         name view.name;
+                         value view.value;
+                         class view.css_class" />
+  <tal:multiple tal:condition="view.multiple">
+    <tal:repeat tal:repeat="value view.extra_values">
+      <input type="hidden" value="#" id="#" name="#"
+             tal:attributes="id string:${view.id}${repeat.value.number}-value;
+                             name view.name;
+                             value value" />
+    </tal:repeat>
+  </tal:multiple>
+  <input type="hidden" value="#" id="#"
+         tal:condition="view.interface"
+         tal:attributes="id string:${view.id}-interface;
+                         value view.interface" />
+  <input type="hidden" value="#" id="#"
+         tal:attributes="id string:${view.id}-base;
+                         value view.context_lookup_url" />
+</div>

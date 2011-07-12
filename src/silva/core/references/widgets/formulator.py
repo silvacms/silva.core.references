@@ -16,6 +16,7 @@ from Products.Formulator.Widget import Widget, render_element
 from Products.Formulator.DummyField import fields
 
 from five import grok
+from megrok.chameleon.components import ChameleonPageTemplate
 from zope.component import queryUtility
 from zope.interface import Interface
 from zope.interface.interfaces import IInterface
@@ -213,7 +214,7 @@ class ValueInfo(object):
 class BoundReferenceWidget(object):
     """Render a widget.
     """
-    template = grok.PageTemplateFile('formulator_templates/reference_input.pt')
+    template = ChameleonPageTemplate(filename='formulator_templates/reference_input.cpt')
 
     def __init__(self, context, request, field, value):
         self.context = context
