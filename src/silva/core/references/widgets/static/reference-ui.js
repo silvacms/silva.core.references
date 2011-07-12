@@ -135,7 +135,10 @@ var ReferencedRemoteObject = function($widget, suffix) {
         var url = null;
 
         var open = function() {
-            $popup.trigger('add-smireferences', {url: url, addable: $select.val()});
+            var selected = $select.val();
+            if (selected) {
+                $popup.trigger('add-smireferences', {url: url, addable: selected});
+            };
             return false;
         };
 
@@ -144,13 +147,13 @@ var ReferencedRemoteObject = function($widget, suffix) {
 
         $popup.bind('change-smireferences', function (event, data) {
             // The selected container changed, update the add menu
-            url = data['url'];
+            url = data.url;
             var options = {
                 url: url + '/++rest++silva.core.references.addables',
                 dataType: 'json'
             };
             if (configuration.iface !== undefined) {
-               options['data'] = {'interface': configuration.iface};
+                options['data'] = {'interface': configuration.iface};
             };
 
             $.ajax(options).done(function(addables) {
@@ -180,7 +183,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
         $popup.bind('change-smireferences', function (event, data) {
             // The selected container changed, update the breadcrumb
             $.ajax({
-                url: data['url'] + '/++rest++silva.core.references.parents',
+                url: data.url + '/++rest++silva.core.references.parents',
                 dataType: 'json'
             }).done(function(parents) {
                 var len = parents.length;
@@ -225,17 +228,26 @@ var ReferencedRemoteObject = function($widget, suffix) {
         // Load extensions
         $popup.trigger('load-smireferences', configuration);
 
-        // Load system
+        // Screen stack.
+        // stack: element 0 ContentList, element 1 Adder (if active)
+        // XXX this stack is not the best for this
         var stack = [new ContentList($popup, smi, id, configuration)];
         var actions = [];
-        var urls = [];
+        var urls = [null];
         var $current = $popup.find('.content-list');
 
         // Open a url in a view
         var open_url = function(view, url) {
             return view.open(url).pipe(function (data) {
-                urls[urls.length - 1] = url;
-                $popup.trigger('change-smireferences', {url: url});
+                var index = urls.length - 1;
+                // The same url just have been added.
+                var added = index && urls[index] === null && urls[index - 1] == url;
+                if (added || (urls[index] !== url)) {
+                    urls[index] = url;
+                    if (!added) {
+                        $popup.trigger('change-smireferences', {url: url});
+                    };
+                }
                 return data;
             });
         };
@@ -243,6 +255,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
         // Add a new view to the stack
         var new_view = function(view, url) {
             stack.push(view);
+            urls.push(null);
             return open_url(view, url).done(function (data) {
                 var $new = data.$content;
 
@@ -255,16 +268,20 @@ var ReferencedRemoteObject = function($widget, suffix) {
                 // Actions
                 actions.push($popup.dialog('option', 'buttons'));
                 $popup.dialog('option', 'buttons', data.actions);
-
-                // Url safety
-                urls.push(url);
             });
         };
 
         var manager = {
             add: function(url, addable) {
-                var adder = Adder($popup, smi, addable);
-                return new_view(adder, url);
+                var adder;
+
+                if (stack.length < 2) {
+                    adder = Adder($popup, smi, addable);
+                    return new_view(adder, url);
+                };
+                adder = stack[1];
+                adder.update(addable);
+                return open_url(adder, url);
             },
             open: function(url) {
                 return open_url(stack[stack.length - 1], url);
@@ -315,6 +332,9 @@ var ReferencedRemoteObject = function($widget, suffix) {
         };
 
         return {
+            update: function(new_addable) {
+                addable = new_addable;
+            },
             open: function(url) {
                 form_url = url + '/++rest++silva.core.references.adding/' + addable;
 
@@ -713,7 +733,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     reference.clear();
                     $(this).dialog('close');
                 };
-             };
+            };
 
             var url = $widget.find('#' + id + '-base').val();
 
