@@ -25,9 +25,9 @@ from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.errors import ExternalReferenceError
 from silva.core.references.reference import ReferenceSet
 from silva.core.references.reference import get_content_from_id
-from silva.core.references.reference import relative_path
-from silva.core.references.reference import is_inside_container
-from silva.core.references.reference import canonical_path
+from silva.core.references.utils import relative_path
+from silva.core.references.utils import is_inside_container
+from silva.core.references.utils import canonical_path
 from silva.core.references.widgets import ReferenceInfoResolver
 
 
@@ -123,11 +123,10 @@ class ReferencesSolver(object):
 
     def resolve(self, path):
         if path:
-            root = self.__info.importRoot()
             imported_path = self.__info.getImportedPath(canonical_path(path))
             if imported_path is not None:
                 path = map(str, imported_path.split('/'))
-                target = root.unrestrictedTraverse(path)
+                target = self.__info.root.unrestrictedTraverse(path)
                 self.__contents.append(target)
             # else: XXX : report this failure
         self.__expected -= 1
@@ -180,7 +179,7 @@ class ReferenceValidator(Validator):
         settings = producer.getHandler().getSettings()
         if settings.externalRendering():
             return
-        root = settings.getExportRoot()
+        root = producer.getHandler().getInfo().root
         if not len(value):
             return
         producer.startPrefixMapping(None, NS_REFERENCES)

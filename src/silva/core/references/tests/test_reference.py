@@ -8,7 +8,7 @@ from zope import component
 
 from Products.Silva.testing import FunctionalLayer
 
-from silva.core.references.reference import relative_path, canonical_path
+from silva.core.references.utils import relative_path, canonical_path
 from silva.core.references.interfaces import IReferenceService
 
 
