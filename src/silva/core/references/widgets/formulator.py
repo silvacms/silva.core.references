@@ -29,7 +29,7 @@ from silva.core.references.utils import relative_path
 from silva.core.references.utils import is_inside_container
 from silva.core.references.utils import canonical_path
 from silva.core.references.widgets import ReferenceInfoResolver
-
+from silva.translations import translate as _
 
 class InterfaceValidator(Validator):
     """Formulator validator for an interface.
@@ -192,7 +192,9 @@ class ReferenceValidator(Validator):
                     producer.characters(canonical_path('/'.join(target_path)))
                     producer.endElement('path')
                 else:
-                    raise ExternalReferenceError(producer.context, target, root)
+                    raise ExternalReferenceError(
+                        _(u"External reference"),
+                        producer.context, target, root)
         producer.endPrefixMapping(None)
 
     def deserializeValue(self, field, value, context):
