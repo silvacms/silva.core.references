@@ -5,7 +5,6 @@
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.traversing.browser import absoluteURL
 
-from js.jqueryui import jqueryui
 
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
@@ -13,11 +12,11 @@ from silva.core.interfaces.adapters import IIconResolver
 from silva.core.references.reference import get_content_from_id
 from silva.core.references.reference import get_content_id
 from silva.core.views.interfaces import IVirtualSite
+from silva.ui.interfaces import ISilvaUIDependencies
 from silva.translations import translate as _
 
 
-class IReferenceUIResources(IDefaultBrowserLayer):
-    silvaconf.resource(jqueryui)
+class IReferenceUIResources(ISilvaUIDependencies):
     silvaconf.resource('reference-ui.js')
     silvaconf.resource('reference-ui.css')
 
@@ -47,7 +46,13 @@ class ReferenceInfoResolver(object):
     def get_content_path(self, content):
         return content.absolute_url_path()[len(self.root_path):] or '/'
 
-    def __call__(self, widget, context, value_id=_marker, interface=None, value=_marker):
+    def __call__(self,
+                 widget,
+                 context,
+                 value_id=_marker,
+                 interface=None,
+                 value=_marker,
+                 default_msg=_(u"No reference selected.")):
         widget.interface = interface
         widget.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
@@ -81,7 +86,7 @@ class ReferenceInfoResolver(object):
             widget.value_url = absoluteURL(value, self.request)
             widget.value_path = self.get_content_path(value)
         else:
-            widget.value_title = _(u'no reference selected')
+            widget.value_title = default_msg
 
 
 

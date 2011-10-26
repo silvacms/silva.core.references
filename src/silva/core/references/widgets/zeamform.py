@@ -13,6 +13,7 @@ from zeam.form.ztk.fields import registerSchemaField
 from silva.core.references.interfaces import IReference
 from silva.core.references.reference import get_content_id
 from silva.core.references.widgets import ReferenceInfoResolver
+from silva.translations import translate as _
 
 
 def register():
@@ -22,6 +23,7 @@ def register():
 class ReferenceSchemaField(SchemaField):
     """Reference field.
     """
+    referenceNotSetLabel = _("No reference selected.")
 
 
 class ReferenceWidgetInput(SchemaFieldWidget):
@@ -39,7 +41,9 @@ class ReferenceWidgetInput(SchemaFieldWidget):
 
         ReferenceInfoResolver(self.request)(
             self, self.form.context,
-            value_id=self.inputValue(), interface=interface_name)
+            value_id=self.inputValue(),
+            interface=interface_name,
+            default_msg=self.component.referenceNotSetLabel)
 
 
 class ReferenceWidgetDisplay(ReferenceWidgetInput):

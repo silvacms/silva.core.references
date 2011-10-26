@@ -124,7 +124,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
     return remote;
 };
 
-(function($) {
+(function(infrae, $) {
     // Top level add support
     $('.reference-dialog').live('load-smireferences', function (event, configuration) {
         var $popup = $(this);
@@ -219,9 +219,9 @@ var ReferencedRemoteObject = function($widget, suffix) {
             });
         });
     });
-})(jQuery);
+})(infrae, jQuery);
 
-(function($) {
+(function(infrae, $) {
 
     // Manager manages ContentList and Adder (named view in it).
     var Manager = function($popup, smi, id, configuration) {
@@ -740,18 +740,6 @@ var ReferencedRemoteObject = function($widget, suffix) {
             get_popup_template(url).done(function(popup) {
                 var $popup = $(popup);
 
-                // Create popup
-                $popup.dialog({
-                    autoOpen: false,
-                    modal: true,
-                    height: 500,
-                    width: 800,
-                    zIndex: 12000
-                });
-                $popup.bind('dialogclose', function() {
-                    $popup.remove();
-                });
-
                 var manager = new Manager(
                     $popup, smi, id,
                     {multiple: multiple,
@@ -793,15 +781,25 @@ var ReferencedRemoteObject = function($widget, suffix) {
                         $popup.dialog('close');
                     });
                 };
+                $popup.bind('dialogclose', function() {
+                    $popup.remove();
+                });
 
-                $popup.dialog('option', 'buttons', popup_buttons);
+                // Create popup
+                $popup.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    height: 500,
+                    width: 800,
+                    zIndex: 12000,
+                    buttons: popup_buttons
+                });
                 manager.open(url);
-                $popup.dialog('open');
+                infrae.ui.ShowDialog($popup);
             });
             return false;
         });
     });
 
-
-})(jQuery);
+})(infrae, jQuery);
 
