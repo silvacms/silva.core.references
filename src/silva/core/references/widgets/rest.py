@@ -34,8 +34,8 @@ class Items(UIREST):
     grok.require('silva.ReadSilvaContent')
     grok.name('silva.core.references.items')
 
-    def __init__(self, context, request):
-        super(Items, self).__init__(context, request)
+    def prepare(self):
+        # We cannot put this in the __init__ as we don't have the layer set yet
         self.intid = getUtility(IIntIds)
         self.get_icon = IIconResolver(self.request).get_content_url
 
@@ -63,6 +63,7 @@ class Items(UIREST):
         return details
 
     def GET(self, intid=None, interface=None):
+        self.prepare()
         if intid is not None:
             try:
                 content = self.intid.getObject(int(intid))
@@ -91,6 +92,7 @@ class ContainerItems(Items):
     grok.context(interfaces.IContainer)
 
     def get_context_details(self, require):
+        self.prepare()
         details = super(ContainerItems, self).get_context_details(require)
         for provider in (self.context.get_ordered_publishables,
                          self.context.get_non_publishables):
@@ -107,6 +109,7 @@ class ParentItems(Items):
     grok.name('silva.core.references.parents')
 
     def GET(self):
+        self.prepare()
         details = []
         content = self.context
         while content and not interfaces.IRoot.providedBy(content):

@@ -2,7 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.traversing.browser import absoluteURL
 
 
