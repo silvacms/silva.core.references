@@ -358,7 +358,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                             value: 'Save'});
                         smi.ajax.query(form_url, values).pipe(function (data) {
                             // The add form redirect on success.
-                            if (infrae.interfaces.isImplementedBy('redirect', data)) {
+                            if (infrae.interfaces.is_implemented_by('redirect', data)) {
                                 go_back_action();
                             } else {
                                 render_form(data);
