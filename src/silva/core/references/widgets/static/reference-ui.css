@@ -61,48 +61,48 @@ div.reference-dialog img.reference_add {
     cursor: pointer;
 }
 
-div.reference-dialog .content-list table {
+div.reference-dialog .listing table {
   clear: both;
   width: 100%;
   margin-bottom: 20px;
 }
 
-div.reference-dialog .content-list td {
+div.reference-dialog .listing td {
   font-size: 0.8em;
   padding: 3px 10px 3px 3px;
 }
 
-div.reference-dialog .content-list td {
+div.reference-dialog .listing td {
   vertical-align: middle;
 }
 
-div.reference-dialog .content-list tr:nth-child(even) {
+div.reference-dialog .listing tr:nth-child(even) {
   background-color: #f3f7fb;
 }
 
-div.reference-dialog .content-list tr.folderish td {
+div.reference-dialog .listing tr.folderish td {
   cursor: pointer;
   font-weight: bold;
 }
 
-div.reference-dialog .content-list td a, .content-list td a:visited{
+div.reference-dialog .listing td a, .listing td a:visited{
   color: black;
 }
 
-div.reference-dialog .content-list tr.folderish-hover td {
+div.reference-dialog .listing tr.folderish-hover td {
   background-color: #d2e5f9;
 }
 
-div.reference-dialog .content-list tr td {
+div.reference-dialog .listing tr td {
   line-height: 16px;
 }
 
-div.reference-dialog .content-list tr.current td {
+div.reference-dialog .listing tr.current td {
   border-bottom: 1px solid black;
   line-height: 32px;
 }
 
-div.reference-dialog .content-list tr.folderish-hover td.cell_title {
+div.reference-dialog .listing tr.folderish-hover td.cell_title {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
@@ -123,17 +123,17 @@ div.reference-dialog h3 {
   background-color: #efefef;
 }
 
-div.reference-dialog .content-list img.button {
+div.reference-dialog .listing img.button {
   cursor: pointer;
 }
 
-div.reference-dialog div.content-list-actions {
+div.reference-dialog div.listing-actions {
   line-height: 25px;
   height: 25px;
   min-height: 25px;
   margin-bottom: 3px;
 }
 
-div.reference-dialog div.content-list-actions select {
+div.reference-dialog div.listing-actions select {
   float: left;
 }

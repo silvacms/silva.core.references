@@ -16,7 +16,7 @@
     </div>
   </div>
   <div class="path-list"></div>
-  <div class="content-list">
+  <div class="listing content-list">
     <table class="source-list">
       <colgroup>
         <col width="26" />

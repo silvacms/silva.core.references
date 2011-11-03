@@ -414,6 +414,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
         var defaults = {'multiple' : true, 'selected': []};
 
         this.listElement = $('table.source-list tbody', this.element);
+        this.listElement.delegate('a.preview-icon', 'click', false);
         this.selectionElement = null;
 
         this.url = null;
@@ -423,6 +424,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
             // In case of multiple mode, show the selection-list
             var $selection = $('div.selection-list', this.element);
             this.selectionElement = $selection.find('tbody');
+            this.selectionElement.delegate('a.preview-icon', 'click', false);
 
             var selectionView = new ContentListSelectionView(
                 this.selectionElement, this);
@@ -461,14 +463,29 @@ var ReferencedRemoteObject = function($widget, suffix) {
                 this.parent = data.splice(parent_id, 1)[0];
             else
                 this.parent = null;
-            var view = new ContentListView(this.listElement, this);
-            view.render(data);
+            this.render(data);
             return {};
         }.scope(this));
     };
 
+    ContentList.prototype.render = function(data) {
+        $.each(data, function(index, entry) {
+            var child = new ContentListItem(
+                this, this.url + '/' + entry['id'], entry);
+            var childElement = $('<tr class="item" />');
+            childElement.attr('id', this.itemDomId(child));
+            childElement.data('smilisting', entry);
+            var childView = new ContentListItemView(childElement, child);
+            childView.render();
+            if (this.isSelected(child)) {
+                childView.disableSelectButton();
+            };
+            this.listElement.append(childElement);
+        }.scope(this));
+    };
+
     ContentList.prototype.itemDomId = function(item) {
-        return 'list-item-' + item.info['intid'];
+        return 'list-selection' + item.info['intid'];
     };
 
     ContentList.prototype._itemClicked = function(event, item) {
@@ -523,27 +540,6 @@ var ReferencedRemoteObject = function($widget, suffix) {
         return false;
     };
 
-    var ContentListView = function(element, contentList) {
-        this.contentList = contentList;
-        this.element = $(element);
-    };
-
-    ContentListView.prototype.render = function(data) {
-        $.each(data, function(index, entry) {
-            var child = new ContentListItem(
-                this.contentList,
-                this.contentList.url + '/' + entry['id'], entry);
-            var childElement = $('<tr />');
-            childElement.attr('id', this.contentList.itemDomId(child));
-            childElement.addClass(index % 2 ? "even" : "odd");
-            var childView = new ContentListItemView(childElement, child);
-            childView.render();
-            if (this.contentList.isSelected(child))
-                childView.disableSelectButton();
-            this.element.append(childElement);
-        }.scope(this));
-    };
-
     var ContentListSelectionView = function(element, contentList) {
         this.element = $(element);
         this.contentList = contentList;
@@ -572,8 +568,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
         return 'selection-item-' + item.info['intid'];
     };
 
-    var ContentListItem = function(
-        contentList, url, info) {
+    var ContentListItem = function(contentList, url, info) {
         this.contentList = contentList;
         this.url = url;
         this.info = info;
@@ -599,10 +594,9 @@ var ReferencedRemoteObject = function($widget, suffix) {
     ContentListItemView.prototype.render = function() {
         this.element.empty();
         var current = (this.item.info['id'] == '.');
-        var icon_cell = $('<td class="cell_icon" />');
+        var icon_cell = $('<td><a class="preview-icon"><ins class="icon"></ins></a></td>');
         var actions_cell = $('<td class="cell_actions" />');
         var id_cell = $('<td class="cell_id" />');
-        var $icon = $('<ins class="icon" />');
         var title_cell = $('<td class="cell_title" />');
         var link = null;
 
@@ -647,12 +641,11 @@ var ReferencedRemoteObject = function($widget, suffix) {
         link.text(this.item.info['title']);
         link.appendTo(title_cell);
 
-        infrae.ui.icon($icon, this.item.info['icon']);
-        $icon.appendTo(icon_cell);
+        infrae.ui.icon(icon_cell.find('ins'), this.item.info['icon']);
 
         icon_cell.appendTo(this.element);
-        title_cell.appendTo(this.element);
         id_cell.appendTo(this.element);
+        title_cell.appendTo(this.element);
         actions_cell.appendTo(this.element);
     };
 
