@@ -128,7 +128,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
     // Top level add support
     $('.reference-dialog').live('load-smireferences', function (event, configuration) {
         var $popup = $(this);
-        var $action = $popup.find('.content-list-action-add');
+        var $action = $popup.find('.content-actions');
         var $trigger = $action.find('a');
         var $select = $action.find('select');
         var empty = $select.html();
@@ -321,7 +321,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
 
     // Manage adding content
     var Adder = function($popup, smi, addable) {
-        var $content = $('<div />');
+        var $content = $('<div class="content-list" />');
         var $form = null;
         // Current add action and form_url
         var form_url = null;
@@ -412,19 +412,19 @@ var ReferencedRemoteObject = function($widget, suffix) {
         this.selectionIndex = {};
 
         var defaults = {'multiple' : true, 'selected': []};
+        var lists = $([]);
 
         this.listElement = $('table.source-list tbody', this.element);
-        this.listElement.delegate('a.preview-icon', 'click', false);
+        lists = lists.add(this.listElement);
         this.selectionElement = null;
 
-        this.url = null;
         this.options = $.extend(defaults, options);
 
         if (this.options.multiple === true) {
             // In case of multiple mode, show the selection-list
             var $selection = $('div.selection-list', this.element);
             this.selectionElement = $selection.find('tbody');
-            this.selectionElement.delegate('a.preview-icon', 'click', false);
+            lists = lists.add(this.selectionElement);
 
             var selectionView = new ContentListSelectionView(
                 this.selectionElement, this);
@@ -434,14 +434,29 @@ var ReferencedRemoteObject = function($widget, suffix) {
                 $.each(this.options['selected'], function(index, selected) {
                     var url = '++rest++silva.core.references.items';
                     $.getJSON(url, {'intid': selected}, function(entry) {
-                        var item = new ContentListItem(
-                            this, this.url + '/' + entry['id'], entry);
+                        var item = new ContentListItem(this, entry);
                         this.selectItem(item);
                     }.scope(this));
                 }.scope(this));
             };
             $selection.show();
         };
+
+        // Bind events on listings
+        lists.delegate('a.preview-icon', 'click', false);
+        lists.delegate('tr.folderish', 'mouseenter', function(event){
+            $(this).addClass('folderish-hover');
+        });
+        lists.delegate('tr.folderish', 'mouseleave', function(event){
+            $(this).removeClass('folderish-hover');
+        });
+        lists.delegate('tr.folderish', 'click', function(event) {
+            var $line = $(this);
+
+            // If you click a folderish line, we open it
+            $line.trigger('open-smireferences', {url: $line.data('smilisting').url});
+            return false;
+        });
     };
 
     ContentList.prototype.open = function(url) {
@@ -450,7 +465,6 @@ var ReferencedRemoteObject = function($widget, suffix) {
         if (this.referenceInterface) {
             options['data'] = {'interface': this.referenceInterface};
         };
-        this.url = url;
         this.listElement.empty();
 
         return $.ajax(options).pipe(function(data) {
@@ -470,8 +484,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
 
     ContentList.prototype.render = function(data) {
         $.each(data, function(index, entry) {
-            var child = new ContentListItem(
-                this, this.url + '/' + entry['id'], entry);
+            var child = new ContentListItem(this, entry);
             var childElement = $('<tr class="item" />');
             childElement.attr('id', this.itemDomId(child));
             childElement.data('smilisting', entry);
@@ -568,9 +581,8 @@ var ReferencedRemoteObject = function($widget, suffix) {
         return 'selection-item-' + item.info['intid'];
     };
 
-    var ContentListItem = function(contentList, url, info) {
+    var ContentListItem = function(contentList, info) {
         this.contentList = contentList;
-        this.url = url;
         this.info = info;
     };
 
@@ -592,39 +604,23 @@ var ReferencedRemoteObject = function($widget, suffix) {
     };
 
     ContentListItemView.prototype.render = function() {
-        this.element.empty();
         var current = (this.item.info['id'] == '.');
         var icon_cell = $('<td><a class="preview-icon"><ins class="icon"></ins></a></td>');
-        var actions_cell = $('<td class="cell_actions" />');
-        var id_cell = $('<td class="cell_id" />');
-        var title_cell = $('<td class="cell_title" />');
-        var link = null;
+        var actions_cell = $('<td />');
+        var id_cell = $('<td class="element-id" />');
+        var title_cell = $('<td />');
 
-        if (this.item.info['folderish'] && !current) {
-            this.element.addClass("folderish");
-            id_cell.append($('<a href="#">' + this.item.info['id'] + "</a>"));
-            link = $('<a href="#" />');
-            this.element.click(function(event){
-                this.item.contentList.element.trigger(
-                    'open-smireferences', {url: this.item.url});
-                return false;
-            }.scope(this));
-            this.element.hover(function(event){
-                // in
-                $(this).addClass('folderish-hover');
-            }, function(event){
-                // out
-                $(this).removeClass('folderish-hover');
-            });
+        if (current) {
+            this.element.addClass('current');
+            id_cell.text('current location');
         } else {
-            if (current) {
-                this.element.addClass('current');
-                id_cell.text('current location');
-            } else {
-                id_cell.text(this.item.info['id']);
-            }
-            link = $('<span />');
-        }
+            if (this.item.info['folderish']) {
+                this.element.addClass("folderish");
+            };
+            id_cell.text(this.item.info['id']);
+        };
+        title_cell.text(this.item.info['title']);
+        infrae.ui.icon(icon_cell.find('ins'), this.item.info['icon']);
 
         if (this.item.info['implements']) {
             var img = $('<img class="button reference_add"' +
@@ -635,13 +631,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                 return false;
             }.scope(this));
             actions_cell.append(img);
-        }
-
-        link.data('++rest++', this.item.info);
-        link.text(this.item.info['title']);
-        link.appendTo(title_cell);
-
-        infrae.ui.icon(icon_cell.find('ins'), this.item.info['icon']);
+        };
 
         icon_cell.appendTo(this.element);
         id_cell.appendTo(this.element);
@@ -655,12 +645,10 @@ var ReferencedRemoteObject = function($widget, suffix) {
     };
 
     SelectionContentListItemView.prototype.render = function() {
-        var icon_cell = $('<td class="cell-icon" />');
-        var actions_cell = $('<td class="cell-actions" />');
-        var id_cell = $('<td class="cell-id" />');
-        var $icon = $('<ins class="icon" />');
-        var title_cell = $('<td class="cell-title" />');
-        var link = $('<span />');
+        var icon_cell = $('<td><a class="preview-icon"><ins class="icon"></ins></a></td>');
+        var actions_cell = $('<td />');
+        var id_cell = $('<td />');
+        var title_cell = $('<td />');
 
         var removeButton = $('<img class="button reference_remove"' +
                              'src="++static++/silva.core.references.widgets/delete.png" />');
@@ -671,17 +659,12 @@ var ReferencedRemoteObject = function($widget, suffix) {
         actions_cell.append(removeButton);
 
         id_cell.text(this.item.info['path']);
-
-        link.data('++rest++', this.item.info);
-        link.text(this.item.info['title']);
-        link.appendTo(title_cell);
-
-        infrae.ui.icon($icon, this.item.info['icon']);
-        $icon.appendTo(icon_cell);
+        title_cell.text(this.item.info['title']);
+        infrae.ui.icon(icon_cell.find('ins'), this.item.info['icon']);
 
         icon_cell.appendTo(this.element);
-        title_cell.appendTo(this.element);
         id_cell.appendTo(this.element);
+        title_cell.appendTo(this.element);
         actions_cell.appendTo(this.element);
     };
 

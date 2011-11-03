@@ -16,16 +16,22 @@ a.reference-dialog-edit-link {
   width: 20px;
 }
 
-div.reference-dialog div.path-list {
-  height: 16px;
-  min-height: 16px;
-  line-height: 16px;
-  padding: 4px 0px 4px 2px;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
+/* Popup */
+div.reference-dialog div.content-list {
   clear: both;
+  border-top: 1px #999 solid;
+}
+div.reference-dialog div.content-actions {
+  float: right;
+  margin: 9px 0px;
 }
 
+/* Breadcrumb */
+div.reference-dialog div.path-list {
+  height: 32px;
+  line-height: 32px;
+  padding: 4px 0px 4px 2px;
+}
 div.reference-dialog span.separator {
   padding: 0px 3px 0px 3px;
 }
@@ -57,6 +63,8 @@ div.reference-dialog span.path-outer a img {
   margin-top: 4px;
 }
 
+
+/* Listing */
 div.reference-dialog img.reference_add {
     cursor: pointer;
 }
@@ -68,7 +76,7 @@ div.reference-dialog .listing table {
 }
 
 div.reference-dialog .listing td {
-  font-size: 0.8em;
+  font-size: 0.9em;
   padding: 3px 10px 3px 3px;
 }
 
@@ -92,17 +100,21 @@ div.reference-dialog .listing td a, .listing td a:visited{
 div.reference-dialog .listing tr.folderish-hover td {
   background-color: #d2e5f9;
 }
-
+div.reference-dialog .listing tr th {
+  text-align: left;
+  border-bottom: 1px #999 solid;
+  line-height: 24px;
+}
 div.reference-dialog .listing tr td {
   line-height: 16px;
 }
 
 div.reference-dialog .listing tr.current td {
-  border-bottom: 1px solid black;
-  line-height: 32px;
+  border-bottom: 1px solid #999;
+  line-height: 24px;
 }
 
-div.reference-dialog .listing tr.folderish-hover td.cell_title {
+div.reference-dialog .listing tr.folderish-hover td.element-id {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
@@ -132,8 +144,4 @@ div.reference-dialog div.listing-actions {
   height: 25px;
   min-height: 25px;
   margin-bottom: 3px;
-}
-
-div.reference-dialog div.listing-actions select {
-  float: left;
 }

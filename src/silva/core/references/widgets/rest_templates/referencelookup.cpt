@@ -1,19 +1,24 @@
 <div title="Lookup a content" class="ui-widget reference-dialog"
      i18n:domain="silva"
      i18n:attributes="title">
-  <div class="form-content content-list-actions">
-    <div class="content-list-action content-list-action-add">
-      <select>
-        <option value="" i18n:translate="">Select:</option>
-      </select>
-      <a class="form-button ui-state-default"
-         title="Add a new content in Silva to refer it"
-         i18n:attributes="title"
-         i18n:translate="">
-        <ins class="ui-icon ui-icon-plus" i18n:name="icon" />
-        Add
-      </a>
-    </div>
+  <div class="actions content-actions">
+    <ol>
+      <li>
+        <select>
+          <option value="" i18n:translate="">Select:</option>
+        </select>
+      </li>
+      <li>
+        <a class="last-action ui-state-default"
+           title="Add a new content in Silva to refer it"
+           i18n:attributes="title">
+          <div class="action-icon">
+            <ins class="ui-icon ui-icon-plus" i18n:name="icon" />
+          </div>
+          <span i18n:translate="">Add</span>
+        </a>
+      </li>
+    </ol>
   </div>
   <div class="path-list"></div>
   <div class="listing content-list">
@@ -24,6 +29,14 @@
         <col />
         <col width="26" />
       </colgroup>
+      <thead>
+        <tr>
+          <th />
+          <th i18n:translate="">Identifier</th>
+          <th i18n:translate="">Title</th>
+          <th />
+        </tr>
+      </thead>
       <tbody>
       </tbody>
     </table>
