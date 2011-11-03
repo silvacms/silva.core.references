@@ -1,4 +1,4 @@
-<form class="form-simple" name="#"
+<form class="form-content form-fields-container" name="#"
       tal:attributes="name view.prefix"
       i18n:domain="silva">
   <div class="form-content">

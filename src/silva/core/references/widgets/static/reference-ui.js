@@ -124,7 +124,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
     return remote;
 };
 
-(function(infrae, $) {
+(function(infrae, $, jsontemplate) {
     // Top level add support
     $('.reference-dialog').live('load-smireferences', function (event, configuration) {
         var $popup = $(this);
@@ -219,9 +219,9 @@ var ReferencedRemoteObject = function($widget, suffix) {
             });
         });
     });
-})(infrae, jQuery);
+})(infrae, jQuery, jsontemplate);
 
-(function(infrae, $) {
+(function(infrae, $, jsontemplate) {
 
     // Manager manages ContentList and Adder (named view in it).
     var Manager = function($popup, smi, id, configuration) {
@@ -342,7 +342,7 @@ var ReferencedRemoteObject = function($widget, suffix) {
                     $content.html(data.screen.forms);
                     $form = $content.children('form');
                     $form.attr('data-form-url', form_url);
-                    $form.trigger('load-smiform');
+                    $form.trigger('load-smiform', {form: $form, container: $form});
 
                     if (add_action !== null) {
                         $form.bind('submit', add_action);
@@ -801,5 +801,5 @@ var ReferencedRemoteObject = function($widget, suffix) {
         });
     });
 
-})(infrae, jQuery);
+})(infrae, jQuery, jsontemplate);
 

@@ -4,7 +4,6 @@
 
 from zope.traversing.browser import absoluteURL
 
-
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject, IVersion, IContainer
 from silva.core.interfaces.adapters import IIconResolver
