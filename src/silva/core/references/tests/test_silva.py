@@ -405,6 +405,37 @@ class SilvaReferenceDeletionTestCase(TestCase):
         self.assertEquals(list(self.service.get_references_to(target)), [])
         self.assertItemsEqual(self.root.pub.objectIds(), ['source', 'target'])
 
+    def test_delete_container_with_source_and_target_acquisition_bug(self):
+        """In that test we deleted the source and the target of a
+        relation in one shoot by deleting a container that contains
+        both of them. In addition, one level higher there is a folder
+        with the same content and the same id.
+
+        This is a regression bug for five.intid and resolving of deleting ids.
+        """
+        # Add reference.
+        reference = self.service.new_reference(
+            self.root.pub.folder.source, name=u"simple reference")
+        target = self.root.pub.folder.target
+        reference.set_target(target)
+
+        # Add content one level higher with the same ids
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory = self.root.folder.manage_addProduct['Silva']
+        factory.manage_addFile('target', 'Target')
+        factory.manage_addFile('source', 'Source')
+
+        self.assertEquals(
+            list(self.service.get_references_to(target)), [reference])
+        self.assertItemsEqual(
+            self.root.pub.objectIds(), ['folder', 'source', 'target'])
+
+        self.root.pub.manage_delObjects(['folder'],)
+
+        self.assertEquals(list(self.service.get_references_to(target)), [])
+        self.assertItemsEqual(self.root.pub.objectIds(), ['source', 'target'])
+
     def test_delete_source_if_delete_target(self):
         """In that test, we want to delete the source anyway if the
         target is deleted.
