@@ -71,11 +71,6 @@ class IDeleteSourceOnTargetDeletion(Interface):
     """
 
 
-class IContentScheduledForDeletion(Interface):
-    """Marker interface to say that this content will be deleted.
-    """
-
-
 class IReferenceService(ISilvaService):
     """Reference Service, used to manage references.
     """

@@ -2,7 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from OFS.interfaces import IObjectWillBeRemovedEvent
 from dolmen.relations.events import IRelationTargetDeletedEvent
 from dolmen.relations.events import RelationModifiedEvent
 from dolmen.relations.values import TaggedRelationValue
@@ -16,12 +15,12 @@ from silva.core.references.utils import is_inside_container
 from silva.core.references.utils import relative_path
 from silva.core.references.interfaces import (
     IReferenceValue, IWeakReferenceValue, IReference, IReferenceService,
-    IDeleteSourceOnTargetDeletion, IContentScheduledForDeletion)
+    IDeleteSourceOnTargetDeletion)
 
-from Acquisition import aq_parent
-from zExceptions import BadRequest
 from AccessControl import ClassSecurityInfo
+from Acquisition import aq_parent
 from App.class_init import InitializeClass
+from zExceptions import BadRequest
 import transaction
 
 
@@ -105,14 +104,16 @@ class ReferenceValue(TaggedRelationValue):
         """This method is called when the reference is removed. In any
         case, you should not consider to call this yourself.
         """
+        source = self.source    # Cache property
+        if source is None:      # Source is gone
+            return None
+        # The source have been marked for deletion or not
         if IDeleteSourceOnTargetDeletion.providedBy(self):
-            parent_of_source = aq_parent(self.source)
-            parent_of_source.manage_delObjects([self.source.getId(),])
-            return
-        # the source have been marked for deletion or not
-        if not IContentScheduledForDeletion.providedBy(self.source):
-            transaction.abort()
-            raise BrokenReferenceError(self)
+            parent_of_source = aq_parent(source)
+            parent_of_source.manage_delObjects([source.getId(),])
+            return source
+        transaction.abort()
+        raise BrokenReferenceError(self)
 
 
 InitializeClass(ReferenceValue)
@@ -124,10 +125,13 @@ class WeakReferenceValue(ReferenceValue):
     grok.implements(IWeakReferenceValue)
 
     def cleanup(self):
-        if IDeleteSourceOnTargetDeletion.providedBy(self):
-            parent_of_source = aq_parent(self.source)
-            parent_of_source.manage_delObjects([self.source.getId(),])
-            return
+        source = self.source    # Cache property
+        if source is not None:  # Source is not gone
+            if IDeleteSourceOnTargetDeletion.providedBy(self):
+                parent_of_source = aq_parent(source)
+                parent_of_source.manage_delObjects([source.getId(),])
+            return source
+        return None
 
 
 class ReferenceSet(object):
@@ -194,24 +198,6 @@ class BrokenReferenceError(BadRequest):
         self.reference = reference
 
 
-@grok.subscribe(ISilvaObject, IObjectWillBeRemovedEvent)
-def mark_content_to_be_deleted(content, event):
-    interface.alsoProvides(content, IContentScheduledForDeletion)
-
-
 @grok.subscribe(ISilvaObject, IRelationTargetDeletedEvent)
 def reference_target_deleted(content, event):
-    try:
-        event.relation.source
-    except KeyError:
-        # Due to a bug in five.intid we cannot retrieve the source
-        # anymore. It doesn't mean that it have been removed, it is
-        # just that the parent folder have already been removed from
-        # the tree, and so is not accessible anymore. five.intid fail
-        # traversing through it when it rebuild the acquisition chain
-        # to the object. Adding a KeyError to a try: except: in
-        # five.intid would help to fix this. In any of the following
-        # scenario it is still alright for us.
-        return
     event.relation.cleanup()
-
