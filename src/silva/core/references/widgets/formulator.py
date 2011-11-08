@@ -31,6 +31,7 @@ from silva.core.references.utils import canonical_path
 from silva.core.references.widgets import ReferenceInfoResolver
 from silva.translations import translate as _
 
+
 class InterfaceValidator(Validator):
     """Formulator validator for an interface.
     """
@@ -215,7 +216,8 @@ class ValueInfo(object):
 class BoundReferenceWidget(object):
     """Render a widget.
     """
-    template = ChameleonPageTemplate(filename='formulator_templates/reference_input.cpt')
+    template = ChameleonPageTemplate(
+        filename='formulator_templates/reference_input.cpt')
 
     def __init__(self, context, request, field, value):
         self.context = context
@@ -251,8 +253,10 @@ class BoundReferenceWidget(object):
                 self.values.append(info)
 
             resolver(self, self.context, interface=self.interface)
-            self.value = self.values and self.values[0].value
-            self.extra_values = map(attrgetter('value'), self.values and self.values[1:] or [])
+            self.value = self.values and self.values[0].value or None
+            self.extra_values = map(
+                attrgetter('value'),
+                self.values and self.values[1:] or [])
         else:
             resolver(self, self.context, value=value, interface=self.interface)
 
