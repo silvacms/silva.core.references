@@ -12,14 +12,12 @@ from Products.Formulator.adapters import FieldValueReader, _marker
 from Products.Formulator.Field import ZMIField
 from Products.Formulator.FieldRegistry import FieldRegistry
 from Products.Formulator.Validator import Validator
-from Products.Formulator.Widget import Widget, render_element
+from Products.Formulator.Widget import Widget
 from Products.Formulator.DummyField import fields
 
 from five import grok
 from megrok.chameleon.components import ChameleonPageTemplate
-from zope.component import queryUtility
 from zope.interface import Interface
-from zope.interface.interfaces import IInterface
 
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.errors import ExternalReferenceError
@@ -30,70 +28,6 @@ from silva.core.references.utils import is_inside_container
 from silva.core.references.utils import canonical_path
 from silva.core.references.widgets import ReferenceInfoResolver
 from silva.translations import translate as _
-
-
-class InterfaceValidator(Validator):
-    """Formulator validator for an interface.
-    """
-    property_names = Validator.property_names + [
-        'required']
-    message_names = Validator.message_names + [
-        'required_not_found', 'invalid_interface']
-
-    required = fields.CheckBoxField(
-        'required',
-        title='Required',
-        description=(
-            u"Checked if the field is required; the user has to fill in some "
-            u"data."),
-        default=1)
-
-    invalid_interface = u"Input is not a valid interface."
-    required_not_found = u"Input is required but no input given."
-
-    def validate(self, field, key, REQUEST):
-        value = REQUEST.get(key)
-        if value is None:
-            if field.get_value('required'):
-                self.raise_error('required_not_found', field)
-            return None
-        interface = queryUtility(IInterface, name=value.strip())
-        if interface is None:
-            self.raise_error('invalid_interface', field)
-        return interface
-
-
-class InterfaceWidget(Widget):
-
-    default = fields.InterfaceField(
-        'default',
-        title='Default',
-        description='default value',
-        default=None,
-        required=0)
-
-    def render(self, field, key, value, REQUEST):
-        """Render text input field.
-        """
-        kw = {'type': "text",
-              'name' : key,
-              'css_class' : field.get_value('css_class'),
-              'value' : value is not None and value.__identifier__ or "",
-              'size' : 20,
-              'id': field.generate_field_html_id(key)}
-        return render_element("input", **kw)
-
-
-class InterfaceField(ZMIField):
-    """Formulator field to select an interface.
-    """
-    meta_type = "InterfaceField"
-    widget = InterfaceWidget()
-    validator = InterfaceValidator()
-
-
-# This get initialized by Grok and register the formulator widget
-FieldRegistry.registerField(InterfaceField, 'www/BasicField.gif')
 
 NS_REFERENCES = "http://infrae.com/namespace/silva-references"
 
