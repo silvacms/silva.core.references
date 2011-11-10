@@ -1,10 +1,16 @@
 Changes
 =======
 
-2.3.4 (unreleased)
+3.0b1 (2011/11/10)
 ------------------
 
-- ...
+- Add a Formulator field for relations, that are used in Code Sources.
+
+- Fix some Aquisition bug edge-case.
+
+- Improve widget popup to work with ``silva.ui``, and have default SMI
+  feature (such as preview).
+
 
 2.3.3 (2010-02-07)
 ------------------

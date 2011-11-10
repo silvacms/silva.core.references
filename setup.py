@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '2.4dev'
+version = '3.0b1'
 
 tests_require = [
     'Products.Silva [test]',
@@ -33,14 +33,17 @@ setup(name='silva.core.references',
         'Products.Formulator',
         'dolmen.relations',
         'five.grok',
+        'five.intid',
         'infrae.rest',
-        'js.jqueryui',
         'setuptools',
+        'megrok.chameleon',
+        'megrok.pagetemplate',
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.services',
         'silva.core.views',
         'silva.translations',
+        'silva.ui',
         'zc.relation',
         'zeam.form.base',
         'zeam.form.silva',
