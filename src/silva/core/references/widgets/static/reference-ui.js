@@ -683,7 +683,7 @@ var ReferencedRemoteObject = (function($, infrae) {
 
     $(document).bind('load-smiplugins', function(event, smi) {
 
-        $('.reference-dialog-trigger').live('click', function() {
+        var create_reference_widget = function() {
             var $widget = $(this).parent('.reference-widget');
             var id = $widget.attr('id');
             var $value_input = $widget.find('#' + id + '-value');
@@ -725,8 +725,8 @@ var ReferencedRemoteObject = (function($, infrae) {
                      iface: $widget.find('#' + id + '-interface').val()});
 
                 if (multiple) {
-                    popup_buttons['Done'] = function(event){
-                        $.each($value_inputs, function(){
+                    popup_buttons['Done'] = function(event) {
+                        $.each($value_inputs, function() {
                             $(this).val('');
                         });
                         $widget.find('ul.multiple-references').empty();
@@ -743,7 +743,7 @@ var ReferencedRemoteObject = (function($, infrae) {
                             reference.render(item.info);
                         });
                         if ($value_inputs.length > 1) {
-                            $.each($value_inputs, function(){
+                            $.each($value_inputs, function() {
                                 var $input = $(this);
                                 if ($input.val() == '') {
                                     $input.remove();
@@ -776,7 +776,17 @@ var ReferencedRemoteObject = (function($, infrae) {
                 infrae.ui.ShowDialog($popup);
             });
             return false;
+        };
+
+        $('.form-fields-container').live('loadwidget-smiform', function(event) {
+            $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
+            event.stopPropagation();
         });
+
+        $(document).ready(function() {
+            $('.reference-dialog-trigger').bind('click', create_reference_widget);
+        });
+
     });
 
 })(infrae, jQuery, jsontemplate);
