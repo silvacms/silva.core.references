@@ -13,7 +13,7 @@
            title="Add a new content in Silva to refer it"
            i18n:attributes="title">
           <div class="action-icon">
-            <ins class="ui-icon ui-icon-plus" i18n:name="icon" />
+            <ins class="ui-icon ui-icon-plus" />
           </div>
           <span i18n:translate="">Add</span>
         </a>
