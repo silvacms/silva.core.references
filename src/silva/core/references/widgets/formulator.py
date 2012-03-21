@@ -7,17 +7,17 @@ import uuid
 
 from Acquisition import aq_parent
 import AccessControl
-from Products.Formulator.adapters import FieldValueWriter
-from Products.Formulator.adapters import FieldValueReader, _marker
+from zeam.form.silva.datamanager import FieldValueWriter
+from zeam.form.silva.datamanager import FieldValueReader
 from Products.Formulator.Field import ZMIField
 from Products.Formulator.FieldRegistry import FieldRegistry
 from Products.Formulator.Validator import Validator
 from Products.Formulator.Widget import Widget
 from Products.Formulator.DummyField import fields
 
-from five import grok
 from grokcore.chameleon.components import ChameleonPageTemplate
 from zope.interface import Interface
+from zeam import component
 
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.errors import ExternalReferenceError
@@ -28,6 +28,9 @@ from silva.core.references.utils import is_inside_container
 from silva.core.references.utils import canonical_path
 from silva.core.references.widgets import ReferenceInfoResolver
 from silva.translations import translate as _
+
+
+_marker = object()
 
 NS_REFERENCES = "http://infrae.com/namespace/silva-references"
 
@@ -269,54 +272,52 @@ FieldRegistry.registerField(ReferenceField, 'www/BasicField.gif')
 
 
 class ReferenceValueWriter(FieldValueWriter):
-    grok.adapts(ReferenceField, Interface)
+    component.adapts(ReferenceField, Interface)
 
-    def __init__(self, field, form):
-        self._field = field
-        self._content = form.get_content()
-        self._context = form.context
+    def __init__(self, *args):
+        super(ReferenceValueWriter, self).__init__(*args)
+        self.context = self.form.context
 
-    def erase(self):
-        if self._field.id in self._content.__dict__:
-            identifier = self._content.__dict__[self._field.id]
-            references = ReferenceSet(self._context, identifier)
+    def delete(self):
+        if self.identifier in self.content.__dict__:
+            identifier = self.content.__dict__[self.identifier]
+            references = ReferenceSet(self.context, identifier)
             references.set([])
-            del self._content.__dict__[self._field.id]
+            del self.content.__dict__[self.identifier]
 
     def __call__(self, value):
         if isinstance(value, ReferencesSolver):
             value.defer(self.__call__)
             return
-        if self._field.get_value('multiple'):
+        if self.field._field.get_value('multiple'):
             assert isinstance(value, list)
         else:
             assert ISilvaObject.providedBy(value)
             value = [value]
 
-        if self._field.id in self._content.__dict__:
-            identifier = self._content.__dict__[self._field.id]
+        if self.identifier in self.content.__dict__:
+            identifier = self.content.__dict__[self.identifier]
         else:
             identifier = unicode(uuid.uuid1())
-            self._content.__dict__[self._field.id] = identifier
-            self._content._p_changed = True
-        references = ReferenceSet(self._context, identifier)
+            self.content.__dict__[self.identifier] = identifier
+            self.content._p_changed = True
+        references = ReferenceSet(self.context, identifier)
         references.set(value)
 
 
 class ReferenceValueReader(FieldValueReader):
-    grok.adapts(ReferenceField, Interface)
+    component.adapts(ReferenceField, Interface)
 
-    def __init__(self, field, form):
-        self._field = field
-        self._content = form.get_content()
-        self._context = form.context
+    def __init__(self, *args):
+        super(ReferenceValueReader, self).__init__(*args)
+        self.context = self.form.context
 
-    def __call__(self):
-        if self._field.id in self._content.__dict__:
-            identifier = self._content.__dict__[self._field.id]
-            references = list(ReferenceSet(self._context, identifier))
+    def __call__(self, default=None):
+        if self.identifier in self.content.__dict__:
+            identifier = self.content.__dict__[self.identifier]
+            references = list(ReferenceSet(self.context, identifier))
             if len(references):
-                if self._field.get_value('multiple'):
+                if self.field._field.get_value('multiple'):
                     return references
                 return references[0]
-        return _marker
+        return default
