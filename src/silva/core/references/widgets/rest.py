@@ -182,7 +182,7 @@ class Adding(UIREST):
                 alsoProvides(request, IReferenceAddingUI)
                 factory = factory(self.context, request)
                 # Set parent for security check.
-                factory.__name__ = '/'.join((self.__name__, name))
+                factory.__name__ = name
                 factory.__parent__ = self
                 return factory
         return super(Adding, self).publishTraverse(request, name)

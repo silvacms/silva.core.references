@@ -127,19 +127,20 @@ var ReferencedRemoteObject = (function($, infrae) {
 })(jQuery, infrae);
 
 (function(infrae, $, jsontemplate) {
-    // Top level add support
-    $('.reference-dialog').live('load-smireferences', function (event, configuration) {
-        var $popup = $(this);
+
+    var widget = {plugins: {}};
+
+    widget.plugins.AddMenu = function($popup, manager) {
         var $action = $popup.find('.content-actions');
         var $trigger = $action.find('a');
         var $select = $action.find('select');
         var empty = $select.html();
-        var url = null;
+        var opened_url = null;
 
         var open = function() {
             var selected = $select.val();
-            if (selected) {
-                $popup.trigger('add-smireferences', {url: url, addable: selected});
+            if (selected && opened_url) {
+                manager.add(opened_url, selected);
             };
             return false;
         };
@@ -147,196 +148,208 @@ var ReferencedRemoteObject = (function($, infrae) {
         $trigger.bind('click', open);
         $select.bind('change', open);
 
-        $popup.bind('change-smireferences', function (event, data) {
+        manager.onchange.add(function (url) {
             // The selected container changed, update the add menu
-            url = data.url;
             var options = {
                 url: url + '/++rest++silva.core.references.addables',
                 dataType: 'json'
             };
-            if (configuration.iface !== undefined) {
-                options['data'] = {'interface': configuration.iface};
+            if (manager.configuration.iface !== undefined) {
+                options['data'] = {'interface': manager.configuration.iface};
             };
 
             $.ajax(options).done(function(addables) {
                 var options = [empty];
 
+                $action.toggle(addables.length !== 0);
                 for (var i=0, len=addables.length; i < len; i++) {
                     options.push('<option value="' + addables[i] + '">' + addables[i] + '</option>');
                 };
+                opened_url = url;
                 $select.html(options.join(''));
             });
         });
-    });
-
-    // Top level path breadcrumb
-    var breadcrumb_template = new jsontemplate.Template('<span class="path-outer"><span class="path-inner">{.section link}<a href="{url|html-attr-value}" title="{id|html-attr-value}">{short_title|html}</a>{.end}{.section last}<span class="last">{short_title|html}</span>{.end}</span>{.section separator}<span class="separator">&rsaquo;</span>{.end}</span>');
-
-    $('.reference-dialog').live('load-smireferences', function () {
-        var $popup = $(this);
-        var $breadcrumb = $popup.find('.path-list');
-
-        // Open a container if you click on it
-        $breadcrumb.delegate('a', 'click', function(event) {
-            $popup.trigger('open-smireferences', {url: $(event.target).attr('href')});
-            return false;
-        });
-
-        $popup.bind('change-smireferences', function (event, data) {
-            // The selected container changed, update the breadcrumb
-            $.ajax({
-                url: data.url + '/++rest++silva.core.references.parents',
-                dataType: 'json'
-            }).done(function(parents) {
-                var len = parents.length;
-                var max_items = 3;
-                var position = 1;
-                var parts = [];
-
-                var build = function(info, last) {
-                    return breadcrumb_template.expand({
-                        separator: !last,
-                        last: last && info,
-                        link: (!last) && info
-                    });
-                };
-
-                // First part
-                parts.push(build(parents[0], 1 == len));
-                // Skip some if there are lot of those
-                if (max_items != 0 && len > (max_items + 1)) {
-                    position = len - max_items;
-                    parts.push('<span class="path-outer">' +
-                               '<span class="path-inner">' +
-                               '<span class="path-fake">...</span>' +
-                               '</span>' +
-                               '<span class="separator">&rsaquo;</span>' +
-                               '</span>');
-                }
-                // Add the leftover
-                for(; position < len; position++) {
-                    parts.push(build(parents[position], position + 1 == len));
-                }
-                $breadcrumb.html(parts.join(''));
-            });
-        });
-    });
-})(infrae, jQuery, jsontemplate);
-
-(function(infrae, $, jsontemplate) {
-
-    // Manager manages ContentList and Adder (named view in it).
-    var Manager = function($popup, smi, id, configuration) {
-        // Load extensions
-        $popup.trigger('load-smireferences', configuration);
-
-        // Screen stack.
-        // stack: element 0 ContentList, element 1 Adder (if active)
-        // XXX this stack is not the best for this
-        var stack = [new ContentList($popup, smi, id, configuration)];
-        var actions = [];
-        var urls = [null];
-        var $current = $popup.find('.content-list');
-
-        // Open a url in a view
-        var open_url = function(view, url) {
-            return view.open(url).pipe(function (data) {
-                var index = urls.length - 1;
-                // The same url just have been added.
-                var added = index && urls[index] === null && urls[index - 1] == url;
-                if (added || (urls[index] !== url)) {
-                    urls[index] = url;
-                    if (!added) {
-                        $popup.trigger('change-smireferences', {url: url});
-                    };
-                }
-                return data;
-            });
-        };
-
-        // Add a new view to the stack
-        var new_view = function(view, url) {
-            stack.push(view);
-            urls.push(null);
-            return open_url(view, url).done(function (data) {
-                var $new = data.$content;
-
-                $new.hide();
-                $new.insertAfter($current);
-                $current.slideUp();
-                $new.slideDown();
-                $current = $new;
-
-                // Actions
-                actions.push($popup.dialog('option', 'buttons'));
-                $popup.dialog('option', 'buttons', data.actions);
-            });
-        };
-
-        var manager = {
-            add: function(url, addable) {
-                var adder;
-
-                if (stack.length < 2) {
-                    adder = Adder($popup, smi, addable);
-                    return new_view(adder, url);
-                };
-                adder = stack[1];
-                adder.update(addable);
-                return open_url(adder, url);
-            },
-            open: function(url) {
-                return open_url(stack[stack.length - 1], url);
-            },
-            back: function() {
-                if (stack.length > 1) {
-                    var $old  = $current.prev();
-
-                    $current.slideUp().promise(function () {$(this).remove();});
-                    $old.slideDown();
-
-                    $current = $old;
-                    $popup.dialog('option', 'buttons', actions.pop());
-                    stack.pop();
-
-                    // Always refresh (for added content)
-                    manager.open(urls.pop());
-                }
-            },
-            get_selection: function() {
-                return stack[0].selection;
-            }
-        };
-
-        // Bind events for extensions
-        $popup.bind('open-smireferences', function(event, data) {
-            manager.open(data.url);
-        });
-        $popup.bind('add-smireferences', function(event, data) {
-            manager.add(data.url, data.addable);
-        });
-        $popup.bind('back-smireferences', function(event, data) {
-            manager.back();
-        });
-        return manager;
     };
 
+    widget.plugins.Breadcrumbs = (function () {
+        // Top level path breadcrumb
+        var template = new jsontemplate.Template('<span class="path-outer"><span class="path-inner">{.section link}<a href="{url|html-attr-value}" title="{id|html-attr-value}">{short_title|html}</a>{.end}{.section last}<span class="last">{short_title|html}</span>{.end}</span>{.section separator}<span class="separator">&rsaquo;</span>{.end}</span>');
+        var max_items = 3;
+
+        return function($popup, manager) {
+            var $breadcrumb = $popup.find('.path-list');
+
+            // Open a container if you click on it
+            $breadcrumb.delegate('a', 'click', function(event) {
+                manager.open($(event.target).attr('href'));
+                return false;
+            });
+
+            manager.onchange.add(function (url) {
+                // The selected container changed, update the breadcrumb
+                $.ajax({
+                    url: url + '/++rest++silva.core.references.parents',
+                    dataType: 'json'
+                }).done(function(parents) {
+                    var len = parents.length;
+                    var position = 1;
+                    var parts = [];
+
+                    var build = function(info, last) {
+                        return template.expand({
+                            separator: !last,
+                            last: last && info,
+                            link: (!last) && info
+                        });
+                    };
+
+                    // First part
+                    parts.push(build(parents[0], 1 == len));
+                    // Skip some if there are lot of those
+                    if (max_items != 0 && len > (max_items + 1)) {
+                        position = len - max_items;
+                        parts.push('<span class="path-outer">' +
+                                   '<span class="path-inner">' +
+                                   '<span class="path-fake">...</span>' +
+                                   '</span>' +
+                                   '<span class="separator">&rsaquo;</span>' +
+                                   '</span>');
+                    }
+                    // Add the leftover
+                    for(; position < len; position++) {
+                        parts.push(build(parents[position], position + 1 == len));
+                    }
+                    $breadcrumb.html(parts.join(''));
+                });
+            });
+        };
+    })();
+
+    // Manager manages ContentList and Adder (named view in it).
+    widget.Manager = (function() {
+        var defaults = {multiple : true, selected: []};
+
+        return function($popup, configuration, smi) {
+            // Screen stack.
+            // stack: element 0 ContentList, element 1 Adder (if active)
+            // XXX this stack is not the best for this
+            var $current = undefined;
+            var stack = [];
+            var actions = [];
+            var urls = [null];
+            var manager = {
+                configuration: $.extend({}, defaults, configuration),
+                onchange: infrae.deferred.Callbacks(),
+                get_selection: function() {
+                    if (stack.length) {
+                        return stack[0].selection;
+                    };
+                    return undefined;
+                }
+            };
+
+            // Open a url in a view
+            var open_url = function(view, url) {
+                return view.open(url).pipe(function (data) {
+                    var index = urls.length - 1;
+                    // The same url just have been added.
+                    var added = index && urls[index] === null && urls[index - 1] == url;
+                    if (added || (urls[index] !== url)) {
+                        urls[index] = url;
+                        if (!added) {
+                            manager.onchange.invoke(manager, [url]);
+                        };
+                    }
+                    return data;
+                });
+            };
+
+            // Add a new view to the stack
+            var new_view = function(view, url) {
+                stack.push(view);
+                urls.push(null);
+                return open_url(view, url).done(function (data) {
+                    // Content
+                    if ($current !== undefined) {
+                        var $new = data.$content;
+                        if ($new !== undefined && $new !== $current) {
+                            $new.hide();
+                            $new.insertAfter($current);
+                            $current.slideUp();
+                            $new.slideDown();
+                            $current = $new;
+                        };
+                    } else {
+                        $current = data.$content;
+                    };
+
+                    // Actions
+                    if (data.actions !== undefined) {
+                        actions.push($popup.dialog('option', 'buttons'));
+                        $popup.dialog('option', 'buttons', data.actions);
+                    };
+                });
+            };
+
+            manager = $.extend(manager, {
+                add: function(url, addable) {
+                    var adder;
+
+                    if (stack.length < 2) {
+                        adder = Adder($popup, manager, smi, addable);
+                        return new_view(adder, url);
+                    };
+                    adder = stack[1];
+                    adder.update(addable);
+                    return open_url(adder, url);
+                },
+                list: function(url) {
+                    var listing;
+
+                    if (!stack.length) {
+                        listing = new ContentList($popup, manager, smi);
+                        return new_view(listing, url);
+                    };
+                    listing = stack[0];
+                    return open_url(listing, url);
+                },
+                open: function(url) {
+                    return open_url(stack[stack.length - 1], url);
+                },
+                back: function() {
+                    if (stack.length > 1) {
+                        var $old  = $current.prev();
+
+                        $current.slideUp().promise(function () {$(this).remove();});
+                        $old.slideDown();
+
+                        $current = $old;
+                        $popup.dialog('option', 'buttons', actions.pop());
+                        stack.pop();
+
+                        // Always refresh (for added content)
+                        manager.open(urls.pop());
+                    };
+                }
+            });
+
+            // Load extensions
+            for (var name in widget.plugins) {
+                widget.plugins[name]($popup, manager);
+            };
+            return manager;
+        };
+    })();
+
     // Manage adding content
-    var Adder = function($popup, smi, addable) {
+    var Adder = function($popup, manager, smi, addable) {
         var $content = $('<div class="content-list" />');
         var $form = null;
         // Current add action and form_url
         var form_url = null;
         var add_action = null;
 
-        var go_back_action = function () {
-            $popup.trigger('back-smireferences');
-        };
-
         return {
-            update: function(new_addable) {
-                addable = new_addable;
-            },
             open: function(url) {
                 form_url = url + '/++rest++silva.core.references.adding/' + addable;
 
@@ -361,7 +374,7 @@ var ReferencedRemoteObject = (function($, infrae) {
                         smi.ajax.query(form_url, values).pipe(function (data) {
                             // The add form redirect on success.
                             if (infrae.interfaces.is_implemented_by('redirect', data)) {
-                                go_back_action();
+                                manager.back();
                             } else {
                                 render_form(data);
                             };
@@ -373,13 +386,16 @@ var ReferencedRemoteObject = (function($, infrae) {
                     return {
                         $content: $content,
                         actions: {
-                            Back: go_back_action,
+                            Back: manager.back,
                             Add: add_action
                         }
                     };
                 };
 
                 return smi.ajax.query(form_url).pipe(render_form);
+            },
+            update: function(new_addable) {
+                addable = new_addable;
             }
         };
     };
@@ -404,23 +420,20 @@ var ReferencedRemoteObject = (function($, infrae) {
         return null;
     };
 
-    var ContentList = function(element, smi, widgetId, options) {
-        this.id = widgetId;
-        this.element = $(element);
-        this.referenceInterface = options.iface;
+    var ContentList = function($popup, manager, smi) {
+        this.element = $popup;
+        this.referenceInterface = manager.configuration.iface;
         this.parent = null;
         this.current = null;
         this.selection = [];
         this.selectionIndex = {};
 
-        var defaults = {'multiple' : true, 'selected': []};
         var lists = $([]);
 
         this.listElement = $('table.source-list tbody', this.element);
         lists = lists.add(this.listElement);
         this.selectionElement = null;
-
-        this.options = $.extend(defaults, options);
+        this.options = manager.configuration;
 
         if (this.options.multiple === true) {
             // In case of multiple mode, show the selection-list
@@ -453,10 +466,8 @@ var ReferencedRemoteObject = (function($, infrae) {
             $(this).removeClass('folderish-hover');
         });
         lists.delegate('tr.folderish', 'click', function(event) {
-            var $line = $(this);
-
             // If you click a folderish line, we open it
-            $line.trigger('open-smireferences', {url: $line.data('smilisting').url});
+            manager.open($(this).data('smilisting').url);
             return false;
         });
     };
@@ -480,7 +491,7 @@ var ReferencedRemoteObject = (function($, infrae) {
             else
                 this.parent = null;
             this.render(data);
-            return {};
+            return {$content: this.element.find('.content-list')};
         }.scope(this));
     };
 
@@ -686,9 +697,9 @@ var ReferencedRemoteObject = (function($, infrae) {
         var create_reference_widget = function() {
             var $widget = $(this).parent('.reference-widget');
             var id = $widget.attr('id');
+            var selected = [];
             var $value_input = $widget.find('#' + id + '-value');
             var $value_inputs = $widget.find('input[name="' + $value_input.attr('name') + '"]');
-            var selected = [];
             var multiple = $value_input.hasClass('field-multiple');
 
             // Collect selected values
@@ -706,7 +717,7 @@ var ReferencedRemoteObject = (function($, infrae) {
             };
 
             if (!$value_input.hasClass('field-required')) {
-                popup_buttons['Clear'] = function(){
+                popup_buttons['Clear'] = function() {
                     var reference = ReferencedRemoteObject($widget);
                     reference.clear();
                     $(this).dialog('close');
@@ -718,11 +729,12 @@ var ReferencedRemoteObject = (function($, infrae) {
             get_popup_template(url).done(function(popup) {
                 var $popup = $(popup);
 
-                var manager = new Manager(
-                    $popup, smi, id,
+                var manager = new widget.Manager(
+                    $popup,
                     {multiple: multiple,
                      selected: selected,
-                     iface: $widget.find('#' + id + '-interface').val()});
+                     iface: $widget.find('#' + id + '-interface').val()},
+                    smi);
 
                 if (multiple) {
                     popup_buttons['Done'] = function(event) {
@@ -772,7 +784,7 @@ var ReferencedRemoteObject = (function($, infrae) {
                     zIndex: 12000,
                     buttons: popup_buttons
                 });
-                manager.open(url);
+                manager.list(url);
                 infrae.ui.ShowDialog($popup);
             });
             return false;
