@@ -790,6 +790,11 @@ var ReferencedRemoteObject = (function($, infrae) {
             return false;
         };
 
+        $.fn.SMIReferenceLookup = function() {
+            $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
+            return this;
+        };
+
         $('.form-fields-container').live('loadwidget-smiform', function(event) {
             $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
             event.stopPropagation();
