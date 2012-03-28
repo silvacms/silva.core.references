@@ -25,6 +25,10 @@ class ReferenceSchemaField(SchemaField):
     """
     referenceNotSetLabel = _("No reference selected.")
 
+    def __init__(self, field):
+        super(ReferenceSchemaField, self).__init__(field)
+        self.schema = field.schema
+
 
 class ReferenceWidgetInput(SchemaFieldWidget):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
@@ -36,7 +40,7 @@ class ReferenceWidgetInput(SchemaFieldWidget):
     def update(self):
         super(ReferenceWidgetInput, self).update()
 
-        interface = self.component.get_field().schema
+        interface = self.component.schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
 
         ReferenceInfoResolver(self.request)(
