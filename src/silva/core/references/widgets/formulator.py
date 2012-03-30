@@ -98,18 +98,27 @@ class ReferenceValidator(Validator):
 
         def convert(identifier):
             try:
-                return get_content_from_id(identifier)
+                content =  get_content_from_id(identifier)
+                if ISilvaObject.providedBy(content):
+                    return content
+                return None
             except ValueError:
                 self.raise_error('invalid_value', field)
+
         if value:
             if multiple:
                 if not isinstance(value, list):
                     value = [value]
-                return map(convert, value)
-            return convert(value)
+                value = filter(lambda v: v is not None, map(convert, value))
+                if not len(value):
+                    return value
+            else:
+                value = convert(value)
+                if value is not None:
+                    return value
         if field.get_value('required'):
             self.raise_error('required_not_found', field)
-        return None
+        return value
 
     def serializeValue(self, field, value, producer):
         if not value:
