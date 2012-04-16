@@ -110,7 +110,7 @@ class ReferenceValidator(Validator):
                 if not isinstance(value, list):
                     value = [value]
                 value = filter(lambda v: v is not None, map(convert, value))
-                if not len(value):
+                if len(value):
                     return value
             else:
                 value = convert(value)
