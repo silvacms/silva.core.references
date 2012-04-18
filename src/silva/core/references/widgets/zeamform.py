@@ -43,11 +43,9 @@ class ReferenceWidgetInput(SchemaFieldWidget):
         interface = self.component.schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
 
-        ReferenceInfoResolver(self.request)(
-            self, self.form.context,
-            value_id=self.inputValue(),
-            interface=interface_name,
-            default_msg=self.component.referenceNotSetLabel)
+        resolver = ReferenceInfoResolver(self.request)
+        resolver.defaults(self, self.form.context, interface=interface_name)
+        resolver(self, value_id=self.inputValue(), default_msg=self.component.referenceNotSetLabel)
 
 
 class ReferenceWidgetDisplay(ReferenceWidgetInput):

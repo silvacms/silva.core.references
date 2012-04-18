@@ -44,17 +44,17 @@ class ReferenceInfoResolver(object):
     def get_content_path(self, content):
         return content.absolute_url_path()[len(self.root_path):] or '/'
 
-    def __call__(self,
-                 widget,
-                 context,
-                 value_id=_marker,
-                 interface=None,
-                 value=_marker,
-                 default_msg=_(u"No reference selected.")):
+    def defaults(self, widget, context, interface=None):
         widget.interface = interface
         widget.context_lookup_url = absoluteURL(
             get_lookup_content(context), self.request)
 
+    def __call__(self,
+                 widget,
+                 value_id=_marker,
+                 value=_marker,
+                 default_msg=_(u"No reference selected.")):
+        widget.value_id = None
         widget.value_url = None
         widget.value_title = None
         widget.value_icon = None
@@ -71,10 +71,10 @@ class ReferenceInfoResolver(object):
                     value = get_content_from_id(value_id)
                 else:
                     value = None
+            widget.value_id = value_id
         elif value is not _marker:
-            widget.value = get_content_id(value)
+            widget.value_id = get_content_id(value)
         else:
-            widget.value = None
             return
 
         # None as a icon, it is missing

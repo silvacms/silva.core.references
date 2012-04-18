@@ -2,7 +2,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from operator import attrgetter
 import uuid
 
 from Acquisition import aq_parent
@@ -186,25 +185,42 @@ class BoundReferenceWidget(object):
         self.css_class = ' '.join(css_class) or None
 
         self.value = None
-        self.reference = None
-        self.interface = field.get_interface()
+        self.value_id = None
+        self.extra_values = []
 
         resolver = ReferenceInfoResolver(self.request)
+        resolver.defaults(self, self.context, interface=field.get_interface())
 
         if self.multiple:
             self.values = []
-            for item in value or []:
+            # Support for one value list from the request (string are lists...).
+            if isinstance(value, basestring) or not isinstance(value, list):
+                if value:
+                    value = [value]
+                else:
+                    value = []
+            # Go through each value and prepare information
+            for item in value:
                 info = ValueInfo()
-                resolver(info, self.context, interface=self.interface, value=item)
+                if isinstance(item, (basestring, int)):
+                    resolver(info, value_id=item)
+                else:
+                    resolver(info, value=item)
                 self.values.append(info)
 
-            resolver(self, self.context, interface=self.interface)
-            self.value = self.values and self.values[0].value or None
-            self.extra_values = map(
-                attrgetter('value'),
-                self.values and self.values[1:] or [])
+            self.value = len(self.values) and self.values[0] or None
+            self.extra_values = len(self.values) and self.values[1:] or []
         else:
-            resolver(self, self.context, value=value, interface=self.interface)
+            # Prepare information
+            self.value = ValueInfo()
+            if isinstance(value, (basestring, int)):
+                resolver(self.value, value_id=value)
+            else:
+                resolver(self.value, value=value)
+
+        # Shortcut for template.
+        if self.value is not None:
+            self.value_id = self.value.value_id
 
     def default_namespace(self):
         return {'context': self.context,
@@ -221,19 +237,20 @@ class BoundReferenceWidget(object):
 class ReferenceWidget(Widget):
     """Widget to select a reference.
     """
-    property_names = Widget.property_names + ['interface', 'multiple']
+    property_names = Widget.property_names + [
+        'interface', 'multiple', 'default_msg']
 
     default = fields.ReferenceField(
         'default',
-        title='Default',
-        description='Default value (not supported, required by Formulator)',
+        title=u'Default',
+        description=u'Default value (not supported, required by Formulator).',
         default='',
         required=0)
 
     interface = fields.InterfaceField(
         'interface',
-        title='Interface',
-        description='Interface that selected contents must comply with.',
+        title=u'Interface',
+        description=u'Interface that selected contents must comply with.',
         default=ISilvaObject,
         required=1)
 
@@ -244,6 +261,14 @@ class ReferenceWidget(Widget):
                      u'of the reference'),
         default=0,
         required=1)
+
+    default_msg = fields.StringField(
+        'default_msg',
+        title=u'Default Message',
+        description=(u'Default message displayed to the user if '
+                     u'the field is empty.'),
+        default='',
+        required=0)
 
     def render(self, field, key, value, REQUEST):
         # REQUEST is None. So hack to find it again.
