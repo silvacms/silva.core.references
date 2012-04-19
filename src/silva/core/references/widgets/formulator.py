@@ -273,7 +273,7 @@ class ReferenceWidget(Widget):
     def render(self, field, key, value, REQUEST):
         # REQUEST is None. So hack to find it again.
         # The context of the form is the acquisition context of this form.
-        context = aq_parent(aq_parent(field))
+        context = aq_parent(field)
         if context is None:
             return u'<p>Not available.</p>'
         request = get_request()
