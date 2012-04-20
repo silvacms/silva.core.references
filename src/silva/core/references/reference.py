@@ -112,7 +112,6 @@ class ReferenceValue(TaggedRelationValue):
             parent_of_source = aq_parent(source)
             parent_of_source.manage_delObjects([source.getId(),])
             return source
-        transaction.abort()
         raise BrokenReferenceError(self)
 
 
