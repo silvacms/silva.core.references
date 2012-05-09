@@ -1,10 +1,11 @@
 Changes
 =======
 
-2.3.4 (unreleased)
+2.3.4 (2012-05-09)
 ------------------
 
-- ...
+- Port new KeyReference implementation from Silva 3.0. This fix
+  problems to due Acquisition when working with IntIds.
 
 2.3.3 (2010-02-07)
 ------------------
