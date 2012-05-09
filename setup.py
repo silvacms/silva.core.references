@@ -52,8 +52,9 @@ setup(name='silva.core.references',
       extras_require = {'test': tests_require,
                         'z3c.form': ['z3c.form']},
       entry_points="""
-      # -*- Entry points: -*-
       [zeam.form.components]
       references = silva.core.references.widgets.zeamform:register
+      [zodbupdate]
+      renames = silva.core.references:CLASS_CHANGES
       """,
       )

@@ -23,12 +23,21 @@ class IReferenceValue(ITaggedRelationValue):
         """
 
     def set_target_id(target_id):
-        """Set the target_id of the relation. It must be the an ID
-        given by get_content_id or an Int ID.
+        """Set the target_id of the relation. It must be an ID
+        given by get_content_id or an IntID.
         """
 
     def set_target(target):
         """Set the target content of the relation.
+        """
+
+    def set_source_id(source_id):
+        """Set the source_id of the relation. It must an ID given by
+        get_content_id or an IntID.
+        """
+
+    def set_source(source):
+        """Set the source content of the relation.
         """
 
     def is_target_inside_container(container):
@@ -59,11 +68,6 @@ class IWeakReferenceValue(IReferenceValue):
 class IDeleteSourceOnTargetDeletion(Interface):
     """Marker interface for ReferenceValue to indicate that if the
     relation target is deleted, so should the source.
-    """
-
-
-class IContentScheduledForDeletion(Interface):
-    """Marker interface to say that this content will be deleted.
     """
 
 
