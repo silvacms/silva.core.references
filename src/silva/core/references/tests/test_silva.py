@@ -365,10 +365,6 @@ class SilvaReferenceDeletionTestCase(TestCase):
             self.root.pub.source, name=u"simple reference")
         target = self.root.pub.folder.target
         reference.set_target(target)
-        # You can't break a reference you create in the same
-        # request. So we need to commit here in order to get the
-        # transaction.abort() working.
-        transaction.commit()
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
@@ -377,11 +373,6 @@ class SilvaReferenceDeletionTestCase(TestCase):
 
         self.assertRaises(
             BrokenReferenceError, self.root.pub.manage_delObjects, ['folder'])
-
-        self.assertEquals(
-            list(self.service.get_references_to(target)), [reference])
-        self.assertItemsEqual(
-            self.root.pub.objectIds(), ['folder', 'source', 'target'])
 
     def test_delete_container_with_source_and_target(self):
         """In that test we deleted the source and the target of a
