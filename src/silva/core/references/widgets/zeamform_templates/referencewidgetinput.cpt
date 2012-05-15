@@ -3,14 +3,15 @@
      tal:attributes="id id"
      i18n:domain="silva">
   <a class="open-screen reference-dialog-edit-link" rel="content"
-     title="Edit content"
+     title="Edit content" tabindex="-1"
      id="#" href="#"
      tal:attributes="id string:${id}-edit-link;
                      style widget.value_path or 'display: none';
                      href widget.value_path"
      i18n:attributes="title">
   </a>
-  <a class="reference-dialog-content" target="_blank" href="#" id="#"
+  <a class="reference-dialog-content" target="_blank" tabindex="-1"
+     href="#" id="#"
      tal:attributes="id string:${id}-link;
                      href widget.value_url">
     <img tal:condition="widget.value_icon"

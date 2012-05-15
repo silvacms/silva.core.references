@@ -4,14 +4,15 @@
   <tal:simple tal:condition="not view.multiple"
               tal:define="item view.value">
     <a class="open-screen reference-dialog-edit-link" rel="content"
-       title="Edit content"
+       title="Edit content" tabindex="-1"
        id="#" href="#"
        tal:attributes="id string:${view.id}-edit-link;
                        style item.value_path and '' or 'display: none';
                        href item.value_path"
        i18n:attributes="title">
     </a>
-    <a href="#" id="#" target="_blank" class="reference-dialog-content"
+    <a target="_blank" class="reference-dialog-content" tabindex="-1"
+       href="#" id="#"
        tal:attributes="id string:${view.id}-link;
                        href item.value_url">
       <img tal:condition="item.value_icon"
