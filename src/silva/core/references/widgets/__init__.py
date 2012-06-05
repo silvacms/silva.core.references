@@ -21,7 +21,7 @@ class IReferenceUIResources(ISilvaUIDependencies):
 
 def get_lookup_content(content):
     if IVersion.providedBy(content):
-        content = content.get_content()
+        content = content.get_silva_object()
     if (ISilvaObject.providedBy(content) and
         not IContainer.providedBy(content)):
         return content.get_container()
