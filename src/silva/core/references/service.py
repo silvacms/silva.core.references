@@ -70,8 +70,8 @@ class ReferenceService(SilvaService):
         content_id = get_content_id(content)
         return self.__create_reference(content_id, name=name, factory=factory)
 
-    def get_reference(self, content, name=None, add=False,
-            factory=ReferenceValue):
+    def get_reference(
+        self, content, name=None, add=False, factory=ReferenceValue):
         """Retrieve an existing reference.
         """
         content_id = get_content_id(content)

@@ -21,7 +21,6 @@ from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
 from App.class_init import InitializeClass
 from zExceptions import BadRequest
-import transaction
 
 
 def get_content_id(content):
