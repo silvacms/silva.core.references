@@ -269,6 +269,16 @@ class ReferenceWidget(Widget):
                      u'the field is empty.'),
         default='',
         required=0)
+    view_separator = fields.StringField(
+        'view_separator',
+        title='View separator',
+        description=(
+            "When called with render_view, this separator will be used to "
+            "render individual items."),
+        width=20,
+        default='<br />\n',
+        whitespace_preserve=1,
+        required=1)
 
     def render(self, field, key, value, REQUEST):
         # REQUEST is None. So hack to find it again.
@@ -284,6 +294,19 @@ class ReferenceWidget(Widget):
         widget = BoundReferenceWidget(context, request, field, value)
         return widget()
 
+    def render_view(self, field, value):
+
+        def render_value(value):
+            return value.get_title_or_id()
+
+        if not field.get_value('multiple'):
+            value = [value]
+
+        try:
+            separator = str(field.get_value('view_separator'))
+        except KeyError:
+            separator = '<br />\n'
+        return separator.join(map(render_value, value))
 
 
 class ReferenceField(ZMIField):
