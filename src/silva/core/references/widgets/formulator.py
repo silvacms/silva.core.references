@@ -3,6 +3,7 @@
 # $Id$
 
 import uuid
+import logging
 
 from Acquisition import aq_parent
 import AccessControl
@@ -30,6 +31,7 @@ from silva.translations import translate as _
 
 
 _marker = object()
+logger = logging.getLogger('silva.core.references')
 
 NS_REFERENCES = "http://infrae.com/namespace/silva-references"
 
@@ -46,30 +48,39 @@ class ReferencesSolver(object):
     """
 
     def __init__(self, producer):
-        self.__info = producer.getInfo()
-        self.__contents = []
-        self.__expected = 0
-        self.__deferreds = []
+        self._info = producer.getInfo()
+        self._contents = []
+        self._expected = 0
+        self._deferreds = []
 
-    def defer(self, callback):
-        self.__deferreds.append(callback)
+    def defer(self, callback, mode):
+        self._deferreds.append((callback, mode))
 
     def add(self, path):
-        self.__info.addAction(self.resolve, [path])
-        self.__expected += 1
+        self._info.addAction(self.resolve, [path])
+        self._expected += 1
 
     def resolve(self, path):
         if path:
-            imported_path = self.__info.getImportedPath(canonical_path(path))
+            imported_path = self._info.getImportedPath(canonical_path(path))
             if imported_path is not None:
                 path = map(str, imported_path.split('/'))
-                target = self.__info.root.unrestrictedTraverse(path)
-                self.__contents.append(target)
-            # else: XXX : report this failure
-        self.__expected -= 1
-        if not self.__expected:
-            for callback in self.__deferreds:
-                callback(self.__contents)
+                target = self._info.root.unrestrictedTraverse(path)
+                self._contents.append(target)
+            else:
+                logger.error('Could not resolve imported path %s.', path)
+        self._expected -= 1
+        if not self._expected:
+            for callback, mode in self._deferreds:
+                if mode:
+                    if self._contents:
+                        if len(self._contents) != 1:
+                            logger.error(
+                                u'Multiple references where only one '
+                                u'was expected.')
+                        callback(self._contents[0])
+                else:
+                    callback(self._contents)
 
 
 class ReferenceValidator(Validator):
@@ -344,10 +355,11 @@ class ReferenceValueWriter(FieldValueWriter):
             del self.content.__dict__[self.identifier]
 
     def __call__(self, value):
+        multiple = bool(self.field._field.get_value('multiple'))
         if isinstance(value, ReferencesSolver):
-            value.defer(self.__call__)
+            value.defer(self.__call__, not multiple)
             return
-        if self.field._field.get_value('multiple'):
+        if multiple:
             assert isinstance(value, list)
         else:
             assert ISilvaObject.providedBy(value)
