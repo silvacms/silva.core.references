@@ -120,14 +120,15 @@ class ReferenceValidator(Validator):
         return value
 
     def serializeValue(self, field, value, producer):
+        handler = producer.getHandler()
         if not value:
             return
-        settings = producer.getHandler().getSettings()
+        settings = handler.getSettings()
         if settings.externalRendering():
             return
-        root = producer.getHandler().getInfo().root
-        if not len(value):
-            return
+        if not bool(field.get_value('multiple')):
+            value = [value]
+        root = handler.getInfo().root
         producer.startPrefixMapping(None, NS_REFERENCES)
         for target in value:
             if value is not None:
