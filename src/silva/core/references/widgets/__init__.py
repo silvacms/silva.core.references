@@ -38,8 +38,7 @@ class ReferenceInfoResolver(object):
     def __init__(self, request):
         self.request = request
         self.get_icon_tag = IIconResolver(self.request).get_tag
-        root = IVirtualSite(self.request).get_root()
-        self.root_path = root.absolute_url_path()
+        self.root_path = IVirtualSite(self.request).get_root_path()
 
     def get_content_path(self, content):
         return content.absolute_url_path()[len(self.root_path):] or '/'
