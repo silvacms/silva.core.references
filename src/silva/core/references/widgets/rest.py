@@ -39,7 +39,8 @@ class Items(UIREST):
         self.intid = getUtility(IIntIds)
         self.get_icon = IIconResolver(self.request).get_content_url
 
-    def get_item_details(self, content, content_id=None, require=None):
+    def get_item_details(self, content, content_id=None, require=None,
+                         show_container_index=False):
         if content_id is None:
             content_id = content.getId()
         return {
@@ -54,7 +55,7 @@ class Items(UIREST):
             'title': content.get_title_or_id(),
             'short_title': content.get_short_title()}
 
-    def get_context_details(self, require):
+    def get_context_details(self, require, show_container_index=False):
         details = [self.get_item_details(
                 self.context, content_id='.', require=require)]
         if not interfaces.IRoot.providedBy(self.context):
@@ -62,7 +63,7 @@ class Items(UIREST):
                     aq_parent(self.context), content_id='..', require=require))
         return details
 
-    def GET(self, intid=None, interface=None):
+    def GET(self, intid=None, interface=None, show_container_index=False):
         self.prepare()
         if intid is not None:
             try:
@@ -83,7 +84,9 @@ class Items(UIREST):
         require = interfaces.ISilvaObject
         if interface is not None:
             require = getUtility(IInterface, name=interface)
-        return self.json_response(self.get_context_details(require=require))
+        return self.json_response(
+            self.get_context_details(require=require,
+                                     show_container_index=show_container_index))
 
 
 class ContainerItems(Items):
@@ -91,11 +94,22 @@ class ContainerItems(Items):
     """
     grok.context(interfaces.IContainer)
 
-    def get_context_details(self, require):
+    def index_provider(self):
+        try:
+            index = self.context._getOb('index')
+            yield index
+        except AttributeError:
+            raise StopIteration
+
+    def get_context_details(self, require, show_container_index=False):
         self.prepare()
         details = super(ContainerItems, self).get_context_details(require)
-        for provider in (self.context.get_ordered_publishables,
-                         self.context.get_non_publishables):
+        providers = [self.context.get_ordered_publishables,
+                     self.context.get_non_publishables]
+        if show_container_index:
+            providers.insert(0, self.index_provider)
+
+        for provider in providers:
             for content in provider():
                 if (require.providedBy(content) or
                     interfaces.IContainer.providedBy(content)):

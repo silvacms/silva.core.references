@@ -1,5 +1,4 @@
 
-
 /**
  * A referenced remote object.
  */
@@ -12,6 +11,7 @@ var ReferencedRemoteObject = (function($, infrae) {
         var identifier = $widget.attr('id');
         var url =  $widget.find('#' + identifier + '-base').val();
         var required_interface = $widget.find('#' + identifier + '-interface').val();
+        var show_container_index = $widget.find('#' + identifier + '-show_container_index').val();
         var $container = $widget.find('ul.multiple-references');
 
         if (suffix) {
@@ -84,6 +84,8 @@ var ReferencedRemoteObject = (function($, infrae) {
 
                 if (required_interface)
                     options['interface'] = required_interface;
+                if (show_container_index)
+                    options['show_container_index'] = 'true';
                 $.getJSON(url + '/++rest++silva.core.references.items', options, remote.render);
             },
             render: function(info) {
@@ -423,6 +425,7 @@ var ReferencedRemoteObject = (function($, infrae) {
     var ContentList = function($popup, manager, smi) {
         this.element = $popup;
         this.referenceInterface = manager.configuration.iface;
+        this.showContainerIndex = manager.configuration.show_container_index;
         this.parent = null;
         this.current = null;
         this.selection = [];
@@ -475,9 +478,15 @@ var ReferencedRemoteObject = (function($, infrae) {
     ContentList.prototype.open = function(url) {
         var options = {url: url + '/++rest++silva.core.references.items'};
 
+        options['data'] = {};
         if (this.referenceInterface) {
-            options['data'] = {'interface': this.referenceInterface};
-        };
+            options['data']['interface'] = this.referenceInterface;
+        }
+
+        if (this.showContainerIndex) {
+            options['data']['show_container_index'] = 'true';
+        }
+
         this.listElement.empty();
 
         return $.ajax(options).pipe(function(data) {
@@ -733,6 +742,7 @@ var ReferencedRemoteObject = (function($, infrae) {
                     $popup,
                     {multiple: multiple,
                      selected: selected,
+                     show_container_index: $widget.find('#' + id + '-show_container_index').val(),
                      iface: $widget.find('#' + id + '-interface').val()},
                     smi);
 

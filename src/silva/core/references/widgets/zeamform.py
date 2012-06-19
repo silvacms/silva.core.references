@@ -28,11 +28,16 @@ class ReferenceSchemaField(SchemaField):
     def __init__(self, field):
         super(ReferenceSchemaField, self).__init__(field)
         self.schema = field.schema
+        self.show_container_index = field.show_container_index
 
 
 class ReferenceWidgetInput(SchemaFieldWidget):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
     grok.name(str(INPUT))
+
+    @property
+    def show_container_index(self):
+        return self.component.show_container_index
 
     def valueToUnicode(self, value):
         return unicode(get_content_id(value))
