@@ -188,6 +188,8 @@ class BoundReferenceWidget(object):
         self.title = field.title()
         self.multiple = bool(field.get_value('multiple'))
         self.required = bool(field.get_value('required'))
+        self.show_container_index = bool(
+            field.get_value('show_container_index'))
 
         css_class = []
         if self.multiple:
@@ -250,7 +252,7 @@ class ReferenceWidget(Widget):
     """Widget to select a reference.
     """
     property_names = Widget.property_names + [
-        'interface', 'multiple', 'default_msg']
+        'interface', 'multiple', 'default_msg', 'show_container_index']
 
     default = fields.ReferenceField(
         'default',
@@ -271,6 +273,15 @@ class ReferenceWidget(Widget):
         title='Multiple',
         description=(u'If checked, multiple contents can be selected as target '
                      u'of the reference'),
+        default=0,
+        required=1)
+
+    show_container_index = fields.CheckBoxField(
+        'show_container_index',
+        title="Show containers index",
+        description=(u"Allows to select containers index as target. "
+                     u"In most cases it is not needed; choosing the container "
+                     u"itself is preferred."),
         default=0,
         required=1)
 

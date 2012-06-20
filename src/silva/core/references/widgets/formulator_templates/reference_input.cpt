@@ -55,6 +55,9 @@
                              value item.value_id" />
     </tal:repeat>
   </tal:multiple>
+  <input type="hidden" value="1" id="#"
+  	     tal:condition="view.show_container_index"
+  	     tal:attributes="id string:${view.id}-show_container_index" />
   <input type="hidden" value="#" id="#"
          tal:condition="view.interface"
          tal:attributes="id string:${view.id}-interface;
