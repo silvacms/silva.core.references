@@ -126,6 +126,12 @@ class ReferenceService(SilvaService):
         if reference is not None:
             del self.references[reference.__name__]
 
+    def delete_references(self, content, name=None):
+        """Lookup and remove a list of references.
+        """
+        for reference in list(self.get_references_from(content, name=name)):
+            del self.references[reference.__name__]
+
     def delete_reference_by_name(self, name):
         del self.references[name]
 

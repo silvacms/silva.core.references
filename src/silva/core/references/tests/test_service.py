@@ -80,16 +80,82 @@ class ServiceManageReferenceTestCase(unittest.TestCase):
         self.assertEqual(reference, None)
 
     def test_delete_reference(self):
-        """Add, search, remove and search a reference.
+        """Delete a given single reference.
         """
         reference = self.service.get_reference(
             self.root.folder, name=u'folder', add=True)
+        reference = self.service.get_reference(
+            self.root.folder, name=u'container', add=True)
         self.assertTrue(verifyObject(IReferenceValue, reference))
 
         self.service.delete_reference(self.root.folder, name=u"folder")
 
         searched_reference = self.service.get_reference(
             self.root.folder, name=u'folder')
+        self.assertEqual(searched_reference, None)
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'container')
+        self.assertTrue(verifyObject(IReferenceValue, searched_reference))
+
+    def test_delete_references(self):
+        """Delete multiple references knowing theirs initial tags.
+        """
+        reference = self.service.get_reference(
+            self.root.folder, name=u'folder', add=True)
+        reference = self.service.get_reference(
+            self.root.folder, name=u'container', add=True)
+        self.assertTrue(verifyObject(IReferenceValue, reference))
+
+        self.service.delete_references(self.root.folder, name=u"folder")
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'folder')
+        self.assertEqual(searched_reference, None)
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'container')
+        self.assertTrue(verifyObject(IReferenceValue, searched_reference))
+
+    def test_delete_references_tags(self):
+        """Delete multiple references knowing theirs extra tags.
+        """
+        reference = self.service.get_reference(
+            self.root.folder, name=u'folder', add=True)
+        reference.add_tag(u'common')
+        reference = self.service.get_reference(
+            self.root.folder, name=u'container', add=True)
+        reference.add_tag(u'common')
+        reference = self.service.get_reference(
+            self.root.folder, name=u'root', add=True)
+        self.assertTrue(verifyObject(IReferenceValue, reference))
+
+        self.service.delete_references(self.root.folder, name=u"common")
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'folder')
+        self.assertEqual(searched_reference, None)
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'container')
+        self.assertEqual(searched_reference, None)
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'root')
+        self.assertTrue(verifyObject(IReferenceValue, searched_reference))
+
+    def test_delete_references_all(self):
+        """Delete all references.
+        """
+        reference = self.service.get_reference(
+            self.root.folder, name=u'folder', add=True)
+        reference = self.service.get_reference(
+            self.root.folder, name=u'container', add=True)
+        self.assertTrue(verifyObject(IReferenceValue, reference))
+
+        self.service.delete_references(self.root.folder)
+
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'folder')
+        self.assertEqual(searched_reference, None)
+        searched_reference = self.service.get_reference(
+            self.root.folder, name=u'container')
         self.assertEqual(searched_reference, None)
 
     def test_set_reference_target(self):
