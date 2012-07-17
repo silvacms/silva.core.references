@@ -10,12 +10,11 @@ from zope.event import notify
 from zope.intid.interfaces import IIntIds
 from five import grok
 
-from silva.core.interfaces import ISilvaObject
+from silva.core.interfaces import ISilvaObject, IContainerManager
 from silva.core.references.utils import is_inside_container
 from silva.core.references.utils import relative_path
 from silva.core.references.interfaces import (
-    IReferenceValue, IWeakReferenceValue, IReference, IReferenceService,
-    IDeleteSourceOnTargetDeletion)
+    IReferenceValue, IWeakReferenceValue, IReference, IReferenceService)
 
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
@@ -111,11 +110,6 @@ class ReferenceValue(TaggedRelationValue):
         source = self.source    # Cache property
         if source is None:      # Source is gone
             return None
-        # The source have been marked for deletion or not
-        if IDeleteSourceOnTargetDeletion.providedBy(self):
-            parent_of_source = aq_parent(source)
-            parent_of_source.manage_delObjects([source.getId(),])
-            return source
         raise BrokenReferenceError(self)
 
 
@@ -130,10 +124,20 @@ class WeakReferenceValue(ReferenceValue):
     def cleanup(self):
         source = self.source    # Cache property
         if source is not None:  # Source is not gone
-            if IDeleteSourceOnTargetDeletion.providedBy(self):
-                parent_of_source = aq_parent(source)
-                parent_of_source.manage_delObjects([source.getId(),])
             return source
+        return None
+
+
+class DeleteSourceWeakReferenceValue(WeakReferenceValue):
+    """ This reference delete its source when the target is removed
+    """
+    def cleanup(self):
+        source = self.source
+        if source is not None:
+            source = source.get_silva_object()
+            parent = aq_parent(source)
+            with IContainerManager(parent).deleter() as deleter:
+                deleter(source)
         return None
 
 

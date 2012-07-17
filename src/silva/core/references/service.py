@@ -165,7 +165,8 @@ class ReferenceService(SilvaService):
             self.__create_reference(
                 clone_id,
                 target_id=clone_target_id,
-                tags=list(reference.tags))
+                tags=list(reference.tags),
+                factory=reference.__class__)
 
 
 class ListBrokenReference(silvaviews.ZMIView):

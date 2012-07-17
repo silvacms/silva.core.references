@@ -12,4 +12,6 @@ silvaconf.extension_system()
 CLASS_CHANGES = {
     'five.intid.keyreference KeyReferenceToPersistent':
         'silva.core.references.keyreference KeyReferenceToIItem',
+    'silva.core.references.interfaces IDeleteSourceOnTargetDeletion':
+        'zope.interface Interface',
     }

@@ -65,12 +65,6 @@ class IWeakReferenceValue(IReferenceValue):
     """
 
 
-class IDeleteSourceOnTargetDeletion(Interface):
-    """Marker interface for ReferenceValue to indicate that if the
-    relation target is deleted, so should the source.
-    """
-
-
 class IReferenceService(ISilvaService):
     """Reference Service, used to manage references.
     """
