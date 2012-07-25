@@ -10,7 +10,7 @@ from Products.Silva.testing import FunctionalLayer
 from zope import component
 from zope.interface.verify import verifyObject
 
-from silva.core.references.interfaces import IReferenceService, IReferenceValue
+from ..interfaces import IReferenceService, IReferenceValue
 
 
 class ServiceTestCase(unittest.TestCase):

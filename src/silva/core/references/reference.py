@@ -107,10 +107,9 @@ class ReferenceValue(TaggedRelationValue):
         """This method is called when the reference is removed. In any
         case, you should not consider to call this yourself.
         """
-        source = self.source    # Cache property
-        if source is None:      # Source is gone
-            return None
-        raise BrokenReferenceError(self)
+        if self.source is not None:
+            # Source is not gone
+            raise BrokenReferenceError(self)
 
 
 InitializeClass(ReferenceValue)
@@ -122,23 +121,20 @@ class WeakReferenceValue(ReferenceValue):
     grok.implements(IWeakReferenceValue)
 
     def cleanup(self):
-        source = self.source    # Cache property
-        if source is not None:  # Source is not gone
-            return source
-        return None
+        # We do nothing when cleaning this reference.
+        pass
 
 
-class DeleteSourceWeakReferenceValue(WeakReferenceValue):
+class DeleteSourceReferenceValue(WeakReferenceValue):
     """ This reference delete its source when the target is removed
     """
     def cleanup(self):
-        source = self.source
+        source = self.source    # Cache the property
         if source is not None:
             source = source.get_silva_object()
             parent = aq_parent(source)
             with IContainerManager(parent).deleter() as deleter:
                 deleter(source)
-        return None
 
 
 class ReferenceSet(object):

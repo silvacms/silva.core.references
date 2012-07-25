@@ -3,18 +3,17 @@
 # $Id$
 
 import unittest
-import transaction
 
 from Acquisition import aq_chain
 from Products.Silva.testing import FunctionalLayer, TestCase
 
-from zope import component, interface
+from zope import component
 from zope.interface.verify import verifyObject
 
-from silva.core.references.reference import BrokenReferenceError
-from silva.core.references.reference import WeakReferenceValue, DeleteSourceWeakReferenceValue
-from silva.core.references.reference import ReferenceSet, get_content_from_id
-from silva.core.references.interfaces import IReferenceService, IReferenceValue
+from ..reference import BrokenReferenceError
+from ..reference import WeakReferenceValue, DeleteSourceReferenceValue
+from ..reference import ReferenceSet, get_content_from_id
+from ..interfaces import IReferenceService, IReferenceValue
 
 
 class SilvaReferenceTestCase(unittest.TestCase):
@@ -432,7 +431,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
         """
         reference = self.service.new_reference(
             self.root.pub.source, name=u"simple reference",
-            factory=DeleteSourceWeakReferenceValue)
+            factory=DeleteSourceReferenceValue)
         target = self.root.pub.folder.target
         reference.set_target(target)
 
