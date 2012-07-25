@@ -14,6 +14,7 @@ from ..reference import BrokenReferenceError
 from ..reference import WeakReferenceValue, DeleteSourceReferenceValue
 from ..reference import ReferenceSet, get_content_from_id
 from ..interfaces import IReferenceService, IReferenceValue
+from ..interfaces import IDeleteSourceReferenceValue, IWeakReferenceValue
 
 
 class SilvaReferenceTestCase(unittest.TestCase):
@@ -434,6 +435,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
             factory=DeleteSourceReferenceValue)
         target = self.root.pub.folder.target
         reference.set_target(target)
+        self.assertTrue(verifyObject(IDeleteSourceReferenceValue, reference))
 
         self.assertEquals(
             list(self.service.get_references_to(target)), [reference])
@@ -452,6 +454,7 @@ class SilvaReferenceDeletionTestCase(TestCase):
             self.root.pub.source, name=u'weak ref', factory=WeakReferenceValue)
         target = self.root.pub.folder.target
         reference.set_target(target)
+        self.assertTrue(verifyObject(IWeakReferenceValue, reference))
 
         self.root.pub.folder.manage_delObjects(['target'])
 

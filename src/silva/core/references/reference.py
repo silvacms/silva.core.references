@@ -2,24 +2,26 @@
 # See also LICENSE.txt
 # $Id$
 
-from dolmen.relations.events import IRelationTargetDeletedEvent
-from dolmen.relations.events import RelationModifiedEvent
-from dolmen.relations.values import TaggedRelationValue
-from zope import component, interface, schema
-from zope.event import notify
-from zope.intid.interfaces import IIntIds
-from five import grok
-
-from silva.core.interfaces import ISilvaObject, IContainerManager
-from silva.core.references.utils import is_inside_container
-from silva.core.references.utils import relative_path
-from silva.core.references.interfaces import (
-    IReferenceValue, IWeakReferenceValue, IReference, IReferenceService)
-
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
 from App.class_init import InitializeClass
 from zExceptions import BadRequest
+
+from dolmen.relations.events import IRelationTargetDeletedEvent
+from dolmen.relations.events import RelationModifiedEvent
+from dolmen.relations.values import TaggedRelationValue
+from five import grok
+from zope import component, interface, schema
+from zope.event import notify
+from zope.intid.interfaces import IIntIds
+
+from silva.core.interfaces import ISilvaObject, IContainerManager
+
+from .utils import is_inside_container
+from .utils import relative_path
+from .interfaces import IReferenceValue
+from .interfaces import IWeakReferenceValue, IDeleteSourceReferenceValue
+from .interfaces import IReference, IReferenceService
 
 
 def get_content_id(content):
@@ -116,7 +118,7 @@ InitializeClass(ReferenceValue)
 
 
 class WeakReferenceValue(ReferenceValue):
-    """ This reference type do not enforce the relation to be kept
+    """ This reference type do not enforce the relation to be kept.
     """
     grok.implements(IWeakReferenceValue)
 
@@ -125,9 +127,11 @@ class WeakReferenceValue(ReferenceValue):
         pass
 
 
-class DeleteSourceReferenceValue(WeakReferenceValue):
-    """ This reference delete its source when the target is removed
+class DeleteSourceReferenceValue(ReferenceValue):
+    """ This reference delete its source when the target is removed.
     """
+    grok.implements(IDeleteSourceReferenceValue)
+
     def cleanup(self):
         source = self.source    # Cache the property
         if source is not None:

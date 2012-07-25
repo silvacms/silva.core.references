@@ -61,7 +61,14 @@ class IReferenceValue(ITaggedRelationValue):
 
 
 class IWeakReferenceValue(IReferenceValue):
-    """ This type of reference will just be deleted if the target is deleted
+    """ This type of reference will just be deleted without complains
+    if the target is deleted.
+    """
+
+
+class IDeleteSourceReferenceValue(IReferenceValue):
+    """ This type of reference will delete the source of the reference
+    if the target is deleted.
     """
 
 
