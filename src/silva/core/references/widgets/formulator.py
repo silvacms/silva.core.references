@@ -370,7 +370,9 @@ class ReferenceValueWriter(FieldValueWriter):
         if isinstance(value, ReferencesSolver):
             value.defer(self.__call__, not multiple)
             return
-        if multiple:
+        if value is None:
+            value = []
+        elif multiple:
             assert isinstance(value, list)
         else:
             assert ISilvaObject.providedBy(value)
