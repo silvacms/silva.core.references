@@ -14,7 +14,7 @@
     </div>
     <div class="form-body">
       <tal:repeat tal:repeat="widget view.fieldWidgets">
-        <div class="form-section ${widget.error and 'form-error' or ''}"
+        <div class="form-section ui-helper-clearfix ${widget.error and 'form-error' or ''}"
              data-field-prefix="#"
              tal:condition="widget.isVisible()"
              tal:attributes="data-field-prefix widget.identifier">
@@ -34,14 +34,16 @@
             </p>
           </div>
           <div class="form-field">
-            <div class="form-error-detail"
-                 tal:condition="widget.error">
-              <p tal:content="structure widget.error.title">
-                Validation error.
-              </p>
-            </div>
             <tal:widget tal:content="structure widget.render()" />
           </div>
+        <div class="form-error-message">
+          <div class="form-error-detail"
+               tal:condition="widget.error">
+            <p tal:content="structure widget.error.title">
+            Validation error.
+            </p>
+          </div>
+        </div>
         </div>
         <tal:hidden
            tal:condition="not widget.isVisible()"
