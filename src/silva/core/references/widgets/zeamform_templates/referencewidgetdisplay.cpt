@@ -1,6 +1,14 @@
 <div class="reference-widget" id="#"
      tal:define="id widget.htmlId()"
      tal:attributes="id id">
+  <a class="open-screen reference-dialog-edit-link" rel="content"
+     title="Edit content" tabindex="-1"
+     id="#" href="#"
+     tal:attributes="id string:${id}-edit-link;
+                     style widget.value_path or 'display: none';
+                     href widget.value_path"
+     i18n:attributes="title">
+  </a>
   <a href="#" id="#" target="_blank"
      tal:attributes="id string:${id}-link;
                      href widget.value_url">
