@@ -1,7 +1,7 @@
 
 (function(infrae, $, jsontemplate) {
 
-    // We use a LazyCallbacks to prevent browser to freeze in large folders.
+    // We use a LazyCallbacks to prevent the browser to freeze on large folders.
     var worker = infrae.deferred.LazyCallbacks();
 
     var ContentList = function($popup, manager, smi) {
