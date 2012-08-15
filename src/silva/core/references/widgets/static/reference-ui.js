@@ -46,16 +46,18 @@ var ReferencedRemoteObject = (function($, infrae) {
                 // Return title of the remote object
                 var data = remote.data();
 
-                if (data)
+                if (data) {
                     return data['title'];
+                };
                 return 'no reference selected';
             },
             url: function() {
                 // Return url of the remote object
                 var data = remote.data();
 
-                if (data)
+                if (data) {
                     return data['url'];
+                };
                 return '';
             },
             clear: function(reason) {
@@ -267,24 +269,12 @@ var ReferencedRemoteObject = (function($, infrae) {
             };
 
             // Add a new view to the stack
-            var new_view = function(view, url) {
+            var open_view = function(view, url) {
                 stack.push(view);
                 urls.push(null);
                 return open_url(view, url).done(function (data) {
-                    // Content
-                    if ($current !== undefined) {
-                        var $new = data.$content;
-                        if ($new !== undefined && $new !== $current) {
-                            $new.hide();
-                            $new.insertAfter($current);
-                            $current.slideUp();
-                            $new.slideDown();
-                            $current = $new;
-                        };
-                    } else {
-                        $current = data.$content;
-                    };
-
+                    // Insert the view.
+                    $current = data.insert($current);
                     // Actions
                     if (data.actions !== undefined) {
                         actions.push($popup.dialog('option', 'buttons'));
@@ -299,7 +289,7 @@ var ReferencedRemoteObject = (function($, infrae) {
 
                     if (stack.length < 2) {
                         adder = Adder($popup, manager, smi, addable);
-                        return new_view(adder, url);
+                        return open_view(adder, url);
                     };
                     adder = stack[1];
                     adder.update(addable);
@@ -310,7 +300,7 @@ var ReferencedRemoteObject = (function($, infrae) {
 
                     if (!stack.length) {
                         listing = new ContentList($popup, manager, smi);
-                        return new_view(listing, url);
+                        return open_view(listing, url);
                     };
                     listing = stack[0];
                     return open_url(listing, url);
@@ -347,27 +337,27 @@ var ReferencedRemoteObject = (function($, infrae) {
     var Adder = function($popup, manager, smi, addable) {
         var $content = $('<div class="content-list" />');
         var $form = null;
-        // Current add action and form_url
         var form_url = null;
-        var add_action = null;
+        var action = null;
 
         return {
             open: function(url) {
                 form_url = url + '/++rest++silva.core.references.adding/' + addable;
 
-                var render_form = function(data) {
+                var render = function(data) {
                     $content.html(data.screen.forms);
                     $form = $content.children('form');
                     $form.attr('data-form-url', form_url);
-                    $form.trigger('load-smiform', {form: $form, container: $form});
 
-                    if (add_action !== null) {
-                        $form.bind('submit', add_action);
+                    if (action !== null) {
+                        // The form changed, just rebind and reinitialize it.
+                        $form.bind('submit', action);
+                        $form.trigger('load-smiform', {form: $form, container: $form});
                         return {};
                     }
 
                     // First render, return the new content and the new actions
-                    add_action = function() {
+                    action = function() {
                         var values = $form.serializeArray();
                         // XXX Save action is kind of hardcoded ..
                         values.push({
@@ -378,23 +368,34 @@ var ReferencedRemoteObject = (function($, infrae) {
                             if (infrae.interfaces.is_implemented_by('redirect', data)) {
                                 manager.back();
                             } else {
-                                render_form(data);
+                                render(data);
                             };
                         });
                         return false;
                     };
-                    $form.bind('submit', add_action);
+                    $form.bind('submit', action);
 
                     return {
+                        insert: function($current) {
+                            // The form is inserted.
+                            if ($content !== $current) {
+                                $content.hide();
+                                $content.insertAfter($current);
+                                $current.slideUp();
+                                $content.slideDown();
+                            };
+                            $form.trigger('load-smiform', {form: $form, container: $form});
+                            return $content;
+                        },
                         $content: $content,
                         actions: {
                             Back: manager.back,
-                            Add: add_action
+                            Add: action
                         }
                     };
                 };
 
-                return smi.ajax.query(form_url).pipe(render_form);
+                return smi.ajax.query(form_url).pipe(render);
             },
             update: function(new_addable) {
                 addable = new_addable;
@@ -423,26 +424,25 @@ var ReferencedRemoteObject = (function($, infrae) {
     };
 
     var ContentList = function($popup, manager, smi) {
-        this.element = $popup;
+        this.$popup = $popup;
         this.referenceInterface = manager.configuration.iface;
         this.showContainerIndex = manager.configuration.show_container_index;
         this.parent = null;
         this.current = null;
+        this.options = manager.configuration;
+        this.elements = this.$popup.find('table.source-list tbody');
         this.selection = [];
         this.selectionIndex = {};
-
-        var lists = $([]);
-
-        this.listElement = $('table.source-list tbody', this.element);
-        lists = lists.add(this.listElement);
         this.selectionElement = null;
-        this.options = manager.configuration;
+
+        var listings = $([]);
+        listings = listings.add(this.elements);
 
         if (this.options.multiple === true) {
             // In case of multiple mode, show the selection-list
-            var $selection = $('div.selection-list', this.element);
+            var $selection = $('div.selection-list', this.$popup);
             this.selectionElement = $selection.find('tbody');
-            lists = lists.add(this.selectionElement);
+            listings = listings.add(this.selectionElement);
 
             var selectionView = new ContentListSelectionView(
                 this.selectionElement, this);
@@ -461,14 +461,14 @@ var ReferencedRemoteObject = (function($, infrae) {
         };
 
         // Bind events on listings
-        lists.delegate('a.preview-icon', 'click', false);
-        lists.delegate('tr.folderish', 'mouseenter', function(event){
+        listings.delegate('a.preview-icon', 'click', false);
+        listings.delegate('tr.folderish', 'mouseenter', function(event){
             $(this).addClass('folderish-hover');
         });
-        lists.delegate('tr.folderish', 'mouseleave', function(event){
+        listings.delegate('tr.folderish', 'mouseleave', function(event){
             $(this).removeClass('folderish-hover');
         });
-        lists.delegate('tr.folderish', 'click', function(event) {
+        listings.delegate('tr.folderish', 'click', function(event) {
             // If you click a folderish line, we open it
             manager.open($(this).data('smilisting').url);
             return false;
@@ -487,10 +487,10 @@ var ReferencedRemoteObject = (function($, infrae) {
             options['data']['show_container_index'] = 'true';
         }
 
-        this.listElement.empty();
+        this.elements.empty();
 
         return $.ajax(options).pipe(function(data) {
-            this.listElement.empty();
+            this.elements.empty();
             // get rid of '.' and '..'
             this.current = data[indexFromId(data, '.')];
             var parent_id = indexFromId(data, '..');
@@ -500,7 +500,12 @@ var ReferencedRemoteObject = (function($, infrae) {
             else
                 this.parent = null;
             this.render(data);
-            return {$content: this.element.find('.content-list')};
+            return {
+                $content: this.$popup.find('.content-list'),
+                insert: function($current) {
+                    return this.$content;
+                }
+            };
         }.scope(this));
     };
 
@@ -515,7 +520,7 @@ var ReferencedRemoteObject = (function($, infrae) {
             if (this.isSelected(child)) {
                 childView.disableSelectButton();
             };
-            this.listElement.append(childElement);
+            this.elements.append(childElement);
         }.scope(this));
     };
 
@@ -536,7 +541,7 @@ var ReferencedRemoteObject = (function($, infrae) {
     };
 
     ContentList.prototype.selectItem = function(item) {
-        this.element.trigger('selected-smireferences', [item]);
+        this.$popup.trigger('selected-smireferences', [item]);
         if (this.options.multiple) {
             var intid = item.info['intid'];
             this.select(item);
@@ -559,7 +564,7 @@ var ReferencedRemoteObject = (function($, infrae) {
         this.selection.splice(index, 1);
         delete this.selectionIndex[intid];
 
-        this.element.trigger('deselected-smireferences', [item]);
+        this.$popup.trigger('deselected-smireferences', [item]);
         var selview = new ContentListSelectionView(this.selectionElement, this);
         selview.removeSelectionItem(item);
         var listitemview = new ContentListItemView(
@@ -576,7 +581,7 @@ var ReferencedRemoteObject = (function($, infrae) {
     };
 
     var ContentListSelectionView = function(element, contentList) {
-        this.element = $(element);
+        this.$popup = $(element);
         this.contentList = contentList;
     };
 
@@ -585,7 +590,7 @@ var ReferencedRemoteObject = (function($, infrae) {
         var view = new SelectionContentListItemView(element, item);
         view.render();
         element.attr('id', this.itemDomId(item));
-        this.element.append(element);
+        this.$popup.append(element);
     };
 
     ContentListSelectionView.prototype.removeSelectionItem = function(item) {
@@ -593,7 +598,7 @@ var ReferencedRemoteObject = (function($, infrae) {
     };
 
     ContentListSelectionView.prototype.render = function(item) {
-        this.element.empty();
+        this.$popup.empty();
         for(var i=0; i < this.contentList.selection.length; i++) {
             this.appendSelectionItem(this.contentList.selection[i]);
         }
@@ -610,7 +615,7 @@ var ReferencedRemoteObject = (function($, infrae) {
 
     var ContentListItemView = function(element, item) {
         this.item = item;
-        this.element = $(element);
+        this.$popup = $(element);
     };
 
     ContentListItemView.prototype.disableSelectButton = function() {
@@ -622,8 +627,10 @@ var ReferencedRemoteObject = (function($, infrae) {
     };
 
     ContentListItemView.prototype.getSelectButton = function() {
-        return this.element.find('td.cell_actions .reference_add');
+        return this.$popup.find('td.cell_actions .reference_add');
     };
+
+    //var ContentListItemTemplate = new jsontemplate.Template('<tr><td><a class="preview-icon"><ins class="icon"></ins></a></td>  <td class="element-id">{id|html}</td></tr>');
 
     ContentListItemView.prototype.render = function() {
         var current = (this.item.info['id'] == '.');
@@ -633,11 +640,11 @@ var ReferencedRemoteObject = (function($, infrae) {
         var title_cell = $('<td />');
 
         if (current) {
-            this.element.addClass('current');
+            this.$popup.addClass('current');
             id_cell.text('current location');
         } else {
             if (this.item.info['folderish']) {
-                this.element.addClass("folderish");
+                this.$popup.addClass("folderish");
             };
             id_cell.text(this.item.info['id']);
         };
@@ -655,15 +662,15 @@ var ReferencedRemoteObject = (function($, infrae) {
             actions_cell.append(img);
         };
 
-        icon_cell.appendTo(this.element);
-        id_cell.appendTo(this.element);
-        title_cell.appendTo(this.element);
-        actions_cell.appendTo(this.element);
+        icon_cell.appendTo(this.$popup);
+        id_cell.appendTo(this.$popup);
+        title_cell.appendTo(this.$popup);
+        actions_cell.appendTo(this.$popup);
     };
 
     var SelectionContentListItemView = function(element, item) {
         this.item = item;
-        this.element = $(element);
+        this.$popup = $(element);
     };
 
     SelectionContentListItemView.prototype.render = function() {
@@ -684,10 +691,10 @@ var ReferencedRemoteObject = (function($, infrae) {
         title_cell.text(this.item.info['title']);
         infrae.ui.icon(icon_cell.find('ins'), this.item.info['icon']);
 
-        icon_cell.appendTo(this.element);
-        id_cell.appendTo(this.element);
-        title_cell.appendTo(this.element);
-        actions_cell.appendTo(this.element);
+        icon_cell.appendTo(this.$popup);
+        id_cell.appendTo(this.$popup);
+        title_cell.appendTo(this.$popup);
+        actions_cell.appendTo(this.$popup);
     };
 
     var popup_template = null;
@@ -817,4 +824,3 @@ var ReferencedRemoteObject = (function($, infrae) {
     });
 
 })(infrae, jQuery, jsontemplate);
-
