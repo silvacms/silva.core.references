@@ -52,8 +52,8 @@ class Items(UIREST):
             'icon': self.get_icon(content),
             'implements': require and require.providedBy(content) or False,
             'folderish': interfaces.IContainer.providedBy(content),
-            'title': content.get_title_or_id(),
-            'short_title': content.get_short_title()}
+            'title': content.get_title_or_id_editable(),
+            'short_title': content.get_short_title_editable()}
 
     def get_context_details(self, require, show_container_index=False):
         return [self.get_item_details(self.context, content_id='.', require=require)]
