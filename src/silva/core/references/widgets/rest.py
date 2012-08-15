@@ -56,12 +56,7 @@ class Items(UIREST):
             'short_title': content.get_short_title()}
 
     def get_context_details(self, require, show_container_index=False):
-        details = [self.get_item_details(
-                self.context, content_id='.', require=require)]
-        if not interfaces.IRoot.providedBy(self.context):
-            details.insert(0, self.get_item_details(
-                    aq_parent(self.context), content_id='..', require=require))
-        return details
+        return [self.get_item_details(self.context, content_id='.', require=require)]
 
     def GET(self, intid=None, interface=None, show_container_index=False):
         self.prepare()

@@ -13,7 +13,7 @@ if test "$?" != "0" ; then
     exit 1
 fi
 
-for file in $(find . -name '*.js' | grep -ve '\.min\.js$'); do
+for file in $(find . -name '*.js' | grep -vE '(\.|\-)min\.js$'); do
     echo "Compressing $file ..."
     $UGLIFYJS -nc -o $(echo $file | sed 's/\.js$/.min.js/') $file;
 done

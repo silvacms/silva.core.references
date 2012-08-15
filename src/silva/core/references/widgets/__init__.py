@@ -10,13 +10,18 @@ from silva.core.interfaces.adapters import IIconResolver
 from silva.core.references.reference import get_content_from_id
 from silva.core.references.reference import get_content_id
 from silva.core.views.interfaces import IVirtualSite
-from silva.ui.interfaces import ISilvaUIDependencies
+from silva.ui.interfaces import ISilvaUI
 from silva.translations import translate as _
 
 
-class IReferenceUIResources(ISilvaUIDependencies):
-    silvaconf.resource('reference-ui.js')
-    silvaconf.resource('reference-ui.css')
+class IReferenceUIResources(ISilvaUI):
+    silvaconf.resource('reference.object.js')
+    silvaconf.resource('reference.js')
+    silvaconf.resource('reference.listing.js')
+    silvaconf.resource('reference.adding.js')
+    silvaconf.resource('reference.plugins.adding.js')
+    silvaconf.resource('reference.plugins.breadcrumbs.js')
+    silvaconf.resource('reference.css')
 
 
 def get_lookup_content(content):

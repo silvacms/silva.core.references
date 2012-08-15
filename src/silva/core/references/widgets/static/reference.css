@@ -17,6 +17,11 @@ a.reference-dialog-edit-link {
 }
 
 /* Popup */
+
+div.reference-dialog {
+  /* overide jqueryUI here */
+  overflow-y: scroll !important;
+}
 div.reference-dialog div.content-list {
   clear: both;
   border-top: 1px #999 solid;
@@ -65,7 +70,7 @@ div.reference-dialog span.path-outer a img {
 
 
 /* Listing */
-div.reference-dialog img.reference_add {
+div.reference-dialog img.reference-add {
     cursor: pointer;
 }
 
@@ -75,9 +80,11 @@ div.reference-dialog .listing table {
   margin-bottom: 20px;
 }
 
-div.reference-dialog .listing td {
-  font-size: 0.9em;
-  padding: 3px 10px 3px 3px;
+div.reference-dialog .listing td.item-id,  div.reference-dialog .listing td.item-title{
+  font-size: 0.95em;
+  line-height: 24px;
+  padding: 0px 5px;
+  text-overflow: ellipsis;
 }
 
 div.reference-dialog .listing td {
@@ -114,7 +121,7 @@ div.reference-dialog .listing tr.current td {
   line-height: 24px;
 }
 
-div.reference-dialog .listing tr.folderish-hover td.element-id {
+div.reference-dialog .listing tr.folderish-hover td.item-id {
   background-image: url('folder_go.png');
   background-repeat: no-repeat;
   background-position: right center;
@@ -123,16 +130,6 @@ div.reference-dialog .listing tr.folderish-hover td.element-id {
 div.reference-dialog .selection-list {
   border-top: 1px solid black;
   display: none;
-}
-div.reference-dialog .selection-list table {
-  border-left: 2px solid #CCCCCC;
-}
-
-div.reference-dialog h3 {
-  padding-left: 10px;
-  color: black;
-  line-height: 24px;
-  background-color: #efefef;
 }
 
 div.reference-dialog .listing img.button {

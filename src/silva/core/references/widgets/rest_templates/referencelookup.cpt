@@ -40,18 +40,24 @@
       <tbody>
       </tbody>
     </table>
-    <div class="selection-list">
-      <h3>Selected items</h3>
-      <table>
-        <tbody>
-          <colgroup>
-            <col width="26" />
-            <col />
-            <col />
-            <col width="26" />
-          </colgroup>
-        </tbody>
-      </table>
-    </div>
+    <table class="selection-list">
+      <colgroup>
+        <col width="26" />
+        <col />
+        <col />
+        <col width="26" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th />
+          <th colspan="2" i18n:translate="">
+            Selected items
+          </th>
+          <th />
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
   </div>
 </div>
