@@ -89,20 +89,19 @@ class ContainerItems(Items):
     """
     grok.context(interfaces.IContainer)
 
-    def index_provider(self):
-        try:
-            index = self.context._getOb('index')
+    def index(self):
+        index = self.context._getOb('index', None)
+        if index is not None:
             yield index
-        except AttributeError:
-            raise StopIteration
 
     def get_context_details(self, require, show_container_index=False):
         self.prepare()
         details = super(ContainerItems, self).get_context_details(require)
-        providers = [self.context.get_ordered_publishables,
-                     self.context.get_non_publishables]
+        providers = []
         if show_container_index:
-            providers.insert(0, self.index_provider)
+            providers.append(self.index)
+        providers.extend([self.context.get_ordered_publishables,
+                          self.context.get_non_publishables])
 
         for provider in providers:
             for content in provider():
