@@ -40,7 +40,7 @@ class Items(UIREST):
         self.get_icon = IIconResolver(self.request).get_content_url
 
     def get_item_details(self, content, content_id=None, require=None,
-                         show_container_index=False):
+                         show_index=False):
         if content_id is None:
             content_id = content.getId()
         return {
@@ -55,10 +55,10 @@ class Items(UIREST):
             'title': content.get_title_or_id_editable(),
             'short_title': content.get_short_title_editable()}
 
-    def get_context_details(self, require, show_container_index=False):
+    def get_context_details(self, require, show_index=False):
         return [self.get_item_details(self.context, content_id='.', require=require)]
 
-    def GET(self, intid=None, interface=None, show_container_index=False):
+    def GET(self, intid=None, interface=None, show_index=False):
         self.prepare()
         if intid is not None:
             try:
@@ -81,7 +81,7 @@ class Items(UIREST):
             require = getUtility(IInterface, name=interface)
         return self.json_response(
             self.get_context_details(require=require,
-                                     show_container_index=show_container_index))
+                                     show_index=show_index))
 
 
 class ContainerItems(Items):
@@ -94,11 +94,11 @@ class ContainerItems(Items):
         if index is not None:
             yield index
 
-    def get_context_details(self, require, show_container_index=False):
+    def get_context_details(self, require, show_index=False):
         self.prepare()
         details = super(ContainerItems, self).get_context_details(require)
         providers = []
-        if show_container_index:
+        if show_index:
             providers.append(self.index)
         providers.extend([self.context.get_ordered_publishables,
                           self.context.get_non_publishables])

@@ -40,29 +40,39 @@ class ReferenceInfoResolver(object):
     object.
     """
 
-    def __init__(self, request):
+    def __init__(self, request, context, widget,
+                 multiple=False,
+                 message=_(u"No reference selected.")):
+        self.widget = widget
+        self.context = context
         self.request = request
+        self.multiple = multiple
+        self.message = message
         self.get_icon_tag = IIconResolver(self.request).get_tag
         self.root_path = IVirtualSite(self.request).get_root_path()
 
     def get_content_path(self, content):
         return content.absolute_url_path()[len(self.root_path):] or '/'
 
-    def defaults(self, widget, context, interface=None):
-        widget.interface = interface
-        widget.context_lookup_url = absoluteURL(
-            get_lookup_content(context), self.request)
+    def set_lookup_url(self, content):
+        self.widget.context_lookup_url = absoluteURL(
+            get_lookup_content(content), self.request)
 
-    def __call__(self,
-                 widget,
-                 value_id=_marker,
-                 value=_marker,
-                 default_msg=_(u"No reference selected.")):
-        widget.value_id = None
-        widget.value_url = None
-        widget.value_title = None
-        widget.value_icon = None
-        widget.value_path = None
+    def update(self, interface=None, show_index=False):
+        self.widget.show_index = show_index
+        self.widget.interface = interface
+        self.widget.default_message = self.message
+        if self.multiple:
+            self.set_lookup_url(self.context)
+
+    def add(self, value_id=_marker, value=_marker, sub_widget=_marker):
+        if sub_widget is _marker:
+            sub_widget = self.widget
+        sub_widget.value_id = None
+        sub_widget.value_url = None
+        sub_widget.value_title = None
+        sub_widget.value_icon = None
+        sub_widget.value_path = None
 
         if value_id is not _marker:
             try:
@@ -75,20 +85,26 @@ class ReferenceInfoResolver(object):
                     value = get_content_from_id(value_id)
                 else:
                     value = None
-            widget.value_id = value_id
+            sub_widget.value_id = value_id
         elif value is not _marker:
-            widget.value_id = get_content_id(value)
+            sub_widget.value_id = get_content_id(value)
         else:
+            if not self.multiple:
+                self.set_lookup_url(self.context)
             return
 
         # None as a icon, it is missing
-        widget.value_icon = self.get_icon_tag(value)
+        sub_widget.value_icon = self.get_icon_tag(value)
         if value is not None:
-            widget.value_title = value.get_title_or_id()
-            widget.value_url = absoluteURL(value, self.request)
-            widget.value_path = self.get_content_path(value)
+            sub_widget.value_title = value.get_title_or_id()
+            sub_widget.value_url = absoluteURL(value, self.request)
+            sub_widget.value_path = self.get_content_path(value)
+            if not self.multiple:
+                self.set_lookup_url(value)
         else:
-            widget.value_title = default_msg
+            sub_widget.value_title = self.message
+            if not self.multiple:
+                self.set_lookup_url(self.context)
 
 
 

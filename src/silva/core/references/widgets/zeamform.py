@@ -23,24 +23,25 @@ def register():
 class ReferenceSchemaField(SchemaField):
     """Reference field.
     """
+    referenceNotSetDisplayLabel = _("No reference selected.")
     referenceNotSetLabel = _("No reference selected.")
+    showIndex = False
 
     def __init__(self, field):
         super(ReferenceSchemaField, self).__init__(field)
         self.schema = field.schema
-        self.show_container_index = field.show_container_index
 
 
 class ReferenceWidgetInput(SchemaFieldWidget):
     grok.adapts(ReferenceSchemaField, Interface, Interface)
     grok.name(str(INPUT))
 
-    @property
-    def show_container_index(self):
-        return self.component.show_container_index
-
     def valueToUnicode(self, value):
         return unicode(get_content_id(value))
+
+    @property
+    def referenceLabel(self):
+        return self.component.referenceNotSetLabel
 
     def update(self):
         super(ReferenceWidgetInput, self).update()
@@ -48,13 +49,23 @@ class ReferenceWidgetInput(SchemaFieldWidget):
         interface = self.component.schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)
 
-        resolver = ReferenceInfoResolver(self.request)
-        resolver.defaults(self, self.form.context, interface=interface_name)
-        resolver(self, value_id=self.inputValue(), default_msg=self.component.referenceNotSetLabel)
+        resolver = ReferenceInfoResolver(
+            self.request, self.form.context, self,
+            multiple=False,
+            message=self.referenceLabel)
+        resolver.update(
+            interface=interface_name,
+            show_index=self.component.showIndex)
+        resolver.add(value_id=self.inputValue())
 
 
 class ReferenceWidgetDisplay(ReferenceWidgetInput):
     grok.name(str(DISPLAY))
+
+    @property
+    def referenceLabel(self):
+        return self.component.referenceNotSetDisplayLabel
+
 
 
 class ReferenceWidgetExtractor(WidgetExtractor):

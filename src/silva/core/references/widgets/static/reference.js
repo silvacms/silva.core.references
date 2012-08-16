@@ -26,7 +26,7 @@
             var manager = {
                 configuration: $.extend({}, {
                     multiple : true,
-                    index: false,
+                    show_index: false,
                     selected: []
                 }, configuration),
                 onchange: infrae.deferred.Callbacks()
@@ -158,7 +158,7 @@
                     $popup,
                     {multiple: multiple,
                      selected: selected,
-                     index: $widget.find('#' + id + '-show_container_index').val(),
+                     show_index: $widget.find('#' + id + '-show-index').val(),
                      iface: $widget.find('#' + id + '-interface').val()},
                     smi);
 

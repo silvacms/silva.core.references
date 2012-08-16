@@ -32,9 +32,10 @@ class RESTAddablesTestCase(unittest.TestCase):
         browser.login('author')
         browser.options.handle_errors = False
         self.assertEqual(
-            200,
-            browser.open('/root/folder/++rest++silva.core.references.addables',
-                query={'interface': 'silva.core.interfaces.content.IImage'}))
+            browser.open(
+                '/root/folder/++rest++silva.core.references.addables',
+                query={'interface': 'silva.core.interfaces.content.IImage'}),
+            200)
         self.assertEqual('application/json', browser.content_type)
         data = json.loads(browser.contents)
         self.assertTrue(isinstance(data, list))

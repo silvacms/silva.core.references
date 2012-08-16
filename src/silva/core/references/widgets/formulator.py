@@ -188,8 +188,6 @@ class BoundReferenceWidget(object):
         self.title = field.title()
         self.multiple = bool(field.get_value('multiple'))
         self.required = bool(field.get_value('required'))
-        self.show_container_index = bool(
-            field.get_value('show_container_index'))
 
         css_class = []
         if self.multiple:
@@ -202,8 +200,13 @@ class BoundReferenceWidget(object):
         self.value_id = None
         self.extra_values = []
 
-        resolver = ReferenceInfoResolver(self.request)
-        resolver.defaults(self, self.context, interface=field.get_interface())
+        resolver = ReferenceInfoResolver(
+            self.request, self.context, self,
+            multiple=self.multiple,
+            message=field.get_value('default_msg') or _(u"No content selected."))
+        resolver.update(
+            interface=field.get_interface(),
+            show_index=field.get_value('show_container_index'))
 
         if self.multiple:
             self.values = []
@@ -217,9 +220,9 @@ class BoundReferenceWidget(object):
             for item in value:
                 info = ValueInfo()
                 if isinstance(item, (basestring, int)):
-                    resolver(info, value_id=item)
+                    resolver.add(value_id=item, sub_widget=info)
                 else:
-                    resolver(info, value=item)
+                    resolver.add(value=item, sub_widget=info)
                 self.values.append(info)
 
             self.value = len(self.values) and self.values[0] or None
@@ -228,9 +231,9 @@ class BoundReferenceWidget(object):
             # Prepare information
             self.value = ValueInfo()
             if isinstance(value, (basestring, int)):
-                resolver(self.value, value_id=value)
+                resolver.add(value_id=value, sub_widget=self.value)
             else:
-                resolver(self.value, value=value)
+                resolver.add(value=value, sub_widget=self.value)
 
         # Shortcut for template.
         if self.value is not None:

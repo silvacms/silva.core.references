@@ -11,7 +11,12 @@
         this.$list = $popup.find('.content-list');
         this.$elements = this.$list.find('table.source-list tbody');
         this.options = manager.configuration;
-        this.selected = [].concat(this.options.selected); // keep a list of selected items
+        this.selected = []; // Keep a list of selected items.
+
+        for (var i=0, len=this.options.selected.length; i< len; i++) {
+            // Selected needs to be numbers, like they are in the JSON.
+            this.selected.push(+this.options.selected[i]);
+        };
 
         listings = listings.add(this.$elements);
 
@@ -22,15 +27,19 @@
             // Bind events on multiple management.
             $popup.bind('deselected-smireferences', function(event, item) {
                 // A content is unselected
-                var view = new ContentListItemView(item, true);
+                var view = new ContentListItemView(item, true),
+                    index = $.inArray(item.intid, self.selected);
                 view.find();
-                view.enable();
+                view.unselect();
+                if (index > -1) {
+                    self.selected.splice(index, 1);
+                };
             });
             $popup.bind('selected-smireferences', function(event, item) {
                 // A content is selected
                 var view = new ContentListItemView(item, false);
                 view.find();
-                view.disable();
+                view.select();
                 self.selected.push(item.intid);
             });
         };
@@ -66,8 +75,8 @@
         if (self.options.iface) {
             options.data['interface'] = self.options.iface;
         };
-        if (self.options.index) {
-            options.data['show_container_index'] = 'true';
+        if (self.options.show_index) {
+            options.data['show_index'] = 'true';
         };
 
         self.$elements.empty();
@@ -101,12 +110,13 @@
     // Render a list item
     var ContentListItemView = function(item, selected) {
         this.item = item;
-        this.id = item.id;
         this.$item = $([]);
+        this.id = item.id;
         if (item.id == '.') {
             this.id = 'current container';
         }
         this.htmlid = 'content-item-' + item['intid'];
+        this.selected = selected;
         this.selectable = this.item['implements'] && selected !== true;
     };
 
@@ -114,33 +124,43 @@
         this.$item = $('#' + this.htmlid);
     };
 
-    ContentListItemView.prototype.disable = function() {
+    ContentListItemView.prototype.select = function() {
         if (this.$item.length && this.selectable) {
             this.$item.find('td.actions').empty();
+            this.$item.addClass('selected');
             this.selectable = false;
+            this.selected = false;
         };
     };
 
-    ContentListItemView.prototype.enable = function() {
+    ContentListItemView.prototype.unselect = function() {
         if (this.$item.length &&!this.selectable) {
             this.$item.find('td.actions').html(
                 '<img class="button reference-add" src="++static++/silva.core.references.widgets/add.png" />');
+            this.$item.removeClass('selected');
             this.selectable = true;
+            this.selected = true;
         };
     };
 
-    var ContentListItemTemplate = new jsontemplate.Template('<tr class="item" id="{htmlid|html-attr-value}"><td><a class="preview-icon"><ins class="icon"></ins></a></td><td class="item-id">{id|html}</td><td class="item-title">{item.title|html}</td><td class="actions">{.section selectable}<img class="button reference-add" src="++static++/silva.core.references.widgets/add.png" />{.end}</td></tr>');
+    var ContentListItemTemplate = new jsontemplate.Template('<tr class="{classes|html-attr-value}" id="{htmlid|html-attr-value}"><td><a class="preview-icon"><ins class="icon"></ins></a></td><td class="item-id">{id|html}</td><td class="item-title">{item.title|html}</td><td class="actions">{.section selectable}<img class="button reference-add" src="++static++/silva.core.references.widgets/add.png" />{.end}</td></tr>');
 
     ContentListItemView.prototype.render = function() {
-        var $item = $(ContentListItemTemplate.expand(this));
+        var classes = ['item'],
+            $item;
 
         if (this.item.id == '.') {
-            $item.addClass('top');
+            classes.push('top');
         } else if (this.item.folderish) {
-            $item.addClass("folderish");
+            classes.push("folderish");
         };
-        infrae.ui.icon($item.find('ins.icon'), this.item.icon);
+        if (this.selected) {
+            classes.push('selected');
+        };
+        this.classes = classes.join(' ');
+        $item = $(ContentListItemTemplate.expand(this));
         $item.data('smilisting', this.item);
+        infrae.ui.icon($item.find('ins.icon'), this.item.icon);
         this.$item = $item;
         return $item;
     };

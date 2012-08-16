@@ -1,5 +1,6 @@
 <div class="reference-widget" id="#"
-     tal:attributes="id view.id"
+     tal:attributes="id view.id;
+                     data-reference-default-message view.default_message"
      i18n:domain="silva">
   <tal:simple tal:condition="not view.multiple"
               tal:define="item view.value">
@@ -56,8 +57,8 @@
     </tal:repeat>
   </tal:multiple>
   <input type="hidden" value="1" id="#"
-  	     tal:condition="view.show_container_index"
-  	     tal:attributes="id string:${view.id}-show_container_index" />
+         tal:condition="view.show_index"
+         tal:attributes="id string:${view.id}-show-index" />
   <input type="hidden" value="#" id="#"
          tal:condition="view.interface"
          tal:attributes="id string:${view.id}-interface;

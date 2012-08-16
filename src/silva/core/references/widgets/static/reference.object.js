@@ -12,7 +12,8 @@ var ReferencedRemoteObject = (function($, infrae) {
         var identifier = $widget.attr('id');
         var url =  $widget.find('#' + identifier + '-base').val();
         var required_interface = $widget.find('#' + identifier + '-interface').val();
-        var show_container_index = $widget.find('#' + identifier + '-show_container_index').val();
+        var show_index = $widget.find('#' + identifier + '-show-index').val();
+        var default_message = $widget.data('reference-default-message') || 'no reference selected.';
         var $container = $widget.find('ul.multiple-references');
 
         if (suffix) {
@@ -63,8 +64,9 @@ var ReferencedRemoteObject = (function($, infrae) {
             },
             clear: function(reason) {
                 // Clear all value related to the remote object
-                if (!reason)
-                    reason = 'no reference selected';
+                if (!reason) {
+                    reason = default_message;
+                };
 
                 $edit_link.hide();
                 $edit_link.attr('href', '#');
@@ -87,7 +89,7 @@ var ReferencedRemoteObject = (function($, infrae) {
 
                 if (required_interface)
                     options['interface'] = required_interface;
-                if (show_container_index)
+                if (show_index)
                     options['show_container_index'] = 'true';
                 $.getJSON(url + '/++rest++silva.core.references.items', options, remote.render);
             },

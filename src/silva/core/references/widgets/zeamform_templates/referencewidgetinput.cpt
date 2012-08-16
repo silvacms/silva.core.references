@@ -1,4 +1,5 @@
 <div class="reference-widget" id="#"
+     data-reference-default-message="${widget.default_message}"
      tal:define="id widget.htmlId()"
      tal:attributes="id id"
      i18n:domain="silva">
@@ -38,8 +39,8 @@
          tal:attributes="id string:${id}-interface;
                          value widget.interface" />
   <input type="hidden" value="1" id="#"
-  	     tal:condition="widget.show_container_index"
-  	     tal:attributes="id string:${id}-show_container_index" />
+         tal:condition="widget.show_index"
+         tal:attributes="id string:${id}-show-index" />
   <input type="hidden" value="#" id="#"
          tal:attributes="id string:${id}-base;
                          value widget.context_lookup_url" />

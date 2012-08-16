@@ -99,9 +99,12 @@ div.reference-dialog .listing tr.folderish td {
   cursor: pointer;
   font-weight: bold;
 }
-
-div.reference-dialog .listing td a, .listing td a:visited{
+div.reference-dialog .listing td a, div.reference-dialog .listing td a:visited{
   color: black;
+}
+div.reference-dialog .listing tr.selected td {
+  background-color:#4d96e6;
+  color:#fff;
 }
 
 div.reference-dialog .listing tr.folderish-hover td {

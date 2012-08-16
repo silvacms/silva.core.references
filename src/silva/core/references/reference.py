@@ -51,11 +51,6 @@ class Reference(schema.Object):
     interface.implements(IReference)
 
     missing_value = None
-    show_container_index = True
-
-    def __init__(self, schema, show_container_index=False, **options):
-        self.show_container_index = show_container_index
-        super(Reference, self).__init__(schema, **options)
 
     def _validate(self, value):
         # XXX No validation for the moment
