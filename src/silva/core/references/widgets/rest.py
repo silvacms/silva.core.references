@@ -7,24 +7,27 @@ import operator
 from Acquisition import aq_parent
 
 from five import grok
-from infrae.rest import RESTWithTemplate
-from silva.ui.rest import UIREST
-from silva.core import interfaces
-from silva.core.interfaces import IAddableContents
-from silva.core.interfaces.adapters import IIconResolver
-from silva.translations import translate as _
 from megrok import pagetemplate as pt
-from silva.ui.interfaces import ISilvaUI
-from zeam.form import silva as silvaforms
-
 from zope.component import queryUtility, getUtility
 from zope.component.interfaces import IFactory
 from zope.interface.interfaces import IInterface
 from zope.interface import alsoProvides
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser import absoluteURL
+from zope.cachedescriptors.property import Lazy
+
+from infrae.rest import RESTWithTemplate
+from silva.ui.rest import UIREST
+from silva.core import interfaces
+from silva.core.interfaces import IAddableContents
+from silva.core.interfaces.adapters import IIconResolver
+from silva.translations import translate as _
+from silva.ui.interfaces import ISilvaUI
+from zeam.form import silva as silvaforms
+
 
 from Products.Silva.ExtensionRegistry import meta_types_for_interface
+from zExceptions import NotFound
 
 
 class Items(UIREST):
@@ -80,8 +83,7 @@ class Items(UIREST):
         if interface is not None:
             require = getUtility(IInterface, name=interface)
         return self.json_response(
-            self.get_context_details(require=require,
-                                     show_index=show_index))
+            self.get_context_details(require=require, show_index=show_index))
 
 
 class ContainerItems(Items):
@@ -130,35 +132,6 @@ class ParentItems(Items):
         return self.json_response(details)
 
 
-class Addables(UIREST):
-    """ Return addables in folder
-    """
-    grok.context(interfaces.IContainer)
-    grok.name('silva.core.references.addables')
-
-    always_allow = [interfaces.IContainer]
-
-    def GET(self, interface=None):
-        allowed_meta_types = IAddableContents(self.context).get_authorized_addables()
-
-        if interface is not None:
-            required = getUtility(IInterface, name=interface)
-            ifaces = self.always_allow[:]
-            # dont append required if it more specific
-            # than one in always_allowed
-            for iface in ifaces:
-                if required.isOrExtends(iface):
-                    break
-            else:
-                ifaces.insert(0, required)
-
-            meta_types = set(reduce(operator.add,
-                                    map(meta_types_for_interface, ifaces)))
-            return self.json_response(list(meta_types.intersection(
-                        set(allowed_meta_types))))
-        return self.json_response(allowed_meta_types)
-
-
 class ReferenceLookup(RESTWithTemplate):
     """Return the lookup template.
     """
@@ -176,24 +149,55 @@ class IReferenceAddingUI(ISilvaUI):
 
 
 class Adding(UIREST):
-    """Add content in context of a reference lookup.
+    """Add content in context of a reference lookup, or list the
+    possible content you can add.
     """
     grok.context(interfaces.IContainer)
     grok.name('silva.core.references.adding')
     grok.require('silva.ChangeSilvaContent')
 
+    @Lazy
+    def addables(self):
+        return IAddableContents(self.context)
+
     def publishTraverse(self, request, name):
-        addables = IAddableContents(self.context).get_container_addables()
-        if name in addables:
-            factory = queryUtility(IFactory, name=name)
-            if factory is not None:
-                alsoProvides(request, IReferenceAddingUI)
-                factory = factory(self.context, request)
-                # Set parent for security check.
-                factory.__name__ = name
-                factory.__parent__ = self
-                return factory
+        if name not in ['GET']:
+            addables = self.addables.get_container_addables()
+            if name in addables:
+                factory = queryUtility(IFactory, name=name)
+                if factory is not None:
+                    alsoProvides(request, IReferenceAddingUI)
+                    factory = factory(self.context, request)
+                    # Set parent for security check.
+                    factory.__name__ = name
+                    factory.__parent__ = self
+                    return factory
+            raise NotFound()
         return super(Adding, self).publishTraverse(request, name)
+
+
+    always_allow = [interfaces.IContainer]
+
+    def GET(self, interface=None):
+        allowed_addables = self.addables.get_authorized_addables()
+
+        if interface is not None:
+            required = getUtility(IInterface, name=interface)
+            ifaces = self.always_allow[:]
+            # dont append required if it more specific
+            # than one in always_allowed
+            for iface in ifaces:
+                if required.isOrExtends(iface):
+                    break
+            else:
+                ifaces.insert(0, required)
+
+            meta_types = set(reduce(
+                    operator.add,
+                    map(meta_types_for_interface, ifaces)))
+            return self.json_response(
+                list(meta_types.intersection(set(allowed_addables))))
+        return self.json_response(allowed_addables)
 
 
 class ReferenceAddFormTemplate(pt.PageTemplate):

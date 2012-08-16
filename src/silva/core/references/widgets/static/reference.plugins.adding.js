@@ -23,7 +23,7 @@
             manager.onchange.add(function (url) {
                 // The selected container changed, update the add menu
                 var options = {
-                    url: url + '/++rest++silva.core.references.addables',
+                    url: url + '/++rest++silva.core.references.adding',
                     dataType: 'json'
                 };
                 if (manager.configuration.iface !== undefined) {
