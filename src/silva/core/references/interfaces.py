@@ -1,6 +1,6 @@
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 from dolmen.relations.interfaces import ITaggedRelationValue
 from silva.core.interfaces import ISilvaService
