@@ -1,4 +1,4 @@
-<div title="Lookup a content" class="ui-widget reference-dialog"
+<div title="Lookup an item" class="ui-widget reference-dialog"
      i18n:domain="silva"
      i18n:attributes="title">
   <div class="actions content-actions">
@@ -10,7 +10,7 @@
       </li>
       <li>
         <a class="last-action ui-state-default"
-           title="Add a new content in Silva to refer it"
+           title="Add a new item in Silva to refer it"
            i18n:attributes="title">
           <div class="action-icon">
             <ins class="ui-icon ui-icon-plus" />

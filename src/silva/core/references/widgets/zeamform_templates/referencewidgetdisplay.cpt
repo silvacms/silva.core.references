@@ -2,7 +2,7 @@
      tal:define="id widget.htmlId()"
      tal:attributes="id id">
   <a class="open-screen reference-dialog-edit-link" rel="content"
-     title="Edit content" tabindex="-1"
+     title="Edit item" tabindex="-1"
      id="#" href="#"
      tal:attributes="id string:${id}-edit-link;
                      style widget.value_path or 'display: none';

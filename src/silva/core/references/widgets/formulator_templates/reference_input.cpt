@@ -5,7 +5,7 @@
   <tal:simple tal:condition="not view.multiple"
               tal:define="item view.value">
     <a class="open-screen reference-dialog-edit-link" rel="content"
-       title="Edit content" tabindex="-1"
+       title="Edit item" tabindex="-1"
        id="#" href="#"
        tal:attributes="id string:${view.id}-edit-link;
                        style item.value_path and '' or 'display: none';
@@ -37,7 +37,7 @@
   </tal:multiple>
   <br clear="both" />
   <a class="form-button reference-dialog-trigger cke_dialog_ui_button"
-     title="Lookup a content in Silva"
+     title="Lookup an item in Silva"
      i18n:attributes="title">
     <span class="cke_dialog_ui_button"
           i18n:translate="">Lookup</span>

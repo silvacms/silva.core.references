@@ -4,7 +4,7 @@
      tal:attributes="id id"
      i18n:domain="silva">
   <a class="open-screen reference-dialog-edit-link" rel="content"
-     title="Edit content" tabindex="-1"
+     title="Edit item" tabindex="-1"
      id="#" href="#"
      tal:attributes="id string:${id}-edit-link;
                      style widget.value_path or 'display: none';
@@ -21,7 +21,7 @@
   </a>
   <br clear="both" />
   <a class="form-button reference-dialog-trigger ui-state-default"
-     title="Lookup a content in Silva"
+     title="Lookup an item in Silva"
      i18n:attributes="title"
      i18n:translate="">
     <ins class="ui-icon ui-icon-search"
