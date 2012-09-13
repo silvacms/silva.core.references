@@ -80,7 +80,7 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertIsInstance(browser.json, list)
             self.assertEqual(len(browser.json), 1)
             self.assertDictContainsSubset(
-                {'id': 'root', 'type': 'Silva Root', 'path': '/'},
+                {'id': 'root', 'type': 'Silva Root', 'path': '.'},
                 browser.json[0])
             self.assertEqual(
                 browser.open(
@@ -90,11 +90,11 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertIsInstance(browser.json, list)
             self.assertEqual(len(browser.json), 2)
             self.assertDictContainsSubset(
-                {'id': 'root', 'type': 'Silva Root', 'path': '/'},
+                {'id': 'root', 'type': 'Silva Root', 'path': '.'},
                 browser.json[0])
             self.assertDictContainsSubset(
                 {'id': 'folder', 'type': 'Silva Folder',
-                 'path': '/folder', 'title': 'Folder'},
+                 'path': 'folder', 'title': 'Folder'},
                 browser.json[1])
 
     def test_rest_list(self):
@@ -111,11 +111,11 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertIsInstance(browser.json, list)
             self.assertEqual(len(browser.json), 2)
             self.assertDictContainsSubset(
-                {'id': '.', 'type': 'Silva Root', 'path': '/'},
+                {'id': '.', 'type': 'Silva Root', 'path': '.'},
                 browser.json[0])
             self.assertDictContainsSubset(
                 {'id': 'folder', 'type': 'Silva Folder',
-                 'path': '/folder', 'title': 'Folder'},
+                 'path': 'folder', 'title': 'Folder'},
                 browser.json[1])
             # Folder
             self.assertEqual(
@@ -127,7 +127,7 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertEqual(len(browser.json), 1)
             self.assertDictContainsSubset(
                 {'id': '.', 'type': 'Silva Folder',
-                 'path': '/folder', 'title': 'Folder'},
+                 'path': 'folder', 'title': 'Folder'},
                 browser.json[0])
             # Object
             self.assertEqual(
@@ -139,7 +139,7 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertEqual(len(browser.json), 1)
             self.assertDictContainsSubset(
                 {'id': '.', 'type': 'Mockup VersionedContent',
-                 'path': '/index', 'title': 'Index'},
+                 'path': 'index', 'title': 'Index'},
                 browser.json[0])
 
     def test_rest_list_show_index(self):
@@ -158,15 +158,15 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertIsInstance(browser.json, list)
             self.assertEqual(len(browser.json), 3)
             self.assertDictContainsSubset(
-                {'id': '.', 'type': 'Silva Root', 'path': '/'},
+                {'id': '.', 'type': 'Silva Root', 'path': '.'},
                 browser.json[0])
             self.assertDictContainsSubset(
                 {'id': 'index', 'type': 'Mockup VersionedContent',
-                 'path': '/index', 'title': 'Index'},
+                 'path': 'index', 'title': 'Index'},
                 browser.json[1])
             self.assertDictContainsSubset(
                 {'id': 'folder', 'type': 'Silva Folder',
-                 'path': '/folder', 'title': 'Folder'},
+                 'path': 'folder', 'title': 'Folder'},
                 browser.json[2])
             # Folder
             self.assertEqual(
@@ -179,7 +179,7 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertEqual(len(browser.json), 1)
             self.assertDictContainsSubset(
                 {'id': '.', 'type': 'Silva Folder',
-                 'path': '/folder', 'title': 'Folder'},
+                 'path': 'folder', 'title': 'Folder'},
                 browser.json[0])
 
     def test_rest_list_content(self):
@@ -197,7 +197,7 @@ class RESTAddablesTestCase(unittest.TestCase):
             self.assertIsInstance(browser.json, dict)
             self.assertDictContainsSubset(
                 {'id': 'index', 'type': 'Mockup VersionedContent',
-                 'path': '/index', 'title': 'Index'},
+                 'path': 'index', 'title': 'Index'},
                 browser.json)
             # Broken content
             self.assertEqual(
