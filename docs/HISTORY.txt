@@ -1,10 +1,18 @@
 Changes
 =======
 
-3.0 (unreleased)
-----------------
+3.0c1 (2012/09/24)
+------------------
 
-- ...
+- Add a new reference type, ``DeleteSourceReferenceValue``, that
+  automatically delete the source of the reference of the target is
+  removed (so is the reference).
+
+- Improve reference selection widget.
+
+- Improve tests.
+
+- Fix bugs (non-required values).
 
 3.0b1 (2011/11/10)
 ------------------

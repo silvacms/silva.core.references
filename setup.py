@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '3.0dev'
+version = '3.0c1'
 
 tests_require = [
     'Products.Silva [test]',
@@ -37,10 +37,10 @@ setup(name='silva.core.references',
         'dolmen.relations',
         'five.grok',
         'five.intid',
-        'infrae.rest',
-        'setuptools',
         'grokcore.chameleon',
+        'infrae.rest',
         'megrok.pagetemplate',
+        'setuptools',
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.services',
@@ -48,9 +48,11 @@ setup(name='silva.core.references',
         'silva.translations',
         'silva.ui',
         'zc.relation',
+        'zeam.component',
         'zeam.form.base',
         'zeam.form.silva',
         'zeam.form.ztk',
+        'zope.cachedescriptors',
         'zope.component',
         'zope.event',
         'zope.interface',
@@ -58,6 +60,7 @@ setup(name='silva.core.references',
         'zope.lifecycleevent',
         'zope.publisher',
         'zope.schema',
+        'zope.site',
         'zope.traversing',
         ],
       tests_require = tests_require,
