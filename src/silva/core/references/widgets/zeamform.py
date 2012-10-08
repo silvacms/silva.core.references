@@ -16,10 +16,6 @@ from silva.core.references.widgets import ReferenceInfoResolver
 from silva.translations import translate as _
 
 
-def register():
-    registerSchemaField(ReferenceSchemaField, IReference)
-
-
 class ReferenceSchemaField(SchemaField):
     """Reference field.
     """
@@ -75,9 +71,14 @@ class ReferenceWidgetExtractor(WidgetExtractor):
         value, error = super(ReferenceWidgetExtractor, self).extract()
         if error is not None:
             return None, error
-        if value is NO_VALUE:
-            return value, None
+        if value is NO_VALUE or not len(value):
+            return NO_VALUE, None
         try:
             return int(value), None
         except ValueError:
             None, u"Not a valid content identifier"
+
+
+
+def register():
+    registerSchemaField(ReferenceSchemaField, IReference)
