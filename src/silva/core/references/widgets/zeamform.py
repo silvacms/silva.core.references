@@ -13,7 +13,9 @@ from zeam.form.ztk.fields import registerSchemaField
 from silva.core.references.interfaces import IReference
 from silva.core.references.reference import get_content_id
 from silva.core.references.widgets import ReferenceInfoResolver
+from silva.core.references.widgets import IReferenceUIResources
 from silva.translations import translate as _
+from silva.fanstatic import need
 
 
 class ReferenceSchemaField(SchemaField):
@@ -41,6 +43,7 @@ class ReferenceWidgetInput(SchemaFieldWidget):
 
     def update(self):
         super(ReferenceWidgetInput, self).update()
+        need(IReferenceUIResources)
 
         interface = self.component.schema
         interface_name = "%s.%s" % (interface.__module__, interface.__name__)

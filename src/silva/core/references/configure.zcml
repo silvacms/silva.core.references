@@ -11,6 +11,7 @@
   <include package="silva.core.views" />
   <include package="dolmen.relations" />
   <!-- For widgets -->
+  <include package="silva.fanstatic" />
   <include package="infrae.rest" />
   <include package="zeam.form.silva" />
 

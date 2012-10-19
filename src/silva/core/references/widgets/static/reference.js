@@ -117,139 +117,136 @@
         reference: widget
     });
 
-    $(document).bind('load-smiplugins', function(event, smi) {
+    var create_reference_widget = function() {
+        var $widget = $(this).parent('.reference-widget');
+        var id = $widget.attr('id');
+        var selected = [];
+        var $value_input = $widget.find('#' + id + '-value');
+        var $value_inputs = $widget.find('input[name="' + $value_input.attr('name') + '"]');
+        var multiple = $value_input.hasClass('field-multiple');
 
-        var create_reference_widget = function() {
-            var $widget = $(this).parent('.reference-widget');
-            var id = $widget.attr('id');
-            var selected = [];
-            var $value_input = $widget.find('#' + id + '-value');
-            var $value_inputs = $widget.find('input[name="' + $value_input.attr('name') + '"]');
-            var multiple = $value_input.hasClass('field-multiple');
+        // Collect selected values
+        $.each($value_inputs, function() {
+            var value = $(this).val();
+            if (value && value != '') {
+                selected.push(value);
+            }
+        });
 
-            // Collect selected values
-            $.each($value_inputs, function() {
-                var value = $(this).val();
-                if (value && value != '') {
-                    selected.push(value);
-                }
-            });
+        var popup_buttons = {
+            Cancel: function() {
+                $(this).dialog('close');
+            }
+        };
 
-            var popup_buttons = {
-                Cancel: function() {
-                    $(this).dialog('close');
-                }
+        if (!$value_input.hasClass('field-required')) {
+            popup_buttons['Clear'] = function() {
+                var reference = ReferencedRemoteObject($widget);
+                reference.clear();
+                $(this).dialog('close');
             };
+        };
 
-            if (!$value_input.hasClass('field-required')) {
-                popup_buttons['Clear'] = function() {
-                    var reference = ReferencedRemoteObject($widget);
-                    reference.clear();
-                    $(this).dialog('close');
-                };
-            };
+        var url = $widget.find('#' + id + '-base').val();
 
-            var url = $widget.find('#' + id + '-base').val();
+        get_template(url).done(function(popup) {
+            var $popup = $(popup);
 
-            get_template(url).done(function(popup) {
-                var $popup = $(popup);
+            var manager = new widget.Manager(
+                $popup,
+                {multiple: multiple,
+                 selected: selected,
+                 show_index: $widget.find('#' + id + '-show-index').val(),
+                 iface: $widget.find('#' + id + '-interface').val()},
+                smi);
 
-                var manager = new widget.Manager(
-                    $popup,
-                    {multiple: multiple,
-                     selected: selected,
-                     show_index: $widget.find('#' + id + '-show-index').val(),
-                     iface: $widget.find('#' + id + '-interface').val()},
-                    smi);
+            if (multiple) {
+                var items = [];
 
-                if (multiple) {
-                    var items = [];
-
-                    $.each(selected, function(index, item) {
-                        // Add stubs for already selected items;
-                        items.push({intid: item});
-                    });
-                    $popup.bind('selected-smireferences', function(event, item) {
-                        // An item is selected;
-                        items.push(item);
-                    });
-                    $popup.bind('deselected-smireferences', function(event, item) {
-                        // An item is unselected;
-                        for (var i=0 ; i<items.length; i++) {
-                            if (items[i].intid == item.intid) {
-                                items.splice(i, 1);
-                                break;
-                            };
+                $.each(selected, function(index, item) {
+                    // Add stubs for already selected items;
+                    items.push({intid: item});
+                });
+                $popup.bind('selected-smireferences', function(event, item) {
+                    // An item is selected;
+                    items.push(item);
+                });
+                $popup.bind('deselected-smireferences', function(event, item) {
+                    // An item is unselected;
+                    for (var i=0 ; i<items.length; i++) {
+                        if (items[i].intid == item.intid) {
+                            items.splice(i, 1);
+                            break;
                         };
-                    });
-
-                    popup_buttons['Done'] = function(event) {
-                        $.each($value_inputs, function() {
-                            $(this).val('');
-                        });
-                        $widget.find('ul.multiple-references').empty();
-
-                        $.each(items, function(index, item){
-                            var suffix = index == 0 ? "" : String(index);
-                            var $input = $value_inputs[index];
-                            if ($input === undefined) {
-                                $input = $value_input.clone();
-                                $input.attr('id', id + suffix + "-value");
-                                $input.appendTo($value_input.parent());
-                            }
-                            var reference = ReferencedRemoteObject($widget, suffix);
-                            reference.render(item);
-                        });
-                        if ($value_inputs.length > 1) {
-                            $.each($value_inputs, function() {
-                                var $input = $(this);
-                                if ($input.val() == '') {
-                                    $input.remove();
-                                }
-                            });
-                        };
-                        $popup.dialog('close');
                     };
-                } else {
-                    $popup.bind('selected-smireferences', function(event, item) {
-                        var reference = ReferencedRemoteObject($widget);
-                        reference.render(item);
-                        $popup.dialog('close');
+                });
+
+                popup_buttons['Done'] = function(event) {
+                    $.each($value_inputs, function() {
+                        $(this).val('');
                     });
+                    $widget.find('ul.multiple-references').empty();
+
+                    $.each(items, function(index, item){
+                        var suffix = index == 0 ? "" : String(index);
+                        var $input = $value_inputs[index];
+                        if ($input === undefined) {
+                            $input = $value_input.clone();
+                            $input.attr('id', id + suffix + "-value");
+                            $input.appendTo($value_input.parent());
+                        }
+                        var reference = ReferencedRemoteObject($widget, suffix);
+                        reference.render(item);
+                    });
+                    if ($value_inputs.length > 1) {
+                        $.each($value_inputs, function() {
+                            var $input = $(this);
+                            if ($input.val() == '') {
+                                $input.remove();
+                            }
+                        });
+                    };
+                    $popup.dialog('close');
                 };
-                $popup.bind('dialogclose', function() {
-                    $popup.remove();
+            } else {
+                $popup.bind('selected-smireferences', function(event, item) {
+                    var reference = ReferencedRemoteObject($widget);
+                    reference.render(item);
+                    $popup.dialog('close');
                 });
-
-                // Create popup
-                $popup.dialog({
-                    autoOpen: false,
-                    modal: true,
-                    height: 500,
-                    width: 800,
-                    zIndex: 12000,
-                    buttons: popup_buttons
-                });
-                manager.list(url);
-                infrae.ui.ShowDialog($popup);
+            };
+            $popup.bind('dialogclose', function() {
+                $popup.remove();
             });
-            return false;
-        };
 
-        $.fn.SMIReferenceLookup = function() {
-            $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
-            return this;
-        };
-
-        $('.form-fields-container').live('loadwidget-smiform', function(event) {
-            $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
-            event.stopPropagation();
+            // Create popup
+            $popup.dialog({
+                autoOpen: false,
+                modal: true,
+                height: 500,
+                width: 800,
+                zIndex: 12000,
+                buttons: popup_buttons
+            });
+            manager.list(url);
+            infrae.ui.ShowDialog($popup);
         });
 
-        $(document).ready(function() {
-            $('.reference-dialog-trigger').bind('click', create_reference_widget);
-        });
+        return false;
+    };
 
+    $.fn.SMIReferenceLookup = function() {
+        $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
+        return this;
+    };
+
+    $('.form-fields-container').live('loadwidget-smiform', function(event) {
+        $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
+        event.stopPropagation();
+    });
+
+    $(document).ready(function() {
+        $('.reference-dialog-trigger').bind('click', create_reference_widget);
     });
 
 })(infrae, jQuery, jsontemplate);
