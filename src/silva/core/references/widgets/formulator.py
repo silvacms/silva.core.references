@@ -47,37 +47,51 @@ class ReferencesSolver(object):
     deserializeValue.
     """
 
-    def __init__(self, producer):
-        self._info = producer.getInfo()
+    def __init__(self, producer, field):
+        self._id = field.getId()
+        self._importer = producer.getExtra()
+        self._context = producer.result()
         self._contents = []
         self._expected = 0
         self._deferreds = []
+
+    def reportProblem(self, message):
+        self._importer.reportProblem(
+            "Error in field '{0}': {1}".format(self._id, message),
+            self._context)
 
     def defer(self, callback, mode):
         self._deferreds.append((callback, mode))
 
     def add(self, path):
-        self._info.addAction(self.resolve, [path])
-        self._expected += 1
+        if path is None:
+            self.reportProblem('Broken reference.')
+        else:
+            self._importer.addAction(self.resolve, [path])
+            self._expected += 1
 
     def resolve(self, path):
         if path:
-            imported_path = self._info.getImportedPath(canonical_path(path))
+            imported_path = self._importer.getImportedPath(canonical_path(path))
             if imported_path is not None:
                 path = map(str, imported_path.split('/'))
-                target = self._info.root.unrestrictedTraverse(path)
+                try:
+                    target = self._importer.root.unrestrictedTraverse(path)
+                except (AttributeError, KeyError):
+                    self.reportProblem(
+                        'Could not traverse imported path {0}.'.format(path))
                 self._contents.append(target)
             else:
-                logger.error('Could not resolve imported path %s.', path)
+                self.reportProblem(
+                    'Could not resolve imported path {0}.'.format(path))
         self._expected -= 1
         if not self._expected:
             for callback, mode in self._deferreds:
                 if mode:
                     if self._contents:
                         if len(self._contents) != 1:
-                            logger.error(
-                                u'Multiple references where only one '
-                                u'was expected.')
+                            self.reportProblem(
+                                'Found multiple paths where only one was expected.')
                         callback(self._contents[0])
                 else:
                     callback(self._contents)
@@ -131,38 +145,35 @@ class ReferenceValidator(Validator):
         return value
 
     def serializeValue(self, field, value, producer):
-        handler = producer.getHandler()
         if not value:
             return
-        settings = handler.getSettings()
-        if settings.externalRendering():
+        handler = producer.getHandler()
+        if handler.getOptions().external_rendering:
             return
         if not bool(field.get_value('multiple')):
             value = [value]
-        root = handler.getInfo().root
+        exported = handler.getExported()
         producer.startPrefixMapping(None, NS_REFERENCES)
         for target in value:
             if value is not None:
-                if is_inside_container(root, target):
-                    target_path = [root.getId()] + relative_path(
-                        root.getPhysicalPath(), target.getPhysicalPath())
+                if is_inside_container(exported.root, target):
+                    target_path = [exported.root.getId()] + relative_path(
+                        exported.rootPath, target.getPhysicalPath())
                     producer.startElement('path')
                     producer.characters(canonical_path('/'.join(target_path)))
                     producer.endElement('path')
                 else:
+                    # XXX options
                     raise ExternalReferenceError(
                         _(u"External reference"),
-                        producer.context, target, root)
+                        producer.context, target, exported.root)
         producer.endPrefixMapping(None)
 
     def deserializeValue(self, field, value, context):
         # value should be an lxml node
-        solver = ReferencesSolver(context)
+        solver = ReferencesSolver(context, field)
         for entry in value.xpath('ref:path', namespaces={'ref': NS_REFERENCES}):
-            path = entry.text
-            if path is None:
-                raise ValueError
-            solver.add(path)
+            solver.add(entry.text)
         return solver
 
 
