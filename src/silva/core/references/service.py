@@ -54,7 +54,7 @@ class ReferenceService(SilvaService):
         """
         if not IReferenceValue.implementedBy(factory):
             raise TypeError('Wrong factory %s for reference, '
-                'it should implement IReferenceValue' % factory)
+                            'it should implement IReferenceValue' % factory)
         if tags is None:
             tags = []
         if name is not None:

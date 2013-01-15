@@ -15,7 +15,8 @@ from zope import component, interface, schema
 from zope.event import notify
 from zope.intid.interfaces import IIntIds
 
-from silva.core.interfaces import ISilvaObject, IContainerManager
+from silva.core.interfaces import IContainerManager
+from silva.core.interfaces import IReferable
 
 from .utils import is_inside_container
 from .utils import relative_path
@@ -200,6 +201,6 @@ class BrokenReferenceError(BadRequest):
         self.reference = reference
 
 
-@grok.subscribe(ISilvaObject, IRelationTargetDeletedEvent)
+@grok.subscribe(IReferable, IRelationTargetDeletedEvent)
 def reference_target_deleted(content, event):
     event.relation.cleanup()

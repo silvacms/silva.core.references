@@ -8,13 +8,13 @@ from zope.site.hooks import getSite
 
 from Acquisition import aq_base, aq_chain
 from ZPublisher.BaseRequest import RequestContainer
-from OFS.interfaces import IItem
+from silva.core.interfaces import IReferable
 
 _marker = object()
 
 
 class KeyReferenceToIItem(KeyReferenceToPersistent, grok.Adapter):
-    grok.context(IItem)
+    grok.context(IReferable)
 
     @property
     def wrapped_object(self):
