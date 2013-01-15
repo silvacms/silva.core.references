@@ -43,32 +43,43 @@ def get_request():
 
 
 class ReferencesSolver(object):
-    """Object used to delay the references construction on
-    deserializeValue.
+    """Object used to delay the references resolving in
+    deserializeValue:
+
+    - This object is returned instead of the target of the reference
+      duing the deserialization.
+
+    - Required setting and callback used to set the resolved
+      references are collecting then this object is saved in
+      Formulator.
+
+    - The reference is resolved and effectively set when is the import
+      of all the others content are done.
     """
 
     def __init__(self, producer, field):
         self._id = field.getId()
         self._importer = producer.getExtra()
-        self._context = producer.result()
+        self._context = None
         self._contents = []
         self._expected = 0
-        self._deferreds = []
+        self._callback = None
+        self._single = True
 
-    def reportProblem(self, message):
+    def report(self, message):
         self._importer.reportProblem(
             "Error in field '{0}': {1}".format(self._id, message),
             self._context)
 
-    def defer(self, callback, mode):
-        self._deferreds.append((callback, mode))
+    def defer(self, callback, single, context):
+        assert self._callback is None, 'Defer called twice'
+        self._callback = callback
+        self._single = single
+        self._context = context
 
     def add(self, path):
-        if path is None:
-            self.reportProblem('Broken reference.')
-        else:
-            self._importer.addAction(self.resolve, [path])
-            self._expected += 1
+        self._importer.addAction(self.resolve, [path])
+        self._expected += 1
 
     def resolve(self, path):
         if path:
@@ -78,23 +89,25 @@ class ReferencesSolver(object):
                 try:
                     target = self._importer.root.unrestrictedTraverse(path)
                 except (AttributeError, KeyError):
-                    self.reportProblem(
+                    self.report(
                         'Could not traverse imported path {0}.'.format(path))
                 self._contents.append(target)
             else:
-                self.reportProblem(
+                self.report(
                     'Could not resolve imported path {0}.'.format(path))
+        else:
+            self.report('Broken reference.')
+
         self._expected -= 1
-        if not self._expected:
-            for callback, mode in self._deferreds:
-                if mode:
-                    if self._contents:
-                        if len(self._contents) != 1:
-                            self.reportProblem(
-                                'Found multiple paths where only one was expected.')
-                        callback(self._contents[0])
-                else:
-                    callback(self._contents)
+        if not self._expected and self._callback is not None:
+            if self._single:
+                if self._contents:
+                    if len(self._contents) != 1:
+                        self.reportProblem(
+                            'Found multiple paths where only one was expected.')
+                    self._callback(self._contents[0])
+            else:
+                self._callback(self._contents)
 
 
 class ReferenceValidator(Validator):
@@ -166,8 +179,9 @@ class ReferenceValidator(Validator):
                 else:
                     if options.external_references:
                         exported.reportProblem(
-                            u'A reference Formulator field refers to an '
-                            u'content outside of the export ({0}).'.format(
+                            (u"A reference field '{0}' refers to an " +
+                             u'content outside of the export ({1}).').format(
+                                field.getId(),
                                 '/'.join(relative_path(
                                         exported.rootPath,
                                         target.getPhysicalPath()))),
@@ -393,7 +407,7 @@ class ReferenceValueWriter(FieldValueWriter):
     def __call__(self, value):
         multiple = bool(self.field._field.get_value('multiple'))
         if isinstance(value, ReferencesSolver):
-            value.defer(self.__call__, not multiple)
+            value.defer(self.__call__, not multiple, self.context)
             return
         if value is None:
             value = []
