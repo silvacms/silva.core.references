@@ -148,7 +148,8 @@ class ReferenceValidator(Validator):
         if not value:
             return
         handler = producer.getHandler()
-        if handler.getOptions().external_rendering:
+        options = handler.getOptions()
+        if options.external_rendering:
             return
         if not bool(field.get_value('multiple')):
             value = [value]
@@ -163,10 +164,20 @@ class ReferenceValidator(Validator):
                     producer.characters(canonical_path('/'.join(target_path)))
                     producer.endElement('path')
                 else:
-                    # XXX options
-                    raise ExternalReferenceError(
-                        _(u"External reference"),
-                        producer.context, target, exported.root)
+                    if options.external_references:
+                        exported.reportProblem(
+                            u'A reference Formulator field refers to an '
+                            u'content outside of the export ({0}).'.format(
+                                '/'.join(relative_path(
+                                        exported.rootPath,
+                                        target.getPhysicalPath()))),
+                            producer.context)
+                        producer.startElement('path')
+                        producer.endElement('path')
+                    else:
+                        raise ExternalReferenceError(
+                            _(u"External reference"),
+                            producer.context, target, exported.root)
         producer.endPrefixMapping(None)
 
     def deserializeValue(self, field, value, context):
