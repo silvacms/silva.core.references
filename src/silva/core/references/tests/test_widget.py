@@ -3,13 +3,14 @@
 # See also LICENSE.txt
 
 import unittest
+import doctest
 
-from Products.Silva.testing import FunctionalLayer
+from Products.Silva.testing import FunctionalLayer, suite_from_package
 from silva.core.interfaces import IAddableContents
 from silva.core.references.reference import get_content_id
 
 
-class RESTAddablesTestCase(unittest.TestCase):
+class RESTAPITestCase(unittest.TestCase):
     layer = FunctionalLayer
 
     def setUp(self):
@@ -213,7 +214,19 @@ class RESTAddablesTestCase(unittest.TestCase):
                 browser.json)
 
 
+def create_test(build_test_suite, name):
+    test =  build_test_suite(
+        name,
+        globs={'get_browser': FunctionalLayer.get_browser,
+               'get_root': FunctionalLayer.get_application,},
+        optionflags=doctest.ELLIPSIS + doctest.NORMALIZE_WHITESPACE)
+    test.layer = FunctionalLayer
+    return test
+
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(RESTAddablesTestCase))
+    suite.addTest(unittest.makeSuite(RESTAPITestCase))
+    suite.addTest(suite_from_package(
+            'silva.core.references.tests.widget',
+            create_test))
     return suite

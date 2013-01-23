@@ -6,8 +6,8 @@ from five import grok
 from zope.interface import Interface
 
 from zeam.form.base.markers import DISPLAY, INPUT, NO_VALUE
-from zeam.form.base.widgets import WidgetExtractor
-from zeam.form.ztk.fields import SchemaField, SchemaFieldWidget
+from zeam.form.base.widgets import FieldWidget, WidgetExtractor
+from zeam.form.base.fields import Field
 from zeam.form.ztk.fields import registerSchemaField
 
 from silva.core.references.interfaces import IReference
@@ -18,21 +18,30 @@ from silva.translations import translate as _
 from silva.fanstatic import need
 
 
-class ReferenceSchemaField(SchemaField):
+class ReferenceField(Field):
     """Reference field.
     """
     referenceNotSetDisplayLabel = _("No reference selected.")
     referenceNotSetLabel = _("No reference selected.")
     showIndex = False
 
-    def __init__(self, field):
-        super(ReferenceSchemaField, self).__init__(field)
-        self.schema = field.schema
+    def __init__(self, title, schema, **options):
+        super(ReferenceField, self).__init__(title, **options)
+        self.schema = schema
+
+    @property
+    def schemaName(self):
+        "%s.%s" % (self.schema.__module__, self.schema.__name__)
 
 
-class ReferenceWidgetInput(SchemaFieldWidget):
-    grok.adapts(ReferenceSchemaField, Interface, Interface)
+class ReferenceMultipleField(ReferenceField):
+    pass
+
+
+class ReferenceWidgetInput(FieldWidget):
+    grok.adapts(ReferenceField, Interface, Interface)
     grok.name(str(INPUT))
+    defaultHtmlClass = ['field', 'field-reference']
 
     def valueToUnicode(self, value):
         return unicode(get_content_id(value))
@@ -45,17 +54,60 @@ class ReferenceWidgetInput(SchemaFieldWidget):
         super(ReferenceWidgetInput, self).update()
         need(IReferenceUIResources)
 
-        interface = self.component.schema
-        interface_name = "%s.%s" % (interface.__module__, interface.__name__)
-
         resolver = ReferenceInfoResolver(
             self.request, self.form.context, self,
             multiple=False,
             message=self.referenceLabel)
         resolver.update(
-            interface=interface_name,
+            interface=self.component.schemaName,
             show_index=self.component.showIndex)
         resolver.add(value_id=self.inputValue())
+
+
+class ValueInfo(object):
+    pass
+
+
+class ReferenceMultipleWidgetInput(FieldWidget):
+    grok.adapts(ReferenceMultipleField, Interface, Interface)
+    grok.name(str(INPUT))
+    defaultHtmlClass = ['field', 'field-multiple-reference']
+
+    def prepareContentValue(self, values):
+        resolver = ReferenceInfoResolver(
+            self.request, self.form.context, self,
+            multiple=True,
+            message=self.referenceLabel)
+        resolver.update(
+            interface=self.component.schemaName,
+            show_index=self.component.showIndex)
+
+        self.items = []
+        if values is not NO_VALUE and values:
+            for value in values:
+                info = ValueInfo()
+                resolver.add(value=value, sub_widget=info)
+                self.items.add(info)
+
+        return {self.identifier: str(len(self.items))}
+
+    def prepareRequestValue(self, values, extractor):
+        resolver = ReferenceInfoResolver(
+            self.request, self.form.context, self,
+            multiple=True,
+            message=self.referenceLabel)
+        resolver.update(
+            interface=self.component.schemaName,
+            show_index=self.component.showIndex)
+        return {self.identifier: 'sqrt(pi)'}
+
+    @property
+    def referenceLabel(self):
+        return self.component.referenceNotSetLabel
+
+    def update(self):
+        super(ReferenceMultipleWidgetInput, self).update()
+        need(IReferenceUIResources)
 
 
 class ReferenceWidgetDisplay(ReferenceWidgetInput):
@@ -68,7 +120,7 @@ class ReferenceWidgetDisplay(ReferenceWidgetInput):
 
 
 class ReferenceWidgetExtractor(WidgetExtractor):
-    grok.adapts(ReferenceSchemaField, Interface, Interface)
+    grok.adapts(ReferenceField, Interface, Interface)
 
     def extract(self):
         value, error = super(ReferenceWidgetExtractor, self).extract()
@@ -82,6 +134,16 @@ class ReferenceWidgetExtractor(WidgetExtractor):
             None, u"Not a valid content identifier"
 
 
+def ReferenceFieldFactory(schema):
+    factory = ReferenceField
+    if schema.multiple:
+        factory = ReferenceMultipleField
+    return factory(schema.title or None,
+                   schema.schema,
+                   identifier=schema.__name__,
+                   description=schema.description,
+                   required=schema.required)
+
 
 def register():
-    registerSchemaField(ReferenceSchemaField, IReference)
+    registerSchemaField(ReferenceFieldFactory, IReference)

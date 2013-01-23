@@ -1,0 +1,69 @@
+====================================================
+Test of the Zeam Form widget with multiple reference
+====================================================
+
+
+You can create a schema with a reference field:
+
+  >>> from Products.Silva.testing import TestRequest
+  >>> from Products.Silva.Content import Content
+  >>> from OFS.SimpleItem import SimpleItem
+
+  >>> from silva.core.interfaces import IContent
+  >>> from silva.core.references.reference import Reference
+  >>> from zope.interface import Interface, implements
+  >>> from zope.interface.verify import verifyObject
+
+  >>> class IReferer(Interface):
+  ...     content = Reference(IContent, title=u'Referers', required=False, multiple=True)
+
+  >>> class Referer(Content, SimpleItem):
+  ...     implements(IReferer)
+  ...     referer = None
+
+  >>> root = get_root()
+  >>> _ = root._setObject('referer', Referer('referer'))
+  >>> content = root._getOb('referer')
+  >>> request = TestRequest()
+
+Field
+-----
+
+You can have a zeam.form field for the reference, a different one than
+if you didn't pass the option multiple, by asking all the fields for
+the interface:
+
+  >>> from zeam.form.base.interfaces import IField, IWidget
+  >>> from zeam.form.silva import Fields
+
+  >>> fields = Fields(IReferer)
+  >>> len(fields)
+  1
+  >>> reference_field = fields['content']
+  >>> reference_field
+  <ReferenceMultipleField Referers>
+
+  >>> verifyObject(IField, reference_field)
+  True
+
+
+Widget
+------
+
+You have an associated widget:
+
+  >>> from zeam.form.base import Widgets, FormData, DISPLAY
+
+  >>> form = FormData(content, request)
+  >>> form.ignoreContent = False
+
+  >>> widgets = Widgets(fields, form=form, request=request)
+  >>> widgets.update()
+
+  >>> reference_widget = widgets['form.field.content']
+  >>> reference_widget
+  <ReferenceMultipleWidgetInput Referers>
+
+  >>> verifyObject(IWidget, reference_widget)
+  True
+
