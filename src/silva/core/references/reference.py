@@ -52,6 +52,13 @@ class Reference(schema.Object):
     interface.implements(IReference)
 
     missing_value = None
+    multiple = False
+
+    def __init__(self, schema, **kw):
+        if 'multiple' in kw:
+            self.multiple = kw['multiple']
+            del kw['multiple']
+        super(Reference, self).__init__(schema, **kw)
 
     def _validate(self, value):
         # XXX No validation for the moment
@@ -138,9 +145,10 @@ class DeleteSourceReferenceValue(ReferenceValue):
 
 
 class ReferenceSet(object):
-    """ A object wrapper around multiple references relationship between
-    a unique source and several objects.
+    """ A helper to manage multiple references relationship between a
+    unique source and several objects.
     """
+    # XXX The name of this class is misleading and should be changed
 
     def __init__(self, source, name, factory=WeakReferenceValue):
         self._source = source
@@ -151,6 +159,9 @@ class ReferenceSet(object):
     def get_references(self):
         return self._service.get_references_from(
             self._source, name=self._name)
+
+    def get(self):
+        return list(self)
 
     def set(self, items):
         reference_names = set(map(lambda r: r.__name__, self.get_references()))
@@ -182,6 +193,9 @@ class ReferenceSet(object):
             self._service.delete_reference_by_name(refs[0].__name__)
             return refs[0]
         return None
+
+    def clear(self):
+        self._service.delete_references(self._source, name=self._name)
 
     def __contains__(self, item):
         refs = list(self._service.get_references_between(
