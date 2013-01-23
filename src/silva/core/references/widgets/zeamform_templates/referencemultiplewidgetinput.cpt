@@ -3,22 +3,19 @@
      tal:define="id widget.htmlId()"
      tal:attributes="id id"
      i18n:domain="silva">
-  <a class="open-screen reference-dialog-edit-link" rel="content"
-     title="Edit item" tabindex="-1"
-     id="#" href="#"
-     tal:attributes="id string:${id}-edit-link;
-                     style widget.value_path or 'display: none';
-                     href widget.value_path"
-     i18n:attributes="title">
-  </a>
-  <a class="reference-dialog-content" target="_blank" tabindex="-1"
-     href="#" id="#"
-     tal:attributes="id string:${id}-link;
-                     href widget.value_url">
-    <img tal:condition="widget.value_icon"
-         tal:replace="structure widget.value_icon" />
-    <span tal:replace="widget.value_title" />
-  </a>
+
+  <ul class="multiple-references">
+    <li tal:repeat="item widget.items">
+      <a href="#" id="#" target="_blank"
+         tal:define="suffix repeat.item.index or ''"
+           tal:attributes="id string:${id}${suffix}-link;
+                           href item.value_url">
+        <img tal:condition="item.value_icon"
+             tal:replace="structure item.value_icon" />
+          <span tal:replace="item.value_title" />
+      </a>
+    </li>
+  </ul>
   <br clear="both" />
   <a class="form-button reference-dialog-trigger ui-state-default"
      title="Lookup an item in Silva"
@@ -29,11 +26,19 @@
     Lookup
   </a>
   <br clear="both" />
-  <input type="hidden" value="#" id="#" name="" class=""
-         tal:attributes="id string:${id}-value;
-                         name widget.identifier;
-                         value widget.inputValue();
-                         class widget.htmlClass()" />
+  <tal:empty tal:condition="not widget.items">
+    <input type="hidden" value="" id="#" name="#" class="#"
+           tal:attributes="id string:${id}-value;
+                           name widget.identifier;
+                           class widget.htmlClass()" />
+  </tal:empty>
+  <tal:repeat tal:repeat="item widget.items">
+    <input type="hidden" value="#" id="#" name="#" class="#"
+           tal:attributes="id string:${id}${repeat.item.number or None}-value;
+                           name widget.identifier;
+                           class widget.htmlClass();
+                           value item.value_id;" />
+  </tal:repeat>
   <input type="hidden" value="#" id="#"
          tal:condition="widget.interface"
          tal:attributes="id string:${id}-interface;

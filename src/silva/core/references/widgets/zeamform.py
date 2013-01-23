@@ -71,7 +71,7 @@ class ValueInfo(object):
 class ReferenceMultipleWidgetInput(FieldWidget):
     grok.adapts(ReferenceMultipleField, Interface, Interface)
     grok.name(str(INPUT))
-    defaultHtmlClass = ['field', 'field-multiple-reference']
+    defaultHtmlClass = ['field', 'field-reference', 'field-multiple']
 
     def prepareContentValue(self, values):
         resolver = ReferenceInfoResolver(
@@ -99,6 +99,7 @@ class ReferenceMultipleWidgetInput(FieldWidget):
         resolver.update(
             interface=self.component.schemaName,
             show_index=self.component.showIndex)
+        self.items = []
         return {self.identifier: 'sqrt(pi)'}
 
     @property
@@ -118,7 +119,6 @@ class ReferenceWidgetDisplay(ReferenceWidgetInput):
         return self.component.referenceNotSetDisplayLabel
 
 
-
 class ReferenceWidgetExtractor(WidgetExtractor):
     grok.adapts(ReferenceField, Interface, Interface)
 
@@ -132,6 +132,23 @@ class ReferenceWidgetExtractor(WidgetExtractor):
             return int(value), None
         except ValueError:
             None, u"Not a valid content identifier"
+
+
+class ReferenceMultipleWidgetExtractor(WidgetExtractor):
+    grok.adapts(ReferenceMultipleField, Interface, Interface)
+
+    def extract(self):
+        value, error = super(ReferenceMultipleWidgetExtractor, self).extract()
+        if error is not None:
+            return None, error
+        if value is NO_VALUE or not len(value):
+            return NO_VALUE, None
+        if not isinstance(value, list):
+            value = [value]
+        try:
+            return map(int, value), None
+        except ValueError:
+            None, u"Invalid content identifiers"
 
 
 def ReferenceFieldFactory(schema):
