@@ -87,7 +87,7 @@ class ReferenceMultipleWidgetInput(FieldWidget):
             for value in values:
                 info = ValueInfo()
                 resolver.add(value=value, sub_widget=info)
-                self.items.add(info)
+                self.items.append(info)
 
         return {self.identifier: str(len(self.items))}
 
@@ -100,7 +100,8 @@ class ReferenceMultipleWidgetInput(FieldWidget):
             interface=self.component.schemaName,
             show_index=self.component.showIndex)
         self.items = []
-        return {self.identifier: 'sqrt(pi)'}
+        # XXX This needs to be implemented
+        return {self.identifier: str(len(self.items))}
 
     @property
     def referenceLabel(self):
