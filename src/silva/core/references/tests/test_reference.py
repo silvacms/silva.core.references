@@ -8,8 +8,9 @@ from zope import component
 
 from Products.Silva.testing import FunctionalLayer
 
-from ..utils import relative_path, canonical_path
 from ..interfaces import IReferenceService
+from ..reference import ReferenceSet, get_content_id
+from ..utils import relative_path, canonical_path
 
 
 class HelpersTestCase(unittest.TestCase):
@@ -201,8 +202,109 @@ class ReferenceTestCase(unittest.TestCase):
         self.assertEqual(reference.target_id, 0)
 
 
+class ReferenceSetTestCase(unittest.TestCase):
+    layer = FunctionalLayer
+
+    def setUp(self):
+        self.root = self.layer.get_application()
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('folder', 'Folder')
+        factory.manage_addMockupVersionedContent('info', 'Information')
+        factory.manage_addMockupVersionedContent('code', 'Code base')
+        factory.manage_addMockupVersionedContent('contact', 'Contact')
+
+    def test_set_with_ids(self):
+        """Test the ReferenceSet works if used with content ids
+        instead of ids.
+        """
+        references = ReferenceSet(self.root.folder, 'test-set')
+        self.assertEqual(len(list(references)), 0)
+        self.assertEqual(len(references.get()), 0)
+
+        # Set some references using the identifiers
+        references.set([get_content_id(self.root.info),
+                        get_content_id(self.root.code)])
+        self.assertEqual(len(list(references)), 2)
+        self.assertEqual(len(references.get()), 2)
+        self.assertItemsEqual(
+            references.get(),
+            [self.root.info, self.root.code])
+
+        # Contains work
+        self.assertIn(self.root.info, references)
+        self.assertIn(self.root.code, references)
+        self.assertNotIn(self.root.contact, references)
+
+        # You can set a second different items
+        references.set([get_content_id(self.root.contact),
+                        get_content_id(self.root.code)])
+        self.assertEqual(len(list(references)), 2)
+        self.assertEqual(len(references.get()), 2)
+        self.assertItemsEqual(
+            references.get(),
+            [self.root.contact, self.root.code])
+
+        # Contains work
+        self.assertNotIn(self.root.info, references)
+        self.assertIn(self.root.code, references)
+        self.assertIn(self.root.contact, references)
+
+        # You can set an empty set
+        references.set([])
+        self.assertEqual(len(list(references)), 0)
+        self.assertEqual(len(references.get()), 0)
+
+        self.assertNotIn(self.root.info, references)
+        self.assertNotIn(self.root.code, references)
+        self.assertNotIn(self.root.contact, references)
+
+    def test_set_with_content(self):
+        """Test the ReferenceSet works if used with content.
+        """
+        references = ReferenceSet(self.root.folder, 'test-set')
+        self.assertEqual(len(list(references)), 0)
+        self.assertEqual(len(references.get()), 0)
+
+        # Set some references
+        references.set([self.root.info, self.root.code])
+        self.assertEqual(len(list(references)), 2)
+        self.assertEqual(len(references.get()), 2)
+        self.assertItemsEqual(
+            references.get(),
+            [self.root.info, self.root.code])
+
+        # Contains work
+        self.assertIn(self.root.info, references)
+        self.assertIn(self.root.code, references)
+        self.assertNotIn(self.root.contact, references)
+
+        # You can add and remove individual reference
+        references.add(self.root.contact)
+        self.assertEqual(len(references.get()), 3)
+        self.assertEqual(len(list(references)), 3)
+
+        references.remove(self.root.code)
+        self.assertEqual(len(references.get()), 2)
+        self.assertEqual(len(list(references)), 2)
+        self.assertItemsEqual(
+            references.get(),
+            [self.root.info, self.root.contact])
+        self.assertIn(self.root.info, references)
+        self.assertNotIn(self.root.code, references)
+        self.assertIn(self.root.contact, references)
+
+        # And clear all references
+        references.clear()
+        self.assertEqual(len(list(references)), 0)
+        self.assertEqual(len(references.get()), 0)
+        self.assertNotIn(self.root.info, references)
+        self.assertNotIn(self.root.code, references)
+        self.assertNotIn(self.root.contact, references)
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(HelpersTestCase))
     suite.addTest(unittest.makeSuite(ReferenceTestCase))
+    suite.addTest(unittest.makeSuite(ReferenceSetTestCase))
     return suite

@@ -164,16 +164,31 @@ class ReferenceSet(object):
         return list(self)
 
     def set(self, items):
-        reference_names = set(map(lambda r: r.__name__, self.get_references()))
+        # Collect existing references
+        name_to_target = {}
+        target_to_name = {}
+        for reference in self.get_references():
+            name_to_target[reference.__name__] = reference.target_id
+            target_to_name[reference.target_id] = reference.__name__
 
+        # Add or mark seen set references
         for item in items:
-            reference = self.add(item)
-            if reference.__name__ in reference_names:
-                reference_names.remove(reference.__name__)
+            if not isinstance(item, int):
+                item = get_content_id(item)
+            if item not in target_to_name:
+                # Add item
+                reference = self._service.new_reference(
+                    self._source, name=self._name, factory=self._factory)
+                reference.set_target_id(item)
+            else:
+                # Remove item from name_to_target
+                name = target_to_name[item]
+                del target_to_name[item]
+                del name_to_target[name]
 
-        if reference_names:
-            for name in reference_names:
-                self._service.delete_reference_by_name(name)
+        # Remove references we didn't see
+        for name in name_to_target.keys():
+            self._service.delete_reference_by_name(name)
 
     def add(self, item):
         references = self._service.get_references_between(
