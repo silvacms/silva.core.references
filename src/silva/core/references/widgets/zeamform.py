@@ -25,17 +25,9 @@ class ReferenceField(Field):
     referenceNotSetLabel = _("No reference selected.")
     showIndex = False
 
-    def __init__(self, title, schema, **options):
-        super(ReferenceField, self).__init__(title, **options)
+    def __init__(self, schema=None, **options):
+        super(ReferenceField, self).__init__(**options)
         self.schema = schema
-
-    def clone(self, new_identifier=None):
-        copy = self.__class__(self.title, self.schema,
-                              identifier=self.identifier)
-        copy.__dict__.update(self.__dict__)
-        if new_identifier is not None:
-            copy.identifier = new_identifier
-        return copy
 
     @property
     def schemaName(self):
@@ -164,8 +156,8 @@ def ReferenceFieldFactory(schema):
     factory = ReferenceField
     if schema.multiple:
         factory = ReferenceMultipleField
-    return factory(schema.title or None,
-                   schema.schema,
+    return factory(title=schema.title or None,
+                   schema=schema.schema,
                    identifier=schema.__name__,
                    description=schema.description,
                    required=schema.required)

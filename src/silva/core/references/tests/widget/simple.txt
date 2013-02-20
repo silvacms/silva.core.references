@@ -45,6 +45,10 @@ fields for the given interface:
   >>> verifyObject(IField, reference_field)
   True
 
+You can clone the field:
+
+  >>> reference_field.clone()
+
 
 Widget
 ------
