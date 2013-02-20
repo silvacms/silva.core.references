@@ -41,13 +41,25 @@ fields for the given interface:
   >>> reference_field = fields['content']
   >>> reference_field
   <ReferenceField Referer>
+  >>> reference_field.identifier
+  'content'
+  >>> reference_field.title
+  u'Referer'
 
   >>> verifyObject(IField, reference_field)
   True
 
 You can clone the field:
 
-  >>> reference_field.clone()
+  >>> cloned_field = reference_field.clone('renamed')
+  >>> cloned_field
+  <ReferenceField Referer>
+  >>> cloned_field.identifier
+  'renamed'
+  >>> cloned_field.title
+  u'Referer'
+  >>> cloned_field is reference_field
+  False
 
 
 Widget
