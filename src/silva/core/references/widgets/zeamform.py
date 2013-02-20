@@ -31,7 +31,7 @@ class ReferenceField(Field):
 
     @property
     def schemaName(self):
-        "%s.%s" % (self.schema.__module__, self.schema.__name__)
+        return "%s.%s" % (self.schema.__module__, self.schema.__name__)
 
 
 class ReferenceMultipleField(ReferenceField):

@@ -45,6 +45,8 @@ fields for the given interface:
   'content'
   >>> reference_field.title
   u'Referer'
+  >>> reference_field.schemaName
+  'silva.core.interfaces.content.IContent'
 
   >>> verifyObject(IField, reference_field)
   True
