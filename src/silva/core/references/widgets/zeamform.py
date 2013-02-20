@@ -29,6 +29,14 @@ class ReferenceField(Field):
         super(ReferenceField, self).__init__(title, **options)
         self.schema = schema
 
+    def clone(self, new_identifier=None):
+        copy = self.__class__(self.title, self.schema,
+                              identifier=self.identifier)
+        copy.__dict__.update(self.__dict__)
+        if new_identifier is not None:
+            copy.identifier = new_identifier
+        return copy
+
     @property
     def schemaName(self):
         "%s.%s" % (self.schema.__module__, self.schema.__name__)
