@@ -31,7 +31,7 @@
                         values.push({
                             name: $form.attr('name') + '.action.save',
                             value: 'Save'});
-                        smi.ajax.query(form_url, values).pipe(function (data) {
+                        smi.ajax.query(form_url, values).then(function (data) {
                             // The add form redirect on success.
                             if (infrae.interfaces.is_implemented_by('redirect', data)) {
                                 manager.back();
@@ -63,7 +63,7 @@
                     };
                 };
 
-                return smi.ajax.query(form_url).pipe(render);
+                return smi.ajax.query(form_url).then(render);
             },
             update: function(new_addable) {
                 addable = new_addable;

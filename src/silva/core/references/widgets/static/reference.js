@@ -34,7 +34,7 @@
 
             // Open a url in a view
             var open_url = function(view, url) {
-                return view.open(url).pipe(function (data) {
+                return view.open(url).then(function (data) {
                     var index = urls.length - 1;
                     // The same url just have been added.
                     var added = index && urls[index] === null && urls[index - 1] == url;
@@ -240,7 +240,7 @@
         return this;
     };
 
-    $('.form-fields-container').live('loadwidget-smiform', function(event) {
+    $(document).on('loadwidget-smiform', '.form-fields-container', function(event) {
         $(this).delegate('.reference-dialog-trigger', 'click', create_reference_widget);
         event.stopPropagation();
     });

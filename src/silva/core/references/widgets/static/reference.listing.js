@@ -80,7 +80,7 @@
         };
 
         self.$elements.empty();
-        return $.ajax(options).pipe(function(data) {
+        return $.ajax(options).then(function(data) {
             self.render(data);
             return {
                 $content: self.$list,
