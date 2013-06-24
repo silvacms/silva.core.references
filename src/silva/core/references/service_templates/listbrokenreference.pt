@@ -18,7 +18,7 @@
           <li tal:repeat="reference references">
             Source
             <a href="#"
-               tal:define="source reference/source;
+               tal:define="source nocall:reference/source;
                            source_url source/absolute_url"
                tal:attributes="href source_url"
                tal:content="python:'/'.join(source.getPhysicalPath())">
