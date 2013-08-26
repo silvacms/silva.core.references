@@ -1,10 +1,12 @@
 Changes
 =======
 
-3.0.3 (unreleased)
+3.0.3 (2013/08/26)
 ------------------
 
-- ...
+- Fix bugs on service template.
+
+- Fix scope of the CSS defined for the reference widget.
 
 3.0.2 (2013/05/24)
 ------------------
