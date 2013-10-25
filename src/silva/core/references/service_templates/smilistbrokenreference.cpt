@@ -1,0 +1,37 @@
+<tal:configuration i18n:domain="silva">
+  <div class="form-head">
+    <h3 i18n:translate="">
+      Broken references
+    </h3>
+
+    <p tal:condition="not(rest.broken_targets or rest.broken_sources)"
+       i18n:translate="">
+      There are no broken references.
+    </p>
+
+    <div tal:condition="rest.broken_targets"
+         tal:define="references rest.broken_targets">
+      <p i18n:translate="">The following content contains broken references:</p>
+      <ul metal:define-macro="list_references">
+        <li tal:repeat="reference references">
+          <tal:icon tal:replace="structure reference.icon" />
+          <a href="#" rel="content" class="open-screen"
+             tal:attributes="href reference.path"
+             tal:content="reference.title">
+            Name
+          </a>
+          (details:
+          <em tal:content="', '.join(reference.tags)"></em>)
+        </li>
+      </ul>
+      <tal:batch tal:content="structure rest.targets_batch" />
+    </div>
+
+    <div tal:condition="rest.broken_sources"
+         tal:define="references rest.broken_sources">
+      <p i18n:translate="">The following content are used by broken content:</p>
+      <ul metal:use-macro="path:template/macros/list_references" />
+      <tal:batch tal:content="structure rest.sources_batch" />
+    </div>
+  </div>
+</tal:configuration>

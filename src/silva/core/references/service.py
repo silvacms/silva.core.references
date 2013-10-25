@@ -2,16 +2,22 @@
 # Copyright (c) 2010-2013 Infrae. All rights reserved.
 # See also LICENSE.txt
 
+import uuid
+
 from OFS.interfaces import IItem
 from dolmen.relations.catalog import RelationCatalog
 from dolmen.relations.container import RelationsContainer
 from five import grok
 from zc.relation.interfaces import ICatalog
 from zc.relation.queryfactory import TransposingTransitive
-from zope import component
+from zeam.utils import batch
+from zope.component import getMultiAdapter, queryUtility
 from zope.lifecycleevent.interfaces import IObjectCopiedEvent
-import uuid
 
+from silva.core.interfaces import IIconResolver
+from silva.translations import translate as _
+from silva.ui import rest
+from silva.core.interfaces import ISilvaConfigurableService, IVersion
 from silva.core import conf as silvaconf
 from silva.core.references.interfaces import (
     IReferenceService, IReferenceValue, IReferenceGrapher)
@@ -35,7 +41,7 @@ class ReferenceService(SilvaService):
     """
     meta_type = 'Silva Reference Service'
     grok.name('service_reference')
-    grok.implements(IReferenceService)
+    grok.implements(IReferenceService, ISilvaConfigurableService)
     silvaconf.default_service(setup=configure_service)
     silvaconf.icon('service.png')
 
@@ -169,7 +175,8 @@ class ReferenceService(SilvaService):
                 factory=reference.__class__)
 
 
-class ListBrokenReference(silvaviews.ZMIView):
+class ZMIListBrokenReference(silvaviews.ZMIView):
+    grok.context(ReferenceService)
     grok.name('manage_brokenreferences')
 
     def update(self):
@@ -177,6 +184,50 @@ class ListBrokenReference(silvaviews.ZMIView):
                 {'target_id': 0}))
         self.broken_sources = list(self.context.catalog.findRelations(
                 {'source_id': 0}))
+
+
+class SMIBrokenReference(object):
+
+    def __init__(self, page, reference, content):
+        if IVersion.providedBy(content):
+            self.content = content.get_silva_object()
+            self.title = u'{} (version {})'.format(
+                self.content.get_title_or_id(),
+                content.getId())
+        else:
+            self.content = content
+            self.title = self.content.get_title_or_id()
+        self.icon = page.get_icon(self.content)
+        self.path = page.get_content_path(self.content)
+        self.tags = reference.tags
+
+
+class SMIListBrokenReference(rest.PageWithTemplateREST):
+    grok.adapts(rest.Screen, ReferenceService)
+    grok.name('admin')
+    grok.require('zope2.ViewManagementScreens')
+
+    def get_menu_title(self):
+        return _("Broken references")
+
+    def update(self):
+        self.get_icon = IIconResolver(self.request).get_tag
+        self.broken_targets = batch.Batch(
+            list(self.context.catalog.findRelations({'target_id': 0})),
+            name='targets',
+            count=25,
+            factory=lambda r: SMIBrokenReference(self, r, r.source),
+            request=self.request)
+        self.targets_batch = getMultiAdapter(
+            (self, self.broken_targets, self.request), batch.IBatching)()
+        self.broken_sources = batch.Batch(
+            list(self.context.catalog.findRelations({'source_id': 0})),
+            name='sources',
+            count=25,
+            factory=lambda r: SMIBrokenReference(self, r, r.target),
+            request=self.request)
+        self.sources_batch = getMultiAdapter(
+            (self, self.broken_sources, self.request), batch.IBatching)()
 
 
 class ReferenceGraph(silvaviews.ZMIView):
@@ -190,8 +241,7 @@ class ReferenceGraph(silvaviews.ZMIView):
             root = root.restrictedTraverse(only_in)
 
         self.response.setHeader('Content-Type', 'text/vnd.graphviz')
-        grapher = component.getMultiAdapter(
-            (root, self.request), IReferenceGrapher)
+        grapher = getMultiAdapter((root, self.request), IReferenceGrapher)
         grapher.dot(self.response)
         return ''
 
@@ -200,7 +250,7 @@ class ReferenceGraph(silvaviews.ZMIView):
 def clone_reference(content, event):
     """Clone object references when the object is cloned.
     """
-    service = component.queryUtility(IReferenceService)
+    service = queryUtility(IReferenceService)
     if service is not None:
         # This event is called for all content contained in
         # event.object. We need to find the corresponding original
