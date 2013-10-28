@@ -1,4 +1,4 @@
-<tal:configuration i18n:domain="silva">
+<div class="form-fields-container" i18n:domain="silva">
   <div class="form-head">
     <h3 i18n:translate="">
       Broken references
@@ -34,4 +34,14 @@
       <tal:batch tal:content="structure rest.sources_batch" />
     </div>
   </div>
-</tal:configuration>
+  <div class="form-footer">
+    <div class="form-controls">
+      <a class="form-button open-screen" rel="admin" href="."
+         data-form-shortcut="ctrl+z" title="Go back to the site preferences"
+         i18n:attributes="title">
+        <ins class="ui-icon ui-icon-arrowreturnthick-1-w"></ins>
+        Cancel
+      </a>
+    </div>
+  </div>
+</div>
