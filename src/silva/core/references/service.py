@@ -202,7 +202,7 @@ class SMIBrokenReference(object):
         self.tags = reference.tags
 
 
-class SMIListBrokenReference(rest.PageWithTemplateREST):
+class SMIListBrokenReference(rest.FormWithTemplateREST):
     grok.adapts(rest.Screen, ReferenceService)
     grok.name('admin')
     grok.require('zope2.ViewManagementScreens')
