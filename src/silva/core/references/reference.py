@@ -106,7 +106,7 @@ class ReferenceValue(TaggedRelationValue):
             return []
         return relative_path(
             content.getPhysicalPath(),
-            self.target.getPhysicalPath())
+            target.getPhysicalPath())
 
     def cleanup(self):
         """This method is called when the reference is removed. In any
