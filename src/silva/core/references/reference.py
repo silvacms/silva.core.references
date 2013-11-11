@@ -11,12 +11,14 @@ from dolmen.relations.events import IRelationTargetDeletedEvent
 from dolmen.relations.events import RelationModifiedEvent
 from dolmen.relations.values import TaggedRelationValue
 from five import grok
-from zope import component, interface, schema
+from zope import schema
+from zope.component import getUtility
 from zope.event import notify
 from zope.intid.interfaces import IIntIds
 
 from silva.core.interfaces import IContainerManager
 from silva.core.interfaces import IReferable
+from silva.core.services.delayed import Task
 
 from .utils import is_inside_container
 from .utils import relative_path
@@ -25,31 +27,46 @@ from .interfaces import IWeakReferenceValue, IDeleteSourceReferenceValue
 from .interfaces import IReference, IReferenceService
 
 
+class ResolverTask(Task):
+
+    def __init__(self):
+        service = getUtility(IIntIds)
+        self._get_identifier = service.register
+        self._get_content = service.getObject
+
+    def get_content_id(self, content):
+        if content is None:
+            return 0
+        return self._get_identifier(content)
+
+    def get_content_from_id(self, content_id):
+        if content_id == 0:
+            return None
+        try:
+            return self._get_content(content_id)
+        except KeyError:
+            return None
+
+    def copy(self):
+        return ResolverTask()
+
+
 def get_content_id(content):
     """Return the ID of a content.
     """
-    if content is None:
-        return 0
-    utility = component.getUtility(IIntIds)
-    return utility.register(content)
+    return ResolverTask.get().get_content_id(content)
 
 
 def get_content_from_id(content_id):
     """Return a content from its ID.
     """
-    if content_id == 0:
-        return None
-    utility = component.getUtility(IIntIds)
-    try:
-        return utility.getObject(int(content_id))
-    except KeyError:
-        return None
+    return ResolverTask.get().get_content_from_id(content_id)
 
 
 class Reference(schema.Object):
     """Store a reference to an object.
     """
-    interface.implements(IReference)
+    grok.implements(IReference)
 
     missing_value = None
     multiple = False
@@ -68,7 +85,7 @@ class Reference(schema.Object):
 class ReferenceValue(TaggedRelationValue):
     """Store a reference information.
     """
-    interface.implements(IReferenceValue)
+    grok.implements(IReferenceValue)
 
     security = ClassSecurityInfo()
     security.declareProtected('View', 'target')
@@ -154,7 +171,7 @@ class ReferenceSet(object):
         self._source = source
         self._factory = factory
         self._name = unicode(name)
-        self._service = component.getUtility(IReferenceService)
+        self._service = getUtility(IReferenceService)
 
     def get_references(self):
         return self._service.get_references_from(

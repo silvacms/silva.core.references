@@ -135,12 +135,12 @@ class ReferenceValidator(Validator):
 
         def convert(identifier):
             try:
-                content =  get_content_from_id(identifier)
-                if ISilvaObject.providedBy(content):
-                    return content
-                return None
+                content =  get_content_from_id(int(identifier))
             except ValueError:
                 self.raise_error('invalid_value', field)
+            if ISilvaObject.providedBy(content):
+                return content
+            return None
 
         if value:
             if multiple:
