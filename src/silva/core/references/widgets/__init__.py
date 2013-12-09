@@ -11,6 +11,7 @@ from silva.core.references.reference import get_content_from_id
 from silva.core.references.reference import get_content_id
 from silva.core.views.interfaces import IVirtualSite
 from silva.ui.interfaces import ISilvaUI
+from silva.ui.rest.helper import UIHelper
 from silva.translations import translate as _
 
 
@@ -35,6 +36,15 @@ def get_lookup_content(content):
 _marker = object()
 
 
+class ReferencePathResolver(UIHelper):
+    # UIHelper uses super, as it was intended to use as a
+    # mixing. However it is not here.
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+
 class ReferenceInfoResolver(object):
     """This resolve information about a reference and set them on an
     object.
@@ -48,11 +58,9 @@ class ReferenceInfoResolver(object):
         self.request = request
         self.multiple = multiple
         self.message = message
-        self.get_icon_tag = IIconResolver(self.request).get_tag
-        self.root_path = IVirtualSite(self.request).get_root_path()
-
-    def get_content_path(self, content):
-        return content.absolute_url_path()[len(self.root_path):] or '/'
+        self.get_icon_tag = IIconResolver(request).get_tag
+        self.get_content_path = ReferencePathResolver(
+            context, request).get_content_path
 
     def set_lookup_url(self, content):
         self.widget.context_lookup_url = absoluteURL(

@@ -7,7 +7,7 @@
      title="Edit item" tabindex="-1"
      id="#" href="#"
      tal:attributes="id string:${id}-edit-link;
-                     style widget.value_path or 'display: none';
+                     style None if widget.value_path else 'display: none';
                      href widget.value_path"
      i18n:attributes="title">
   </a>
