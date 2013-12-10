@@ -27,11 +27,11 @@ Usage
 This extension is used to manage links and relations in Silva
 Document, Silva Ghost and Silva Link for instance.
 
-.. _zeam.form: http://pypi.python.org/pypi/zeam.form.base
-.. _Silva: http://silvacms.org/
-
 Code repository
 ===============
 
-The code for this extension can be found in Mercurial at:
-https://hg.infrae.com/silva.core.references.
+The code for this extension can be found in Git at:
+https://github.com/silvacms/silva.core.references
+
+.. _zeam.form: http://pypi.python.org/pypi/zeam.form.base
+.. _Silva: http://silvacms.org/

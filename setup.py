@@ -13,7 +13,7 @@ tests_require = [
 
 setup(name='silva.core.references',
       version=version,
-      description="Define a references engine usable by Silva content",
+      description="Define a reference engine usable by Silva content",
       long_description=open("README.txt").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
@@ -25,7 +25,7 @@ setup(name='silva.core.references',
       keywords='silva cms references zope',
       author='Infrae',
       author_email='info@infrae.com',
-      url='http://infrae.com/products/silva',
+      url='https://github.com/silvacms/silva.core.references',
       license='BSD',
       package_dir={'': 'src'},
       packages=find_packages('src'),
