@@ -1,0 +1,6 @@
+*.pyc
+*.pyo
+*.cpt.py
+*~
+*#
+*.egg-info
