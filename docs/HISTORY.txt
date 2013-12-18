@@ -1,10 +1,17 @@
 Changes
 =======
 
-3.0.4 (unreleased)
+3.0.4 (2013/12/18)
 ------------------
 
-- ...
+- Display the list of broken references in SMI as well.
+
+- Improve a little the performances.
+
+- Fix the reference lookup widget that could display an invalid edit
+  link to the original content in complicated virtual host setup.
+
+- Update icons.
 
 3.0.3 (2013/08/26)
 ------------------
