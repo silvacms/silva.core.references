@@ -9,7 +9,7 @@
       There are no broken references.
     </p>
 
-    <div tal:condition="rest.broken_targets"
+    <div class="ui-helper-clearfix" tal:condition="rest.broken_targets"
          tal:define="references rest.broken_targets">
       <p i18n:translate="">The following content contains broken references:</p>
       <ul metal:define-macro="list_references">
@@ -27,7 +27,7 @@
       <tal:batch tal:content="structure rest.targets_batch" />
     </div>
 
-    <div tal:condition="rest.broken_sources"
+    <div class="ui-helper-clearfix" tal:condition="rest.broken_sources"
          tal:define="references rest.broken_sources">
       <p i18n:translate="">The following content are used by broken content:</p>
       <ul metal:use-macro="path:template/macros/list_references" />
